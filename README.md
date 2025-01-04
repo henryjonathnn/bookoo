@@ -21,10 +21,10 @@
 - Data export capabilities
 
 ## Tech Stack
-- **Frontend**: React, Tailwind CSS, Vite
-- **Backend**: Node.js, Express
-- **Database**: MongoDB
-- **Authentication**: JWT
+<p>
+  <img src="https://skillicons.dev/icons?i=mongodb,express,react,nodejs,vite,tailwind&perline=7" />
+</p>
+
 
 ## Quick Start
 
