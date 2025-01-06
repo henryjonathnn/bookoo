@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import Typewriter from 'typewriter-effect/dist/core';
 import '../App.css'
+import gambarHero from '../assets/hero.png';
 
 export default function Home() {
     useEffect(() => {
@@ -105,7 +106,7 @@ export default function Home() {
                     <div className="relative rounded-3xl overflow-hidden">
                         <div className="absolute top-0 right-0 w-1/2 h-full">
                             <div className="absolute inset-0 via-transparent to-transparent z-10"></div>
-                            <img src="/api/placeholder/800/600" alt="Books" className="w-full h-full object-contain object-right" />
+                            <img src={gambarHero} alt="Books" className="w-full h-full object-contain object-right" />
                         </div>
                         <div className="relative z-20 p-16 max-w-2xl">
                             <span className="px-4 py-2 rounded-full bg-purple-500/20 text-purple-400 text-sm font-medium mb-6 inline-block">
