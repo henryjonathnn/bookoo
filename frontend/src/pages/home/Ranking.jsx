@@ -1,5 +1,5 @@
 import React from 'react'
-import Cover from '../../assets/cover.jpg'
+import Cover from '/assets/books/cover.jpg'
 
 const Ranking = () => {
     return (

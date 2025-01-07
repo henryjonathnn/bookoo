@@ -1,7 +1,7 @@
 import React from 'react'
 import { Bookmark } from 'react-feather'
-import Cover from '../../assets/cover.jpg'
-import Author from '../../assets/author.jpg'
+import Cover from '/assets/books/cover.jpg'
+import Author from '/assets/author.jpg'
 
 const Favorit = () => {
     return (
@@ -11,8 +11,8 @@ const Favorit = () => {
                     <div>
                         <div className="flex items-center space-x-3">
                             <h2 className="text-3xl font-bold">Paling Favorit</h2>
-                            <span className="flex items-center space-x-1 px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-sm">
-                                <span className="h-2 w-2 bg-red-400 rounded-full animate-pulse"></span>
+                            <span className="flex items-center space-x-1 px-3 py-1 rounded-full bg-purple-500/20 text-purple-400 text-sm">
+                                <span className="h-2 w-2 bg-purple-400 rounded-full animate-pulse"></span>
                                 <span>Favorit</span>
                             </span>
                         </div>
