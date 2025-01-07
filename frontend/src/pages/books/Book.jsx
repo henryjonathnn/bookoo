@@ -4,11 +4,11 @@ import Typewriter from 'typewriter-effect/dist/core';
 import '../../App.css'
 
 // Lazy load components
-const Trending = lazy(() => import('./Trending'));
-const Favorit = lazy(() => import('./Favorit'));
-const Hero = lazy(() => import('./Hero'));
-const Penulis = lazy(() => import('./Penulis'));
-const Ranking = lazy(() => import('./Ranking'));
+const Trending = lazy(() => import('../home/Trending'));
+const Favorit = lazy(() => import('../home/Favorit'));
+const Hero = lazy(() => import('../home/Hero'));
+const Penulis = lazy(() => import('../home/Penulis'));
+const Ranking = lazy(() => import('../home/Ranking'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -18,7 +18,7 @@ const LoadingFallback = () => (
 );
 
 // Memoized Home component
-const Home = memo(() => {
+const Book = memo(() => {
     useEffect(() => {
         // Debounced typewriter initialization
         let typewriterInstance = null;
@@ -66,26 +66,14 @@ const Home = memo(() => {
     }, []);
 
     return (
-        <main>
-            <Suspense fallback={<LoadingFallback />}>
-                <Hero />
-            </Suspense>
+        <main className='pt-32'>
             <Suspense fallback={<LoadingFallback />}>
                 <Trending />
-            </Suspense>
-            <Suspense fallback={<LoadingFallback />}>
-                <Favorit />
-            </Suspense>
-            <Suspense fallback={<LoadingFallback />}>
-                <Penulis />
-            </Suspense>
-            <Suspense fallback={<LoadingFallback />}>
-                <Ranking />
             </Suspense>
         </main>
     );
 });
 
-Home.displayName = 'Home';
+Book.displayName = 'Book';
 
-export default Home;
+export default Book;

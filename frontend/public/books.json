@@ -11,59 +11,58 @@
         "category": "Romance",
         "totalBooks": 50,
         "rating": 4.8,
-        "isTrending": true
+        "peminjam": 2000
       },
       {
         "id": 2,
         "title": "Laskar Pelangi",
         "author": {
           "name": "Andrea Hirata",
-          "image": "/assets/author.jpg"
+          "image": "author.jpg"
         },
         "cover": "bumi-manusia.jpg",
         "category": "Pendidikan",
         "totalBooks": 45,
         "rating": 4.9,
-        "isTrending": true
+        "peminjam": 1000
       },
       {
         "id": 3,
         "title": "Bumi Manusia",
         "author": {
           "name": "Pramoedya Ananta Toer",
-          "image": "/assets/author.jpg"
+          "image": "author.jpg"
         },
         "cover": "bumi-manusia.jpg",
         "category": "Action",
         "totalBooks": 38,
         "rating": 4.7,
-        "isTrending": true
+        "peminjam": 600
       },
       {
         "id": 4,
         "title": "Rentang Kisah",
         "author": {
           "name": "Gita Savitri Devi",
-          "image": "/assets/author.jpg"
+          "image": "author.jpg"
         },
-        "cover": "/assets/cover.jpg",
+        "cover": "cover.jpg",
         "category": "Romance",
         "totalBooks": 42,
         "rating": 4.6,
-        "isTrending": true
+        "peminjam": 3000
       },
       {
         "id": 5,
         "title": "Koala Kumal",
         "author": {
           "name": "Raditya Dika",
-          "image": "/assets/author.jpg"
+          "image": "author.jpg"
         },
-        "cover": "/assets/cover.jpg",
+        "cover": "cover.jpg",
         "category": "Komedi",
         "totalBooks": 35,
-        "rating": 4.5,
-        "isTrending": false
+        "rating": 4.5
       },
       {
         "id": 6,
@@ -76,7 +75,7 @@
         "category": "Horror",
         "totalBooks": 40,
         "rating": 4.4,
-        "isTrending": false
+        "peminjam": 300
       }
     ]
   }

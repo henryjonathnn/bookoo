@@ -1,6 +1,6 @@
 import React from 'react'
 import { Check } from 'react-feather'
-import Author from '/assets/author.jpg'
+import Author from '/assets/author/author.jpg'
 
 const Penulis = () => {
     return (

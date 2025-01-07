@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom"
 
 import App from "../App"
 import Home from "../pages/home/Home"
+import Book from "../pages/books/Book"
 
 const router = createBrowserRouter([
     {
@@ -14,7 +15,7 @@ const router = createBrowserRouter([
             },
             {
                 path: "/buku",
-                element: <div>Buku</div>
+                element: <Book />
             },
             {
                 path: "/riwayat",
