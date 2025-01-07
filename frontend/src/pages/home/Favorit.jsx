@@ -1,4 +1,7 @@
 import React from 'react'
+import { Bookmark } from 'react-feather'
+import Cover from '../../assets/cover.jpg'
+import Author from '../../assets/author.jpg'
 
 const Favorit = () => {
     return (
@@ -7,10 +10,10 @@ const Favorit = () => {
                 <div className="flex justify-between items-center mb-8">
                     <div>
                         <div className="flex items-center space-x-3">
-                            <h2 className="text-3xl font-bold">Popular Now</h2>
+                            <h2 className="text-3xl font-bold">Paling Favorit</h2>
                             <span className="flex items-center space-x-1 px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-sm">
                                 <span className="h-2 w-2 bg-red-400 rounded-full animate-pulse"></span>
-                                <span>Trending</span>
+                                <span>Favorit</span>
                             </span>
                         </div>
                         <p className="text-gray-400 mt-2">Most read books this week</p>
@@ -23,19 +26,19 @@ const Favorit = () => {
                     {[1, 2, 3, 4].map((index) => (
                         <div key={index} className="glass-effect rounded-2xl p-4 card-glow transition-all duration-300 hover:-translate-y-2 border border-purple-500/10">
                             <div className="relative">
-                                <img src="/api/placeholder/400/300" alt="Book Cover" className="w-full h-64 rounded-xl object-cover mb-4" />
-                                <div className="absolute inset-0 flex justify-between items-start p-6">
+                                <img src={Cover} alt="Book Cover" className="w-full h-64 rounded-xl object-cover mb-4" />
+                                <div className="absolute inset-0 flex justify-between items-start p-3">
                                     <div className="glass-effect rounded-full px-4 py-2 text-sm border border-purple-500/10">
                                         Bestseller
                                     </div>
                                     <button className="p-2 glass-effect rounded-full hover:bg-purple-500/20 transition-all duration-300 border border-purple-500/10">
-                                        <i data-feather="bookmark" className="h-5 w-5 text-purple-400"></i>
+                                        <Bookmark size={20} className='text-purple-400'/>
                                     </button>
                                 </div>
                             </div>
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center">
-                                    <img src="/api/placeholder/32/32" alt="Author" className="w-8 h-8 rounded-full border-2 border-purple-500" />
+                                    <img src={Author} alt="Author" className="w-8 h-8 rounded-full border-2 border-purple-500" />
                                     <div className="ml-3">
                                         <h3 className="font-medium">Dilan 1991</h3>
                                         <p className="text-gray-400 text-sm">by Pidi Baiq</p>

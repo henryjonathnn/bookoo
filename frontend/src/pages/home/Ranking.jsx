@@ -1,4 +1,5 @@
 import React from 'react'
+import Cover from '../../assets/cover.jpg'
 
 const Ranking = () => {
     return (
@@ -25,7 +26,7 @@ const Ranking = () => {
                         <div className="grid grid-cols-7 gap-4 p-4 items-center hover:bg-purple-500/5 transition-colors">
                             <div className="col-span-3 flex items-center space-x-4">
                                 <span className="text-lg font-medium text-purple-400">#1</span>
-                                <img src="/api/placeholder/48/48" alt="Collection" className="w-12 h-12 rounded-xl" />
+                                <img src={Cover} alt="Collection" className="w-12 h-12 rounded-xl" />
                                 <div>
                                     <h3 className="font-medium">Dilan 1991</h3>
                                     <p className="text-gray-400 text-sm">2014</p>

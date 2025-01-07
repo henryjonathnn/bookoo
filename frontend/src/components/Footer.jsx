@@ -1,5 +1,5 @@
 import React from 'react'
-import { Twitter, Facebook, Instagram, GitHub, Youtube } from 'react-feather';
+import { Twitter, Facebook, Instagram, GitHub, Youtube, Book } from 'react-feather';
 
 
 const Footer = () => {
@@ -13,7 +13,7 @@ const Footer = () => {
                                 <div
                                     className="h-8 w-8 bg-gradient-to-br from-purple-600 via-purple-500 to-indigo-600 rounded-lg flex items-center justify-center purple-glow"
                                 >
-                                    <i data-feather="book" className="h-4 w-4 text-white"></i>
+                                    <Book size={16} />
                                 </div>
                                 <span className="text-sm text-gray-400">© 2025 BooKoo Digital Library</span>
                             </div>

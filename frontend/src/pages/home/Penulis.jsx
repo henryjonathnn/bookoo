@@ -1,4 +1,6 @@
 import React from 'react'
+import { Check } from 'react-feather'
+import Author from '../../assets/author.jpg'
 
 const Penulis = () => {
     return (
@@ -19,9 +21,9 @@ const Penulis = () => {
                     {[1, 2, 3, 4].map((index) => (
                         <div key={index} className="glass-effect rounded-2xl p-6 card-glow transition-all duration-300 hover:-translate-y-2 border border-purple-500/10">
                             <div className="relative w-20 h-20 mx-auto mb-4">
-                                <img src="/api/placeholder/80/80" alt="Author" className="w-full h-full rounded-full object-cover border-2 border-purple-500" />
+                                <img src={Author} alt="Author" className="w-full h-full rounded-full object-cover border-2 border-purple-500" />
                                 <div className="absolute -bottom-2 -right-2 bg-purple-500 rounded-full p-2">
-                                    <i data-feather="check" className="h-4 w-4"></i>
+                                    <Check size={16} />
                                 </div>
                             </div>
                             <div className="text-center mb-4">
