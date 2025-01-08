@@ -13,6 +13,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// model Buku {
-
-// }
+model Buku {
+  id Int @id @default(autoincrement())
+  judul String
+  createdAt DateTime @default(now()) 
+}
