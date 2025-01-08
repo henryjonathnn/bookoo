@@ -14,7 +14,7 @@ const Navbar = () => {
                             <Search className="absolute left-4 top-3.5 h-5 w-5 text-gray-500" />
                             <input
                                 type="text"
-                                placeholder="Search books, authors, or genres"
+                                placeholder="Cari buku, penulis, atau genre.."
                                 className="w-full bg-[#1A1A2E] rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500/50 border border-purple-500/10"
                             />
                         </div>

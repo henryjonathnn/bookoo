@@ -11,7 +11,7 @@
         "category": "Romance",
         "totalBooks": 50,
         "rating": 4.8,
-        "peminjam": 2000
+        "peminjam": 3000
       },
       {
         "id": 2,
@@ -49,7 +49,7 @@
         "cover": "cover.jpg",
         "category": "Romance",
         "totalBooks": 42,
-        "rating": 4.6,
+        "rating": 4.9,
         "peminjam": 3000
       },
       {

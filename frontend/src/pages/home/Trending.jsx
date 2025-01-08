@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Bookmark, X } from 'react-feather';
 import Modal from '../../components/ui/Modal';
-import TrendingModal from './TrendingModal';
+import TrendingModal from '../../components/home/TrendingModal';
 
 const Trending = () => {
     const [books, setBooks] = useState([]);
@@ -15,10 +15,10 @@ const Trending = () => {
             .then((data) => {
                 // Sort books by rating and peminjam in descending order
                 const sortedBooks = [...data.books].sort((a, b) => {
-                    if (b.rating === a.rating) {
-                        return b.peminjam - a.peminjam; // Prioritize `peminjam` if ratings are equal
+                    if (b.peminjam === a.peminjam) {
+                        return b.rating - a.rating; // Prioritize `peminjam` if ratings are equal
                     }
-                    return b.rating - a.rating; // Sort by rating first
+                    return b.peminjam - a.peminjam; // Sort by rating first
                 });
 
                 setBooks(sortedBooks);
@@ -67,8 +67,8 @@ const Trending = () => {
                         <p className="font-medium">{book.category}</p>
                     </div>
                     <div className="text-right">
-                        <p className="text-gray-400">Rating</p>
-                        <p className="font-medium">{book.rating}/5</p>
+                        <p className="text-gray-400">Peminjam</p>
+                        <p className="font-medium">{book.peminjam}</p>
                     </div>
                 </div>
             </div>
@@ -84,7 +84,7 @@ const Trending = () => {
                             <h2 className="text-3xl font-bold">Sedang Trending</h2>
                             <span className="flex items-center space-x-1 px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-sm">
                                 <span className="h-2 w-2 bg-red-400 rounded-full animate-pulse"></span>
-                                <span>Favorit</span>
+                                <span>Trending</span>
                             </span>
                         </div>
                         <p className="text-gray-400 mt-2">Popular book collections curated for you</p>
