@@ -45,9 +45,9 @@ const Sidebar = () => {
                     <Clock />
                 </Link>
                 <Link
-                    to="#"
+                    to="/bookmark"
                     className={`p-3 rounded-xl transition-all duration-300 ${
-                        currentPath === "#"
+                        currentPath === "/bookmark"
                             ? "p-3 rounded-xl bg-purple-500/20 text-purple-400 transition-all duration-300"
                             : "hover:bg-purple-500/10 text-gray-400 hover:text-purple-400"
                     }`}
