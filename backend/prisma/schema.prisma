@@ -62,7 +62,7 @@ model User {
   handledPeminjaman Peminjaman[] @relation("StaffHandled") // staff yang menangani peminjaman
   bookmarks         Bookmark[]
   suka              Suka[]
-  ratings           Rating[]
+  rating            Rating[]
   notifikasi        Notifikasi[]
 
   @@index([role])
@@ -111,8 +111,7 @@ model Peminjaman {
   user  User  @relation("PeminjamanUser", fields: [UserId], references: [id])
   buku  Buku  @relation(fields: [bukuId], references: [id])
   staff User? @relation("StaffHandled", fields: [staffId], references: [id])
-  notifikasi Notifikasi[
-  ]
+  notifikasi Notifikasi[]
 
   @@index([status])
   @@index([tglKembali])
@@ -137,8 +136,43 @@ model Suka {
   bukuId    Int
   createdAt DateTime @default(now())
 
+  // RELASI
   user User @relation(fields: [userId], references: [id])
   buku Buku @relation(fields: [bukuId], references: [id])
 
   @@unique([userId, bukuId])
+}
+
+model Rating {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  bukuId    Int
+  rating    Decimal  @db.Decimal(2, 1)
+  komentar  String?  @db.Text
+  photoUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // RELASI
+  user User @relation(fields: [userId], references: [id])
+  buku Buku @relation(fields: [bukuId], references: [id])
+
+  @@unique([userId, bukuId])
+}
+
+model Notifikasi {
+  id Int @id @default(autoincrement())
+  userId Int
+  peminjamanId Int
+  message String @db.Text
+  tipe TipeNotifikasi
+  isRead Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  // RELASI
+  user User @relation(fields: [userId], references: [id])
+  peminjaman Peminjaman @relation(fields: [peminjamanId], references: [id])
+
+  @@index([userId])
+  @@index([tipe])
 }
