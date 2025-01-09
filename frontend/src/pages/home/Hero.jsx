@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { Link } from 'react-router-dom';
 
 const Hero = memo(() => {
   return (
@@ -30,12 +31,12 @@ const Hero = memo(() => {
             Akses ribuan buku-buku menarik dari penulis terkenal dan penerbit di seluruh dunia.
           </p>
           <div className="flex items-center space-x-6">
-            <button className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl font-medium hover:opacity-90 transition-all duration-300">
+            <Link to='/buku' className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl font-medium hover:opacity-90 transition-all duration-300">
               Lihat Buku Trending
-            </button>
-            <button className="px-8 py-4 bg-purple-500/10 rounded-xl font-medium hover:bg-purple-500/20 transition-all duration-300 border border-purple-500/20">
+            </Link>
+            <Link to='/' className="px-8 py-4 bg-purple-500/10 rounded-xl font-medium hover:bg-purple-500/20 transition-all duration-300 border border-purple-500/20">
               Lihat Semua Buku
-            </button>
+            </Link>
           </div>
           <Stats />
         </div>
@@ -44,7 +45,7 @@ const Hero = memo(() => {
   );
 });
 
-// Extracted Stats component to prevent unnecessary re-renders
+
 const Stats = memo(() => (
   <div className="flex items-center space-x-12 mt-12">
     <StatItem count="100k+" label="Koleksi Buku" />
@@ -53,7 +54,6 @@ const Stats = memo(() => (
   </div>
 ));
 
-// Further component extraction for better performance
 const StatItem = memo(({ count, label }) => (
   <div>
     <p className="text-3xl font-bold mb-1">{count}</p>
