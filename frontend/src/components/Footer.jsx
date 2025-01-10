@@ -15,7 +15,7 @@ const Footer = () => {
                                 >
                                     <Book size={16} />
                                 </div>
-                                <span className="text-sm text-gray-400">© 2025 BooKoo Digital Library</span>
+                                <span className="text-sm text-gray-400">© 2025 BooKoo Digital Library by  <span className='bg-purple-700/20 text-purple-300 p-2 rounded-lg shadow-lg'> Hyura Dev</span></span>
                             </div>
 
                             <nav className="flex items-center space-x-6">
@@ -27,13 +27,13 @@ const Footer = () => {
                             </nav>
 
                             <div className="flex items-center space-x-4">
-                                <a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">
+                                <a href="https://github.com/henryjonathnn" target='_blank' className="text-gray-400 hover:text-purple-400 transition-colors">
                                     <GitHub size={16} />
                                 </a>
-                                <a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">
+                                <a href="https://instagram.com/henryjonathnn" target='_blank' className="text-gray-400 hover:text-purple-400 transition-colors">
                                     <Instagram size={16} />
                                 </a>
-                                <a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">
+                                <a href="https://www.youtube.com/@henryjonathnn" target='_blank' className="text-gray-400 hover:text-purple-400 transition-colors">
                                     <Youtube size={16} />
                                 </a>
                             </div>

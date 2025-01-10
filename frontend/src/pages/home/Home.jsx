@@ -44,7 +44,7 @@ const Home = () => {
         <Hero />
         <BookSection
           title="Sedang Trending"
-          subtitle="Popular book collections curated for you"
+          subtitle="Top buku trending minggu ini"
           badgeText="Trending"
           badgeColor="red"
           sortType={SORT_TYPES.TRENDING}
@@ -53,7 +53,7 @@ const Home = () => {
         />
         <BookSection
           title="Buku Terfavorit"
-          subtitle="Popular book collections curated for you"
+          subtitle="Top buku terfavorit minggu ini"
           badgeText="Favorit"
           badgeColor="purple"
           sortType={SORT_TYPES.FAVORITE}
