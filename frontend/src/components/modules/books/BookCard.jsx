@@ -1,11 +1,14 @@
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 import { Bookmark } from 'react-feather';
 import ImageLoader from '../../ImageLoader';
 
-const BookCard = memo(({ book, isBookmarked, onToggleBookmark, showRating, rightLabel }) => {
-  const [coverLoaded, setCoverLoaded] = useState(false);
-  const [authorLoaded, setAuthorLoaded] = useState(false);
-
+const BookCard = memo(({ 
+  book, 
+  isBookmarked = false, 
+  onToggleBookmark = () => {}, 
+  showRating = false, 
+  rightLabel 
+}) => {
   const coverImg = `/assets/books/${book.cover}`;
   const authorImg = `/assets/author/${book.author.image}`;
 
@@ -16,10 +19,8 @@ const BookCard = memo(({ book, isBookmarked, onToggleBookmark, showRating, right
     return book.peminjam?.toLocaleString() || '0';
   };
 
-  const isFullyLoaded = coverLoaded && authorLoaded;
-
   return (
-    <div className={`glass-effect rounded-2xl p-4 card-glow border border-purple-500/10 transition-all duration-300 ${isFullyLoaded ? 'hover:-translate-y-2' : ''}`}>
+    <div className="glass-effect rounded-2xl p-4 card-glow border border-purple-500/10 transition-all duration-300 hover:-translate-y-2">
       <div className="relative">
         <ImageLoader
           src={coverImg}
@@ -28,7 +29,6 @@ const BookCard = memo(({ book, isBookmarked, onToggleBookmark, showRating, right
           width={400}
           height={300}
           priority={true}
-          onLoad={() => setCoverLoaded(true)}
         />
         <button
           onClick={() => onToggleBookmark(book.id)}
@@ -50,7 +50,6 @@ const BookCard = memo(({ book, isBookmarked, onToggleBookmark, showRating, right
               className="w-full h-full object-cover"
               width={32}
               height={32}
-              onLoad={() => setAuthorLoaded(true)}
             />
           </div>
           <div className="ml-3 min-w-0">
@@ -75,5 +74,4 @@ const BookCard = memo(({ book, isBookmarked, onToggleBookmark, showRating, right
 });
 
 BookCard.displayName = 'BookCard';
-
 export default BookCard;
