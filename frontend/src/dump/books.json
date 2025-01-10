@@ -69,13 +69,26 @@
         "title": "Danur",
         "author": {
           "name": "Risa Saraswati",
-          "image": "/assets/author.jpg"
+          "image": "author.jpg"
         },
-        "cover": "/assets/cover.jpg",
+        "cover": "cover.jpg",
         "category": "Horror",
         "totalBooks": 40,
         "rating": 4.4,
         "peminjam": 300
+      },
+      {
+        "id": 7,
+        "title": "Manusia Setengah Salmon",
+        "author": {
+          "name": "Raditya Dika",
+          "image": "author.jpg"
+        },
+        "cover": "cover.jpg",
+        "category": "Horror",
+        "totalBooks": 403,
+        "rating": 4.8,
+        "peminjam": 400
       }
     ]
   }

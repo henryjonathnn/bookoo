@@ -47,6 +47,7 @@ const SectionHeader = memo(({
   );
 });
 
+
 const BookSection = memo(({ 
   title, 
   subtitle, 
@@ -120,7 +121,6 @@ const BookSection = memo(({
       <div className="grid grid-cols-4 gap-6">
         {books.slice(0, 4).map((book) => (
           <BookCard
-            key={book.id}
             book={book}
             isBookmarked={bookmarks[book.id]}
             onToggleBookmark={toggleBookmark}
