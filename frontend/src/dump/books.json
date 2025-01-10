@@ -7,7 +7,7 @@
           "name": "Pidi Baiq",
           "image": "author.jpg"
         },
-        "cover": "cover.jpg",
+        "cover": "dilan.jpg",
         "category": "Romance",
         "totalBooks": 50,
         "rating": 4.8,
@@ -20,7 +20,7 @@
           "name": "Andrea Hirata",
           "image": "author.jpg"
         },
-        "cover": "bumi-manusia.jpg",
+        "cover": "laskar-pelangi.png",
         "category": "Pendidikan",
         "totalBooks": 45,
         "rating": 4.9,
@@ -33,7 +33,7 @@
           "name": "Pramoedya Ananta Toer",
           "image": "author.jpg"
         },
-        "cover": "bumi-manusia.jpg",
+        "cover": "bumi-manusia.png",
         "category": "Action",
         "totalBooks": 38,
         "rating": 4.7,
@@ -46,7 +46,7 @@
           "name": "Gita Savitri Devi",
           "image": "author.jpg"
         },
-        "cover": "cover.jpg",
+        "cover": "rentang-kasih.png",
         "category": "Romance",
         "totalBooks": 42,
         "rating": 4.9,
@@ -59,7 +59,7 @@
           "name": "Raditya Dika",
           "image": "author.jpg"
         },
-        "cover": "cover.jpg",
+        "cover": "koala-kumal.png",
         "category": "Komedi",
         "totalBooks": 35,
         "rating": 4.5,
@@ -67,13 +67,13 @@
       },
       {
         "id": 6,
-        "title": "Danur",
+        "title": "Ancika",
         "author": {
-          "name": "Risa Saraswati",
+          "name": "Pidi Baiq",
           "image": "author.jpg"
         },
-        "cover": "cover.jpg",
-        "category": "Horror",
+        "cover": "ancika.png",
+        "category": "Romance",
         "totalBooks": 40,
         "rating": 4.4,
         "peminjam": 300
@@ -85,7 +85,7 @@
           "name": "Raditya Dika",
           "image": "author.jpg"
         },
-        "cover": "cover.jpg",
+        "cover": "manusia-setengah-salmon.png",
         "category": "Horror",
         "totalBooks": 403,
         "rating": 4.8,
