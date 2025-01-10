@@ -4,8 +4,6 @@ import Typewriter from 'typewriter-effect/dist/core';
 import '../../App.css'
 
 // Lazy load components
-const Trending = lazy(() => import('../home/Trending'));
-const Favorit = lazy(() => import('../home/Favorit'));
 const Hero = lazy(() => import('../home/Hero'));
 const Penulis = lazy(() => import('../home/Penulis'));
 const Ranking = lazy(() => import('../home/Ranking'));
@@ -68,7 +66,6 @@ const Book = memo(() => {
     return (
         <main className='pt-32'>
             <Suspense fallback={<LoadingFallback />}>
-                <Trending />
             </Suspense>
         </main>
     );

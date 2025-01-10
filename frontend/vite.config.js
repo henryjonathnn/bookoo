@@ -1,89 +1,64 @@
-// vite.config.js
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import compression from 'vite-plugin-compression';
 import { visualizer } from 'rollup-plugin-visualizer';
-import legacy from '@vitejs/plugin-legacy';
+import path from 'path';
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react({
-      // Enable fast refresh
       fastRefresh: true,
-      // Babel options for optimization
       babel: {
         plugins: [
           ['@babel/plugin-transform-runtime'],
-          // Remove console.log in production
+          process.env.NODE_ENV === 'production' && 
           ['transform-remove-console', { exclude: ['error', 'warn'] }]
-        ]
+        ].filter(Boolean)
       }
     }),
-    // Generate gzip files
+    // Compress only with gzip for Vercel
     compression({
       algorithm: 'gzip',
-      ext: '.gz'
+      ext: '.gz',
+      threshold: 10240 // Only compress files > 10KB
     }),
-    // Generate brotli files
-    compression({
-      algorithm: 'brotli',
-      ext: '.br'
-    }),
-    // Bundle size analyzer
-    visualizer({
-      open: false,
+    // Bundle analyzer - disabled in production
+    process.env.ANALYZE === 'true' && visualizer({
+      open: true,
       gzipSize: true,
       brotliSize: true
-    }),
-    // Legacy browsers support
-    legacy({
-      targets: ['defaults', 'not IE 11']
     })
-  ],
+  ].filter(Boolean),
+  
   build: {
-    target: 'esnext',
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
-      }
-    },
+    target: 'es2015', // Better browser compatibility
+    minify: 'esbuild', // Faster than terser
+    sourcemap: false, // Disable sourcemaps in production
+    chunkSizeWarningLimit: 1500,
     rollupOptions: {
       output: {
         manualChunks: {
-          // Split vendor chunks
           vendor: [
             'react',
             'react-dom',
             'react-router-dom'
-          ],
-          // Split features
-          features: [
-            './src/features/'
           ]
         },
-        // Optimize chunk size
-        chunkFileNames: 'assets/js/[name]-[hash].js',
-        entryFileNames: 'assets/js/[name]-[hash].js',
+        // Simpler naming pattern for better caching
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[ext]/[name]-[hash].[ext]'
       }
     },
-    // Enable source maps for production debugging
-    sourcemap: true,
-    // Reduce chunk size warnings limit
-    chunkSizeWarningLimit: 1000,
-    // Asset optimization
-    assetsInlineLimit: 4096,
-    // CSS optimization
+    assetsInlineLimit: 10240, // Inline assets < 10KB
     cssCodeSplit: true,
     cssMinify: true
   },
-  // Development server configuration
+
+  // Development server config (won't affect production)
   server: {
-    host: true,
     port: 3000,
-    // Enable HMR
     hmr: {
       overlay: true
     }
