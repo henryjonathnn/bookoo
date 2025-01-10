@@ -62,7 +62,8 @@
         "cover": "cover.jpg",
         "category": "Komedi",
         "totalBooks": 35,
-        "rating": 4.5
+        "rating": 4.5,
+        "peminjam": 20
       },
       {
         "id": 6,
