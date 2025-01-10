@@ -39,8 +39,8 @@ cd bookoo && npm install
 npm run dev
 ```
 
-## Documentation
-For detailed documentation, visit [coming soon](https://github.com/henryjonathnn/bookoo.git)
+## Try Demo
+Wanna try BooKoo demo version?, visit [BooKoo](https://bookoo-five.vercel.app/)
 
 
 ## Support
