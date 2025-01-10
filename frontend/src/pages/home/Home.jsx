@@ -1,91 +1,104 @@
-import React, { useEffect, lazy, Suspense } from 'react';
-import { memo } from 'react';
+import React, { useEffect, lazy, Suspense, memo } from 'react';
+import { useInView } from 'react-intersection-observer';
 import Typewriter from 'typewriter-effect/dist/core';
-import '../../App.css'
+import '../../App.css';
 
-// Lazy load components
-const Trending = lazy(() => import('./Trending'));
-const Favorit = lazy(() => import('./Favorit'));
+// Lazy load components with dynamic imports
 const Hero = lazy(() => import('./Hero'));
+const BookSection = lazy(() => import('../../components/modules/books/BookSection'));
 const Penulis = lazy(() => import('./Penulis'));
 const Ranking = lazy(() => import('./Ranking'));
 
-// Loading fallback component
-const LoadingFallback = () => (
-    <div className="w-full h-32 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+// Loading
+const LoadingFallback = memo(() => (
+  <div className="w-full h-96 animate-pulse">
+    <div className="w-full h-full bg-gray-800/50 rounded-2xl"></div>
+  </div>
+));
+
+
+const LazyComponent = memo(({ children }) => {
+  const { ref, inView } = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+
+  return (
+    <div ref={ref}>
+      {inView ? (
+        <Suspense fallback={<LoadingFallback />}>
+          {children}
+        </Suspense>
+      ) : (
+        <LoadingFallback />
+      )}
     </div>
-);
+  );
+});
 
-// Memoized Home component
 const Home = memo(() => {
-    useEffect(() => {
-        // Debounced typewriter initialization
-        let typewriterInstance = null;
-        const initTypewriter = () => {
-            const target = document.getElementById("dynamic-text");
-            if (!target) return;
+  useEffect(() => {
+    const initTypewriter = () => {
+      const target = document.getElementById("dynamic-text");
+      if (!target) return;
 
-            typewriterInstance = new Typewriter(target, {
-                loop: true,
-                delay: 85,
-                deleteSpeed: 35,
-                cursor: "|",
-                strings: ["buku favoritmu", "genre favoritmu", "penulis idolamu"],
-                pauseFor: 2000,
-                autoStart: true,
-            });
+      return new Typewriter(target, {
+        loop: true,
+        delay: 85,
+        deleteSpeed: 35,
+        cursor: "|",
+        strings: ["buku favoritmu", "genre favoritmu", "penulis idolamu"],
+        pauseFor: 2000,
+        autoStart: true,
+      });
+    };
 
-            typewriterInstance
-                .pauseFor(1000)
-                .typeString("buku favoritmu")
-                .pauseFor(2000)
-                .deleteAll(35)
-                .pauseFor(300)
-                .typeString("genre favoritmu")
-                .pauseFor(2000)
-                .deleteAll(35)
-                .pauseFor(300)
-                .typeString("penulis idolamu")
-                .pauseFor(2000)
-                .deleteAll(35)
-                .pauseFor(500)
-                .start();
-        };
+    // Initialize typewriter with a small delay
+    const timeoutId = setTimeout(initTypewriter, 100);
+    return () => clearTimeout(timeoutId);
+  }, []);
 
-        // Delay typewriter initialization
-        const timeoutId = setTimeout(initTypewriter, 100);
-
-        // Cleanup function
-        return () => {
-            clearTimeout(timeoutId);
-            if (typewriterInstance) {
-                typewriterInstance.stop();
-            }
-        };
-    }, []);
-
-    return (
-        <main>
-            <Suspense fallback={<LoadingFallback />}>
-                <Hero />
-            </Suspense>
-            <Suspense fallback={<LoadingFallback />}>
-                <Trending />
-            </Suspense>
-            <Suspense fallback={<LoadingFallback />}>
-                <Favorit />
-            </Suspense>
-            <Suspense fallback={<LoadingFallback />}>
-                <Penulis />
-            </Suspense>
-            <Suspense fallback={<LoadingFallback />}>
-                <Ranking />
-            </Suspense>
-        </main>
-    );
+  return (
+    <main>
+      <LazyComponent>
+        <Hero />
+      </LazyComponent>
+      
+      <LazyComponent>
+        <BookSection 
+          title="Sedang Trending"
+          subtitle="Popular book collections curated for you"
+          badgeText="Trending"
+          badgeColor="red"
+          sortBy="peminjam"
+          showRating={false}
+        />
+      </LazyComponent>
+      
+      <LazyComponent>
+        <BookSection 
+          title="Buku Terfavorit"
+          subtitle="Popular book collections curated for you"
+          badgeText="Favorit"
+          badgeColor="purple"
+          sortBy="rating"
+          showRating={true}
+        />
+      </LazyComponent>
+      
+      <LazyComponent>
+        <Penulis />
+      </LazyComponent>
+      
+      <LazyComponent>
+        <Ranking />
+      </LazyComponent>
+    </main>
+  );
 });
 
 Home.displayName = 'Home';
+LoadingFallback.displayName = 'LoadingFallback';
+LazyComponent.displayName = 'LazyComponent';
 
 export default Home;
