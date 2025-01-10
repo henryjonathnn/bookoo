@@ -63,6 +63,7 @@ const BookSection = memo(({
       return saved ? JSON.parse(saved) : {}
     } catch {
       console.log('gagal')
+      return {}
     }
   });
 
@@ -79,7 +80,6 @@ const BookSection = memo(({
       return newBookmarks;
     });
   }, []);
-
 
   if (loading) {
     return (
@@ -125,6 +125,7 @@ const BookSection = memo(({
             isBookmarked={bookmarks[book.id]}
             onToggleBookmark={toggleBookmark}
             showRating={showRating}
+            rightLabel={rightLabel}
           />
         ))}
       </div>
@@ -139,6 +140,8 @@ const BookSection = memo(({
           books={topBooks}
           bookmarks={bookmarks}
           onToggleBookmark={toggleBookmark}
+          showRating={showRating}
+          rightLabel={rightLabel}
         />
       </Modal>
     </section>

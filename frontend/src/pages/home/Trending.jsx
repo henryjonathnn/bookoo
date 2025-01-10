@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import BookSection from '../../components/sections/BookSection';
+import BookSection from '../../components/modules/books/BookSection'
 import { SORT_TYPES } from '../../hooks/useBook';
 
 const Trending = memo(() => {

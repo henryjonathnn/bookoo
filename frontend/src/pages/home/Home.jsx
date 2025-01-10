@@ -1,7 +1,9 @@
+// Home.jsx
 import React, { useEffect, lazy, Suspense, memo } from 'react';
 import { useInView } from 'react-intersection-observer';
 import Typewriter from 'typewriter-effect/dist/core';
 import '../../App.css';
+import { SORT_TYPES } from '../../hooks/useBook';
 
 // Lazy load components with dynamic imports
 const Hero = lazy(() => import('./Hero'));
@@ -15,7 +17,6 @@ const LoadingFallback = memo(() => (
     <div className="w-full h-full bg-gray-800/50 rounded-2xl"></div>
   </div>
 ));
-
 
 const LazyComponent = memo(({ children }) => {
   const { ref, inView } = useInView({
@@ -70,8 +71,9 @@ const Home = memo(() => {
           subtitle="Popular book collections curated for you"
           badgeText="Trending"
           badgeColor="red"
-          sortBy="peminjam"
+          sortType={SORT_TYPES.TRENDING}
           showRating={false}
+          rightLabel="Peminjam"
         />
       </LazyComponent>
       
@@ -81,8 +83,9 @@ const Home = memo(() => {
           subtitle="Popular book collections curated for you"
           badgeText="Favorit"
           badgeColor="purple"
-          sortBy="rating"
+          sortType={SORT_TYPES.FAVORITE}
           showRating={true}
+          rightLabel="Rating"
         />
       </LazyComponent>
       

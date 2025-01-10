@@ -1,16 +1,16 @@
 import React, { memo } from 'react';
 import { Bookmark } from 'react-feather';
 
-const BookCard = memo(({ book, isBookmarked, onToggleBookmark, showRating, rightLabel}) => {
+const BookCard = memo(({ book, isBookmarked, onToggleBookmark, showRating, rightLabel }) => {
   const coverImg = `/assets/books/${book.cover}`;
   const authorImg = `/assets/author/${book.author.image}`;
 
   const getValue = () => {
-    if(showRating) {
-      return `${book.rating}/5`
-    } 
-    return book.peminjam
-  }
+    if (showRating) {
+      return `${book.rating}/5`;
+    }
+    return book.peminjam.toLocaleString();
+  };
 
   return (
     <div className="glass-effect rounded-2xl p-4 card-glow transition-all duration-300 hover:-translate-y-2 border border-purple-500/10">
@@ -50,5 +50,4 @@ const BookCard = memo(({ book, isBookmarked, onToggleBookmark, showRating, right
 });
 
 BookCard.displayName = 'BookCard';
-
 export default BookCard;
