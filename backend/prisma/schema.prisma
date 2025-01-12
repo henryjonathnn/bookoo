@@ -51,7 +51,7 @@ model User {
   username  String   @unique
   email     String   @unique
   password  String
-  role      Role
+  role      Role @default(USER)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
