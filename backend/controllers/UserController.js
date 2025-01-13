@@ -1,35 +1,34 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
 
 const prisma = new PrismaClient();
 
 // AUTH
 export const register = async (req, res) => {
-  const { name, username, email, password, confPassword } = req.body;
-
   try {
-    if (password !== confPassword) {
+    const { name, username, email, password, confirmPassword } = req.body;
+
+    if (password !== confirmPassword) {
       return res
         .status(400)
         .json({ msg: "Password dan Confirm Password tidak cocok" });
     }
 
-    // Cek email yang sudah ada
-    const emailExists = await prisma.user.findUnique({
+    // Check existing email
+    const existingEmail = await prisma.user.findUnique({
       where: { email },
     });
-
-    if (emailExists) {
+    if (existingEmail) {
       return res.status(400).json({ msg: "Email sudah terdaftar" });
     }
 
-    // Cek username yang sudah ada
-    const usernameExists = await prisma.user.findUnique({
+    // Check existing username
+    const existingUsername = await prisma.user.findUnique({
       where: { username },
     });
-
-    if (usernameExists) {
+    if (existingUsername) {
       return res.status(400).json({ msg: "Username sudah digunakan" });
     }
 
@@ -42,41 +41,40 @@ export const register = async (req, res) => {
         username,
         email,
         password: hashPassword,
-        role: "USER",
       },
     });
 
-    res.status(201).json({ msg: "Akun anda berhasil didaftarkan" });
+    res.json({ msg: "Register Berhasil" });
   } catch (error) {
-    res.status(400).json({ msg: error.message });
+    console.log(error);
+    res.status(500).json({ msg: "Terjadi kesalahan pada server" });
   }
 };
 
 export const login = async (req, res) => {
   try {
+    const { email, password } = req.body;
+
     const user = await prisma.user.findUnique({
-      where: {
-        email: req.body.email,
-      },
+      where: { email },
     });
 
     if (!user) {
-      res.status(400).json({ msg: "Email ini belum terdaftar" });
+      return res.status(404).json({ msg: "User tidak ditemukan" });
     }
 
-    const match = await bcrypt.compare(req.body.password, user.password);
+    const match = await bcrypt.compare(password, user.password);
     if (!match) {
-      return res.status(400).json({ msg: "Password atau Email salah!" });
+      return res.status(400).json({ msg: "Password salah" });
     }
-
-    const userId = user.id;
-    const name = user.name;
-    const username = user.username;
-    const email = user.email;
-    const role = user.role;
 
     const accessToken = jwt.sign(
-      { userId, name, username, email, role },
+      {
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
       process.env.ACCESS_TOKEN_SECRET,
       {
         expiresIn: "20s",
@@ -84,7 +82,12 @@ export const login = async (req, res) => {
     );
 
     const refreshToken = jwt.sign(
-      { userId, name, username, email, role },
+      {
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
       process.env.REFRESH_TOKEN_SECRET,
       {
         expiresIn: "1d",
@@ -92,12 +95,8 @@ export const login = async (req, res) => {
     );
 
     await prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        refresh_token: refreshToken,
-      },
+      where: { id: user.id },
+      data: { refresh_token: refreshToken },
     });
 
     res.cookie("refreshToken", refreshToken, {
@@ -107,38 +106,73 @@ export const login = async (req, res) => {
 
     res.json({ accessToken });
   } catch (error) {
-    res.status(404).json({ msg: error.message });
+    console.log(error);
+    res.status(500).json({ msg: "Terjadi kesalahan pada server" });
   }
 };
 
 export const logout = async (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-
-  if (!refreshToken) {
-    return res.sendStatus(204);
-  }
+  const { refreshToken } = req.body;
+  console.log("Diterima refreshToken:", refreshToken);
 
   const user = await prisma.user.findFirst({
-    where: {
-      refresh_token: refreshToken,
-    },
+    where: { refresh_token: refreshToken },
   });
+  console.log("User ditemukan:", user);
 
-  if (!user) {
-    return res.sendStatus(204);
+  if (user) {
+    const result = await prisma.user.update({
+      where: { id: user.id },
+      data: { refresh_token: null },
+    });
+    console.log("Hasil update:", result);
   }
 
-  await prisma.user.update({
-    where: {
-      id: user.id,
-    },
-    data: {
-      refresh_token: null,
-    },
-  });
+  res.status(200).json({ msg: "Logout berhasil" });
+};
 
-  res.clearCookie("refreshToken");
-  res.sendStatus(200);
+
+export const refreshToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      return res.sendStatus(401);
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { refresh_token: refreshToken },
+    });
+
+    if (!user) {
+      return res.sendStatus(403);
+    }
+
+    jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET,
+      (err, decoded) => {
+        if (err) return res.sendStatus(403);
+
+        const accessToken = jwt.sign(
+          {
+            userId: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          },
+          process.env.ACCESS_TOKEN_SECRET,
+          {
+            expiresIn: "20s",
+          }
+        );
+
+        res.json({ accessToken });
+      }
+    );
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Terjadi kesalahan pada server" });
+  }
 };
 
 // CRUD USER (FOR ADMIN)

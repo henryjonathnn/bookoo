@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE `user` ADD COLUMN `refreshToken` VARCHAR(191) NULL,
-    MODIFY `role` ENUM('USER', 'STAFF', 'ADMIN') NOT NULL DEFAULT 'USER';

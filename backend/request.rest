@@ -1,14 +1,13 @@
 
-
 POST http://localhost:5000/register
 Content-Type: application/json
 
 {
-    "name": "Henry Jonathan",
-    "username": "henryjonathnn",
-    "email": "jonathan@gmail.com",
-    "password": "12345678",
-    "confPassword": "12345678"
+    "name": "John Doe",
+    "username": "johndoe",
+    "email": "john@example.com",
+    "password": "password123",
+    "confirmPassword": "password123"
 }
 
 ###
@@ -16,36 +15,19 @@ POST http://localhost:5000/login
 Content-Type: application/json
 
 {
-    "email": "jonathan@gmail.com",
-    "password": "12345678"
+    "email": "john@example.com",
+    "password": "password123"
 }
 
 ###
-GET http://localhost:5000/users
+GET http://localhost:5000/token
+Content-Type: application/json
 
 ###
-GET http://localhost:5000/users/1
-
-###
-POST http://localhost:5000/users
+DELETE http://localhost:5000/logout
 Content-Type: application/json
 
 {
-    "name": "Nala Dev",
-    "username": "naladev",
-    "email": "naladev@gmail.com",
-    "password": "Nala_01"
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUsIm5hbWUiOiJKb2huIERvZSIsImVtYWlsIjoiam9obkBleGFtcGxlLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzM2NzU3Njg5LCJleHAiOjE3MzY4NDQwODl9.Iw2M9kU5m-OfV"
 }
 
-###
-PATCH http://localhost:5000/users/1
-Content-Type: application/json
-
-{
-    "name": "Hyura Dev",
-    "username": "hyuradev",
-    "email": "hyuradev@gmail.com",
-    "password": "Hyura_01"
-}
-###
-DELETE http://localhost:5000/users/5
