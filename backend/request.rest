@@ -1,3 +1,26 @@
+
+
+POST http://localhost:5000/register
+Content-Type: application/json
+
+{
+    "name": "Henry Jonathan",
+    "username": "henryjonathnn",
+    "email": "jonathan@gmail.com",
+    "password": "12345678",
+    "confPassword": "12345678"
+}
+
+###
+POST http://localhost:5000/login
+Content-Type: application/json
+
+{
+    "email": "jonathan@gmail.com",
+    "password": "12345678"
+}
+
+###
 GET http://localhost:5000/users
 
 ###

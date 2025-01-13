@@ -46,15 +46,16 @@ enum TipeNotifikasi {
 
 // MIGRASI
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  username  String   @unique
-  email     String   @unique
-  password  String
-  role      Role @default(USER)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  name         String
+  username     String   @unique
+  email        String   @unique
+  password     String
+  role         Role     @default(USER)
+  refresh_token String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // RELASI
   peminjaman        Peminjaman[] @relation("PeminjamanUser") // user yang meminjam buku
@@ -107,9 +108,9 @@ model Peminjaman {
   updatedAt       DateTime  @updatedAt
 
   // RELASI
-  user  User  @relation("PeminjamanUser", fields: [UserId], references: [id])
-  buku  Buku  @relation(fields: [bukuId], references: [id])
-  staff User? @relation("StaffHandled", fields: [staffId], references: [id])
+  user       User         @relation("PeminjamanUser", fields: [UserId], references: [id])
+  buku       Buku         @relation(fields: [bukuId], references: [id])
+  staff      User?        @relation("StaffHandled", fields: [staffId], references: [id])
   notifikasi Notifikasi[]
 
   @@index([status])
@@ -160,16 +161,16 @@ model Rating {
 }
 
 model Notifikasi {
-  id Int @id @default(autoincrement())
-  userId Int
+  id           Int            @id @default(autoincrement())
+  userId       Int
   peminjamanId Int
-  message String @db.Text
-  tipe TipeNotifikasi
-  isRead Boolean @default(false)
-  createdAt DateTime @default(now())
+  message      String         @db.Text
+  tipe         TipeNotifikasi
+  isRead       Boolean        @default(false)
+  createdAt    DateTime       @default(now())
 
   // RELASI
-  user User @relation(fields: [userId], references: [id])
+  user       User       @relation(fields: [userId], references: [id])
   peminjaman Peminjaman @relation(fields: [peminjamanId], references: [id])
 
   @@index([userId])
