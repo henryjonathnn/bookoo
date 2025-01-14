@@ -11,7 +11,7 @@ import {
   deleteUser,
 } from "../controllers/UserController.js";
 import { verifyToken } from "../middlewares/AuthMiddleware.js";
-const router = express.Router();
+const userRoutes = express.Router();
 
 // AUTH ROUTES
 router.post("/register", register)
@@ -29,4 +29,4 @@ router.delete("/users/:id", deleteUser);
 router.get('/protected', verifyToken, (req, res) => {
   res.json({ msg: "Protected resource accessed successfully" });
 });
-export default router;
+export default userRoutes;
