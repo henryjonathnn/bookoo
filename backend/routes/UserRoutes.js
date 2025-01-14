@@ -10,7 +10,7 @@ import {
   // updateUser,
   // deleteUser,
 } from "../controllers/UserController.js";
-import { verifyToken } from "../middlewares/AuthMiddleware.js";
+import { verifyToken } from "../middlewares/VerifyToken.js";
 
 const router = express.Router();
 
@@ -21,7 +21,7 @@ router.post("/login", login)
 // router.get("/token", refreshToken)
 
 // ONLY ADMIN
-router.get("/", getUsers);
+router.get("/", verifyToken, getUsers);
 // router.get("/users/:id", getUserById);
 // router.post("/users", createUser); 
 // router.patch("/users/:id", updateUser);
