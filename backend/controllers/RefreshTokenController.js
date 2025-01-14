@@ -13,7 +13,7 @@ export const refreshToken = async (req, res) => {
     if (!user[0]) return res.sendStatus(403);
     jwt.verify(
       refreshToken,
-      process.env.REFRESH_SECRET_TOKEN,
+      process.env.REFRESH_TOKEN_SECRET,
       (err, decoded) => {
         if (err) return res.sendStatus(403);
         const userId = user[0].id;
@@ -22,7 +22,7 @@ export const refreshToken = async (req, res) => {
         const username = user[0].username;
         const accessToken = jwt.sign(
           { userId, name, email, username },
-          process.env.ACCESS_SECRET_TOKEN,
+          process.env.ACCESS_TOKEN_SECRET,
           {
             expiresIn: "15s",
           }
