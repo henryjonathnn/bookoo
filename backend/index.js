@@ -5,12 +5,14 @@ import { User, Buku, Peminjaman, Bookmark, Suka, Rating, Notifikasi } from "./mo
 import dotenv from "dotenv";
 import cors from "cors";
 import router from "./routes/index.js";
+import cookieParser from "cookie-parser"
 
 dotenv.config();
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser())
 
 app.use(router)
 

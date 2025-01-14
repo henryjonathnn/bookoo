@@ -3,13 +3,13 @@ import {
   register,
   login,
   // logout,
-  // refreshToken,
   getUsers,
   // getUserById,
   // createUser,
   // updateUser,
   // deleteUser,
 } from "../controllers/UserController.js";
+import { refreshToken } from "../controllers/RefreshTokenController.js";
 import { verifyToken } from "../middlewares/VerifyToken.js";
 
 const router = express.Router();
@@ -18,7 +18,7 @@ const router = express.Router();
 router.post("/register", register)
 router.post("/login", login)
 // router.delete("/logout", logout)
-// router.get("/token", refreshToken)
+router.get("/token", refreshToken)
 
 // ONLY ADMIN
 router.get("/", verifyToken, getUsers);

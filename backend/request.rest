@@ -1,7 +1,6 @@
 
 GET http://localhost:5000/users
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsIm5hbWUiOiJDYW50aWthIiwiZW1haWwiOiJhdXJlbEBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImF1cmVsOCIsImlhdCI6MTczNjg2MTg5NywiZXhwIjoxNzM2ODYxOTE3fQ.e86Pio1iFAjR2xly7qM3-MbY_gL_1evKD8JJL-MJIkM
-###
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsIm5hbWUiOiJDYW50aWthIiwiZW1haWwiOiJhdXJlbEBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImF1cmVsOCIsImlhdCI6MTczNjg2OTM5MiwiZXhwIjoxNzM2OTU1NzkyfQ.GluEzmIAxVaSmOU4a8Fl1taqOuvs1fIVvfC1L8YYcD
 
 POST http://localhost:5000/users/register
 Content-Type: application/json
@@ -24,14 +23,6 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:5000/token
-Content-Type: application/json
+GET http://localhost:5000/users/token
 
-###
-DELETE http://localhost:5000/logout
-Content-Type: application/json
-
-{
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUsIm5hbWUiOiJKb2huIERvZSIsImVtYWlsIjoiam9obkBleGFtcGxlLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzM2NzU3Njg5LCJleHAiOjE3MzY4NDQwODl9.Iw2M9kU5m-OfV"
-}
 
