@@ -4,7 +4,9 @@ import jwt from "jsonwebtoken";
 
 export const getUsers = async (req, res) => {
   try {
-    const users = await User.findAll();
+    const users = await User.findAll({
+      attributes: ["id", "name", "email", "username"],
+    });
     res.json(users);
   } catch (error) {
     res.json({
@@ -94,7 +96,7 @@ export const login = async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000,
       // secure: true
     });
-    res.json({ accessToken })
+    res.json({ accessToken });
   } catch (error) {
     res.status(404).json({ msg: "Email tidak ditemukan" });
   }
