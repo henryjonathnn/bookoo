@@ -2,7 +2,7 @@ import express from "express";
 import {
   register,
   login,
-  // logout,
+  logout,
   getUsers,
   // getUserById,
   // createUser,
@@ -17,7 +17,7 @@ const router = express.Router();
 // AUTH ROUTES
 router.post("/register", register)
 router.post("/login", login)
-// router.delete("/logout", logout)
+router.delete("/logout", logout)
 router.get("/token", refreshToken)
 
 // ONLY ADMIN
