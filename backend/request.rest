@@ -33,3 +33,10 @@ Content-Type: application/json
 {
   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsIm5hbWUiOiJDYW50aWthIiwiZW1haWwiOiJhdXJlbEBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImF1cmVsOCIsImlhdCI6MTczNjg3MTc5MiwiZXhwIjoxNzM2OTU4MTkyfQ.JtvtpRpFzk9a-D-sxchnakT6eCSIEgbDn1_AsAgVtlI"
 }
+
+
+###
+GET http://localhost:5000/buku
+
+###
+GET http://localhost:5000/buku/1
