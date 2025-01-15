@@ -83,7 +83,7 @@ export const deleteBuku = async (req, res) => {
       res.status(404).json({ msg: "Data buku tidak ditemukan" });
     }
   } catch (error) {
-    res.json({
+    return res.status(500).json({
       msg: "Tidak dapat menghapus buku",
       error: error.message,
     });
