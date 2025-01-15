@@ -1,34 +1,8 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, Eye, EyeOff, User, ArrowRight, ArrowLeft } from 'react-feather';
-import { Card, CardContent } from "../../components/ui/Card";
+import { Card, CardContent } from '../../components/ui/Card';
 import { FormInput } from '../../components/ui/FormInput';
 import { GRADIENT_TEXT, GRADIENT_BUTTON } from '../../constant/index';
-const scrollbarStyles = `
-  /* Width */
-  ::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  /* Track */
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  /* Handle */
-  ::-webkit-scrollbar-thumb {
-    background: rgba(139, 92, 246, 0.3);
-    border-radius: 20px;
-  }
-
-  /* Handle hover */
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(139, 92, 246, 0.5);
-  }
-
-  /* Untuk Firefox */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(139, 92, 246, 0.3) transparent;
-`;
 
 const AuthModal = ({ isOpen, onClose }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -42,11 +16,6 @@ const AuthModal = ({ isOpen, onClose }) => {
     username: '',
     confirmPassword: ''
   });
-
-  const steps = [
-    { title: 'Detail Akun', description: 'Informasi utama' },
-    { title: 'Setup Profil', description: 'Pilih username kamu' }
-  ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -100,43 +69,14 @@ const AuthModal = ({ isOpen, onClose }) => {
   );
 
   const renderProgressBar = () => (
-    <div className="mb-6">
-      <div className="flex items-center justify-between mb-4">
-        {steps.map((step, index) => {
-          const isActive = index + 1 === registerStep;
-          const isCompleted = index + 1 < registerStep;
-          
-          return (
-            <div 
-              key={index} 
-              className={`flex items-center ${index !== steps.length - 1 ? 'flex-1' : ''}`}
-            >
-              <div className="flex flex-col items-center flex-1">
-                <div 
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium mb-2
-                    ${isActive ? 'bg-purple-600 text-white' : isCompleted ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-400'}`}
-                >
-                  {index + 1}
-                </div>
-                <div className="text-center">
-                  <p className={`text-sm font-medium ${isActive || isCompleted ? 'text-purple-400' : 'text-gray-500'}`}>
-                    {step.title}
-                  </p>
-                  <p className="text-xs text-gray-500">{step.description}</p>
-                </div>
-              </div>
-              
-              {index !== steps.length - 1 && (
-                <div className="w-full mx-4 h-[2px] bg-gray-700">
-                  <div 
-                    className="h-full bg-purple-600 transition-all duration-300"
-                    style={{ width: isCompleted ? '100%' : '0%' }}
-                  />
-                </div>
-              )}
-            </div>
-          );
-        })}
+    <div className="mb-8">
+      <div className="relative pt-2">
+        <div className="w-full bg-gray-700 rounded h-2">
+          <div 
+            className="bg-purple-600 h-2 rounded transition-all duration-300 ease-in-out"
+            style={{ width: `${((registerStep - 1) / (2 - 1)) * 100}%` }}
+          />
+        </div>
       </div>
     </div>
   );
@@ -199,15 +139,11 @@ const AuthModal = ({ isOpen, onClose }) => {
   );
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       
-      <Card className="w-full max-w-md relative z-50 bg-[#1A1A2E]/90 border border-purple-500/10 max-h-[90vh] flex flex-col">
-      <style jsx>{scrollbarStyles}</style>
-        <CardContent className="p-6 overflow-y-auto" style={{
-            maskImage: 'linear-gradient(to bottom, transparent, black 10px, black 90%, transparent)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 10px, black 90%, transparent)'
-          }}>
+      <Card className="w-full max-w-md mx-4 relative z-50 bg-[#1A1A2E]/90 border border-purple-500/10 max-h-[90vh] overflow-y-auto">
+        <CardContent className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className={`text-2xl font-bold ${GRADIENT_TEXT}`}>
               {isLogin ? 'Welcome Back' : 'Create Account'}
@@ -250,7 +186,7 @@ const AuthModal = ({ isOpen, onClose }) => {
               registerStep === 1 ? renderRegisterStep1() : renderRegisterStep2()
             )}
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-3">
               {!isLogin && registerStep === 2 && (
                 <button
                   type="button"
