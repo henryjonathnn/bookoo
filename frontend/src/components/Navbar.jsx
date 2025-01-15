@@ -1,7 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Bell, Search } from 'react-feather'
+import AuthModal from '../pages/auth/AuthModal'
 
 const Navbar = () => {
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
     return (
         <>
             <nav className="fixed top-0 right-0 left-20 glass-effect z-40 border-b border-purple-500/10">
@@ -24,12 +26,20 @@ const Navbar = () => {
                             <Bell size={20} />
                             <span className="absolute top-2 right-2 h-2 w-2 bg-purple-500 rounded-full"></span>
                         </button>
-                        <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl font-medium hover:opacity-90 transition-all duration-300 flex items-center space-x-2">
-                            <span>Sign In</span>
-                        </button>
+                        <button 
+                    onClick={() => setIsAuthModalOpen(true)}
+                    className="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl font-medium hover:opacity-90 transition-all duration-300 flex items-center space-x-2"
+                >
+                    <span>Masuk</span>
+                </button>
                     </div>
                 </div>
             </nav>
+
+            <AuthModal 
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+            />
         </>
     )
 }
