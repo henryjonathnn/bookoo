@@ -2,6 +2,11 @@
 GET http://localhost:5000/users
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsIm5hbWUiOiJDYW50aWthIiwiZW1haWwiOiJhdXJlbEBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImF1cmVsOCIsImlhdCI6MTczNjg3MTgyNCwiZXhwIjoxNzM2ODcxODM5fQ.Ny2WBYw8M9_7iLgkG-i01jts1EwXmHK1kFLbCoVHO0c
 
+###
+
+GET http://localhost:5000/users/1
+
+###
 POST http://localhost:5000/users/register
 Content-Type: application/json
 
@@ -40,3 +45,20 @@ GET http://localhost:5000/buku
 
 ###
 GET http://localhost:5000/buku/1
+
+###
+
+POST http://localhost:5000/buku/create
+Content-Type: application/json
+
+{
+    "judul": "Harry Potter",
+    "penulis": "J.K. Rowling",
+    "isbn": "1234567890",
+    "kategori": "FIKSI",
+    "deskripsi": "Buku tentang penyihir",
+    "stock": 10,
+    "denda_harian": 5000,
+    "penerbit": "Gramedia",
+    "tahun_terbit": 2001
+}

@@ -29,3 +29,15 @@ export const getBukuById = async (req, res) => {
     res.json({ msg: "Gagal mendapatkan data buku", error: error.message });
   }
 };
+
+export const createBuku = async (req, res) => {
+  try {
+    const buku = await Buku.create(req.body);
+    res.status(201).json({
+      msg: "Data buku berhasil ditambahkan!",
+      data: buku,
+    });
+  } catch (error) {
+    res.json({ msg: "Gagal menambahkan data buku", error: error.message });
+  }
+};

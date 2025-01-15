@@ -16,6 +16,55 @@ export const getUsers = async (req, res) => {
   }
 };
 
+export const getUserById = async (req, res) => {
+  try {
+
+    // Cari user sesuai ID
+    const user = await User.findOne({
+      where: {
+        id: req.params.id,
+      },
+    });
+
+    // Jika tidak ditemukan
+    if (!user) {
+      return res.status(404).json({
+        msg: "User tidak ditemukan",
+      });
+    }
+
+    // Jika berhasil
+    res.status(200).json(user);
+  } catch (error) {
+    res.json({
+      msg: "Gagal mendapatkan data buku",
+      error: error.message,
+    });
+  }
+};
+//   try {
+//     const user = await User.findOne({
+//       where: {
+//         id: req.params.id
+//       },
+//       attributes: ["id", "name", "email", "username"]
+//     });
+
+//     if (!user) {
+//       return res.status(404).json({
+//         msg: "User tidak ditemukan"
+//       });
+//     }
+
+//     res.json(user);
+//   } catch (error) {
+//     res.json({
+//       msg: "Gagal Get User",
+//       error: error.message
+//     });
+//   }
+//  };
+
 export const register = async (req, res) => {
   const { name, email, username, password, confPassword } = req.body;
 

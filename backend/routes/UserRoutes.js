@@ -4,7 +4,7 @@ import {
   login,
   logout,
   getUsers,
-  // getUserById,
+  getUserById,
   // createUser,
   // updateUser,
   // deleteUser,
@@ -22,7 +22,7 @@ router.get("/token", refreshToken)
 
 // ONLY ADMIN
 router.get("/", verifyToken, getUsers);
-// router.get("/users/:id", getUserById);
+router.get("/:id", getUserById);
 // router.post("/users", createUser); 
 // router.patch("/users/:id", updateUser);
 // router.delete("/users/:id", deleteUser);
