@@ -48,7 +48,7 @@ GET http://localhost:5000/buku/1
 
 ###
 
-POST http://localhost:5000/buku/create
+POST http://localhost:5000/buku
 Content-Type: application/json
 
 {
@@ -62,3 +62,22 @@ Content-Type: application/json
     "penerbit": "Gramedia",
     "tahun_terbit": 2001
 }
+
+###
+PATCH http://localhost:5000/buku/1
+Content-Type: application/json
+
+{
+    "judul": "Sasongko Gaming",
+    "penulis": "J.K. Rowling",
+    "isbn": "1234567890",
+    "kategori": "FIKSI",
+    "deskripsi": "Buku tentang penyihir",
+    "stock": 10,
+    "denda_harian": 5000,
+    "penerbit": "Gramedia",
+    "tahun_terbit": 2001
+}
+
+###
+DELETE http://localhost:5000/buku/4
