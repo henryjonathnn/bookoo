@@ -1,16 +1,30 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/users'; // ini port backend
+const API_URL = 'http://localhost:5000/users'; // Ini URL API backend
+
+// State untuk tracking status auth
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // Important untuk cookie
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// error handling
 const RETRY_COUNT = 3;
 const RETRY_DELAY = 1000;
 
@@ -20,30 +34,54 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
-    // Logika retry for network errors
+
+    // Handle network errors dengan retry
     if (!error.response && !originalRequest._retry && originalRequest._retryCount < RETRY_COUNT) {
       originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
       await sleep(RETRY_DELAY * originalRequest._retryCount);
       return api(originalRequest);
     }
-    
-    // Logika token refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      try {
-        await api.get('/token');
-        return api(originalRequest);
-      } catch (refreshError) {
-        return Promise.reject(refreshError);
+
+    // Handle 401 errors
+    if (error.response?.status === 401) {
+      // Jika request bukan ke endpoint /token dan belum pernah di-retry
+      if (!originalRequest._retry && !originalRequest.url.includes('/token')) {
+        originalRequest._retry = true;
+
+        if (!isRefreshing) {
+          isRefreshing = true;
+
+          try {
+            await api.get('/token');
+            isRefreshing = false;
+            processQueue(null);
+            return api(originalRequest);
+          } catch (refreshError) {
+            isRefreshing = false;
+            processQueue(refreshError, null);
+            // Redirect ke halaman login atau dispatch logout action
+            window.location.href = '/login';
+            return Promise.reject(refreshError);
+          }
+        } else {
+          // Jika sedang refresh token, queue request
+          return new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          })
+            .then(() => {
+              return api(originalRequest);
+            })
+            .catch(err => {
+              return Promise.reject(err);
+            });
+        }
       }
     }
-    
+
     return Promise.reject(error);
   }
 );
 
-// List API 
 export const authService = {
   async register(userData) {
     return api.post('/register', userData);
