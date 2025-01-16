@@ -1,9 +1,29 @@
-import React, { useState } from 'react'
-import { Bell, Search } from 'react-feather'
-import AuthModal from '../pages/auth/AuthModal'
+import React, { useState } from 'react';
+import { Bell, Search, LogOut } from 'react-feather';
+import AuthModal from '../pages/auth/AuthModal';
+import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const Navbar = () => {
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const { user, logout } = useAuth();
+
+    const handleAuthAction = async () => {
+        if (user) {
+            try {
+                await logout();
+                toast.success('Berhasil logout!');
+            } catch (error) {
+                console.error('Logout failed:', error);
+                toast.error('Gagal logout. Silakan coba lagi.');
+            }
+        } else {
+            setIsAuthModalOpen(true);
+        }
+    };
+
+    console.log('Current user:', user); // For debugging
+
     return (
         <>
             <nav className="fixed top-0 right-0 left-20 glass-effect z-40 border-b border-purple-500/10">
@@ -27,11 +47,22 @@ const Navbar = () => {
                             <span className="absolute top-2 right-2 h-2 w-2 bg-purple-500 rounded-full"></span>
                         </button>
                         <button 
-                    onClick={() => setIsAuthModalOpen(true)}
-                    className="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl font-medium hover:opacity-90 transition-all duration-300 flex items-center space-x-2"
-                >
-                    <span>Masuk</span>
-                </button>
+                            onClick={handleAuthAction}
+                            className={`px-6 py-2 ${
+                                user 
+                                    ? 'bg-red-600 hover:bg-red-700' 
+                                    : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90'
+                            } rounded-xl font-medium transition-all duration-300 flex items-center space-x-2`}
+                        >
+                            {user ? (
+                                <>
+                                    <LogOut size={18} />
+                                    <span>Logout</span>
+                                </>
+                            ) : (
+                                <span>Masuk</span>
+                            )}
+                        </button>
                     </div>
                 </div>
             </nav>
@@ -41,7 +72,7 @@ const Navbar = () => {
                 onClose={() => setIsAuthModalOpen(false)}
             />
         </>
-    )
-}
+    );
+};
 
-export default Navbar
+export default Navbar;

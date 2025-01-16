@@ -3,14 +3,17 @@ import { X, Mail, Lock, Eye, EyeOff, User, ArrowRight, ArrowLeft } from 'react-f
 import { Card, CardContent } from '../../components/ui/Card';
 import { FormInput } from '../../components/ui/FormInput';
 import { GRADIENT_TEXT, GRADIENT_BUTTON } from '../../constant/index';
+import { useAuth } from '../../contexts/AuthContext';
 import "../../App.css"
 
 
 const AuthModal = ({ isOpen, onClose }) => {
+    const { login, register, user, logout } = useAuth();
     const [isLogin, setIsLogin] = useState(true);
     const [registerStep, setRegisterStep] = useState(1);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfPassword, setShowConfPassword] = useState(false);
+    const [error, setError] = useState('');
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -19,13 +22,39 @@ const AuthModal = ({ isOpen, onClose }) => {
         confirmPassword: ''
     });
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!isLogin && registerStep === 1) {
+
+            // Validaasi kecocokan pw
+            if (formData.password !== formData.confirmPassword) {
+                setError('Passwords tidak sesuai dengan konfirm password');
+                return;
+            }
             setRegisterStep(2);
             return;
         }
-        console.log('Form submitted:', formData);
+        try {
+            if (isLogin) {
+                await login({
+                    email: formData.email,
+                    password: formData.password
+                });
+                onClose();
+            } else {
+                await register({
+                    name: formData.name,
+                    email: formData.email,
+                    username: formData.username,
+                    password: formData.password,
+                    confPassword: formData.confirmPassword
+                });
+                setIsLogin(true);
+                resetForm();
+            }
+        } catch (err) {
+            setError(err.response?.data?.msg || 'An error occurred');
+        }
     };
 
     const handleInputChange = (e) => {
@@ -139,7 +168,7 @@ const AuthModal = ({ isOpen, onClose }) => {
             icon={User}
         />
     );
-
+    
     return (
         <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -150,7 +179,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                 }}>
                     <div className="flex justify-between items-center mb-6">
                         <h2 className={`text-2xl font-bold ${GRADIENT_TEXT}`}>
-                            {isLogin ? 'Welcome Back' : 'Create Account'}
+                            {user ? 'Account' : (isLogin ? 'Welcome Back' : 'Create Account')}
                         </h2>
                         <button
                             onClick={onClose}
@@ -160,73 +189,96 @@ const AuthModal = ({ isOpen, onClose }) => {
                         </button>
                     </div>
 
-                    {!isLogin && renderProgressBar()}
+                    {error && (
+                        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+                            {error}
+                        </div>
+                    )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {isLogin ? (
-                            <>
-                                <FormInput
-                                    label="Email"
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    placeholder="Masukkan email kamu"
-                                    icon={Mail}
-                                />
-
-                                <FormInput
-                                    label="Password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                    placeholder="Masukkan password kamu"
-                                    icon={Lock}
-                                    rightElement={<PasswordToggle />}
-                                />
-                            </>
-                        ) : (
-                            registerStep === 1 ? renderRegisterStep1() : renderRegisterStep2()
-                        )}
-
-                        <div className="flex gap-3">
-                            {!isLogin && registerStep === 2 && (
-                                <button
-                                    type="button"
-                                    onClick={handleBack}
-                                    className="flex-1 px-6 py-3 rounded-xl font-medium bg-gray-600 hover:bg-gray-500 transition-colors flex items-center justify-center gap-2"
-                                >
-                                    <ArrowLeft className="h-4 w-4" />
-                                    Back
-                                </button>
-                            )}
-
+                    {user ? (
+                        <div className="text-center">
+                            <p className="text-gray-300 mb-4">Logged in as {user.email}</p>
                             <button
-                                type="submit"
-                                className={`flex-1 px-6 py-3 rounded-xl font-medium ${GRADIENT_BUTTON} flex items-center justify-center gap-2`}
+                                onClick={async () => {
+                                    await logout();
+                                    onClose();
+                                }}
+                                className={`px-6 py-3 rounded-xl font-medium ${GRADIENT_BUTTON}`}
                             >
-                                {isLogin ? 'Sign In' : registerStep === 1 ? (
-                                    <>
-                                        Next
-                                        <ArrowRight className="h-4 w-4" />
-                                    </>
-                                ) : 'Create Account'}
+                                Logout
                             </button>
                         </div>
-                    </form>
+                    ) : (
+                        <>
+                            {!isLogin && renderProgressBar()}
 
-                    <div className="mt-6 text-center">
-                        <p className="text-gray-400">
-                            {isLogin ? "Don't have an account?" : "Already have an account?"}
-                            <button
-                                onClick={handleModeSwitch}
-                                className="ml-2 text-purple-400 hover:text-purple-300"
-                            >
-                                {isLogin ? 'Sign Up' : 'Sign In'}
-                            </button>
-                        </p>
-                    </div>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                {isLogin ? (
+                                    <>
+                                        <FormInput
+                                            label="Email"
+                                            type="email"
+                                            name="email"
+                                            value={formData.email}
+                                            onChange={handleInputChange}
+                                            placeholder="Masukkan email kamu"
+                                            icon={Mail}
+                                        />
+
+                                        <FormInput
+                                            label="Password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            name="password"
+                                            value={formData.password}
+                                            onChange={handleInputChange}
+                                            placeholder="Masukkan password kamu"
+                                            icon={Lock}
+                                            rightElement={<PasswordToggle />}
+                                        />
+                                    </>
+                                ) : (
+                                    registerStep === 1 ? renderRegisterStep1() : renderRegisterStep2()
+                                )}
+
+                                <div className="flex gap-3">
+                                    {!isLogin && registerStep === 2 && (
+                                        <button
+                                            type="button"
+                                            onClick={handleBack}
+                                            className="flex-1 px-6 py-3 rounded-xl font-medium bg-gray-600 hover:bg-gray-500 transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <ArrowLeft className="h-4 w-4" />
+                                            Back
+                                        </button>
+                                    )}
+
+                                    <button
+                                        type="submit"
+                                        className={`flex-1 px-6 py-3 rounded-xl font-medium ${GRADIENT_BUTTON} flex items-center justify-center gap-2`}
+                                    >
+                                        {isLogin ? 'Sign In' : registerStep === 1 ? (
+                                            <>
+                                                Next
+                                                <ArrowRight className="h-4 w-4" />
+                                            </>
+                                        ) : 'Create Account'}
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div className="mt-6 text-center">
+                                <p className="text-gray-400">
+                                    {isLogin ? "Don't have an account?" : "Already have an account?"}
+                                    <button
+                                        onClick={handleModeSwitch}
+                                        className="ml-2 text-purple-400 hover:text-purple-300"
+                                    >
+                                        {isLogin ? 'Sign Up' : 'Sign In'}
+                                    </button>
+                                </p>
+                            </div>
+                        </>
+                    )}
                 </CardContent>
             </Card>
         </div>
