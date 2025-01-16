@@ -102,11 +102,14 @@ const AuthModal = ({ isOpen, onClose }) => {
     const renderProgressBar = () => (
         <div className="mb-8">
             <div className="relative pt-2">
-                <div className="w-full bg-gray-700 rounded h-2">
+                <div className="w-full bg-gray-700 rounded h-2 flex relative">
+                    {/* Progress indicator */}
                     <div
-                        className="bg-purple-600 h-2 rounded transition-all duration-300 ease-in-out"
-                        style={{ width: `${((registerStep - 1) / (2 - 1)) * 100}%` }}
+                        className="bg-purple-600 h-2 rounded transition-all duration-300 ease-in-out absolute"
+                        style={{ width: registerStep === 1 ? '0%' : '50%' }}
                     />
+                    {/* Garis pemisah */}
+                    <div className="absolute left-1/2 w-0.5 h-2 bg-gray-500/80 -ml-0.5" />
                 </div>
             </div>
         </div>
@@ -179,7 +182,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                 }}>
                     <div className="flex justify-between items-center mb-6">
                         <h2 className={`text-2xl font-bold ${GRADIENT_TEXT}`}>
-                            {user ? 'Account' : (isLogin ? 'Welcome Back' : 'Create Account')}
+                            {user ? 'Account' : (isLogin ? 'Selamat Datang' : 'Buat Akun')}
                         </h2>
                         <button
                             onClick={onClose}
@@ -256,7 +259,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                                         type="submit"
                                         className={`flex-1 px-6 py-3 rounded-xl font-medium ${GRADIENT_BUTTON} flex items-center justify-center gap-2`}
                                     >
-                                        {isLogin ? 'Sign In' : registerStep === 1 ? (
+                                        {isLogin ? 'Masuk' : registerStep === 1 ? (
                                             <>
                                                 Next
                                                 <ArrowRight className="h-4 w-4" />
@@ -268,12 +271,12 @@ const AuthModal = ({ isOpen, onClose }) => {
 
                             <div className="mt-6 text-center">
                                 <p className="text-gray-400">
-                                    {isLogin ? "Don't have an account?" : "Already have an account?"}
+                                    {isLogin ? "Belum punya akun?" : "Sudah punya akun?"}
                                     <button
                                         onClick={handleModeSwitch}
                                         className="ml-2 text-purple-400 hover:text-purple-300"
                                     >
-                                        {isLogin ? 'Sign Up' : 'Sign In'}
+                                        {isLogin ? 'Daftar' : 'Masuk'}
                                     </button>
                                 </p>
                             </div>
