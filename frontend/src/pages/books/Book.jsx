@@ -2,10 +2,12 @@ import React, { useEffect, lazy, Suspense } from 'react';
 import { memo } from 'react';
 import Typewriter from 'typewriter-effect/dist/core';
 import '../../App.css'
+import { SORT_TYPES } from '../../constant';
 
 // Lazy load components
 const Hero = lazy(() => import('../home/Hero'));
 const Penulis = lazy(() => import('../home/Penulis'));
+const BookSection = lazy(() => import('../../components/modules/books/BookSection'));
 const Ranking = lazy(() => import('../home/Ranking'));
 
 // Loading fallback component
@@ -66,6 +68,15 @@ const Book = memo(() => {
     return (
         <main className='pt-32'>
             <Suspense fallback={<LoadingFallback />}>
+                    <BookSection
+                      title="Semua buku"
+                      subtitle="Top buku trending minggu ini"
+                      badgeText="Trending"
+                      badgeColor="red"
+                      sortType={SORT_TYPES.TRENDING}
+                      showRating={false}
+                      rightLabel="Peminjam"
+                    />
             </Suspense>
         </main>
     );

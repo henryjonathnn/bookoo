@@ -3,34 +3,8 @@ import { X, Mail, Lock, Eye, EyeOff, User, ArrowRight, ArrowLeft } from 'react-f
 import { Card, CardContent } from '../../components/ui/Card';
 import { FormInput } from '../../components/ui/FormInput';
 import { GRADIENT_TEXT, GRADIENT_BUTTON } from '../../constant/index';
+import "../../App.css"
 
-
-const scrollbarStyles = `
-  /* Width */
-  ::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  /* Track */
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  /* Handle */
-  ::-webkit-scrollbar-thumb {
-    background: rgba(139, 92, 246, 0.3);
-    border-radius: 20px;
-  }
-
-  /* Handle on hover */
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(139, 92, 246, 0.5);
-  }
-
-  /* Untuk Firefox */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(139, 92, 246, 0.3) transparent;
-`;
 
 const AuthModal = ({ isOpen, onClose }) => {
     const [isLogin, setIsLogin] = useState(true);
@@ -170,7 +144,6 @@ const AuthModal = ({ isOpen, onClose }) => {
         <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
             <Card className="w-full max-w-md mx-4 relative z-50 bg-[#1A1A2E]/90 border border-purple-500/10 max-h-[90vh] overflow-y-auto">
-                <style jsx>{scrollbarStyles}</style>
                 <CardContent className="p-6" style={{
                     maskImage: 'linear-gradient(to bottom, transparent, black 10px, black 90%, transparent)',
                     WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 10px, black 90%, transparent)'

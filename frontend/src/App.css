@@ -24,7 +24,6 @@
   .purple-glow {
     filter: drop-shadow(0 0 20px rgba(147, 51, 234, 0.5));
   }
-  /* Tambahkan di bagian <style> */
   .Typewriter__cursor {
     color: rgba(219, 197, 255, 0.8); /* Soft purple/lavender */
     font-weight: 100;
@@ -44,3 +43,56 @@
       text-shadow: none;
     }
   }
+
+  /* Global scrollbar  */
+:root {
+  --scrollbar-track: #1a1a2e;  /* Dark purple background */
+  --scrollbar-thumb: rgba(139, 92, 246, 0.3);  /* Light purple thumb */
+  --scrollbar-thumb-hover: rgba(139, 92, 246, 0.5);  /* Lighter purple on hover */
+}
+
+/* WebKit browsers (Chrome, Safari, dll) */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track,
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: var(--scrollbar-track) !important;
+  border: none;
+}
+
+::-webkit-scrollbar-thumb,
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 20px;
+  border: none;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track) !important;
+}
+
+/* Untuk Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track) !important;
+}
+
+
+html {
+  scrollbar-gutter: stable;
+}
