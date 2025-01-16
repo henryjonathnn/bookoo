@@ -44,55 +44,59 @@
     }
   }
 
-  /* Global scrollbar  */
-:root {
-  --scrollbar-track: #1a1a2e;  /* Dark purple background */
-  --scrollbar-thumb: rgba(139, 92, 246, 0.3);  /* Light purple thumb */
-  --scrollbar-thumb-hover: rgba(139, 92, 246, 0.5);  /* Lighter purple on hover */
+  /*  Scrollbar */
+* {
+  /* Untuk Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.3) #1a1a2e;
 }
 
-/* WebKit browsers (Chrome, Safari, dll) */
-::-webkit-scrollbar {
+/* Main scrollbar styling */
+*::-webkit-scrollbar {
   width: 4px;
   height: 4px;
+  background-color: #1a1a2e !important;
 }
 
-::-webkit-scrollbar-track,
-html::-webkit-scrollbar-track,
-body::-webkit-scrollbar-track {
-  background: var(--scrollbar-track) !important;
+
+*::-webkit-scrollbar-track-piece:start,
+*::-webkit-scrollbar-track-piece:end {
+  background: #1a1a2e !important;
   border: none;
 }
 
-::-webkit-scrollbar-thumb,
-html::-webkit-scrollbar-thumb,
-body::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
+/* Track styling */
+*::-webkit-scrollbar-track {
+  background: #1a1a2e !important;
+  border: none;
+}
+
+/* Handle styling */
+*::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
   border-radius: 20px;
   border: none;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
+/* Handle on hover */
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.5);
 }
 
-::-webkit-scrollbar-corner {
-  background: var(--scrollbar-track) !important;
-}
-
-/* Untuk Firefox */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-
-*::-webkit-scrollbar-track,
+/* Corner styling */
 *::-webkit-scrollbar-corner {
-  background: var(--scrollbar-track) !important;
+  background: #1a1a2e !important;
 }
 
+*::-webkit-scrollbar-track-piece {
+  background: #1a1a2e !important;
+}
 
-html {
-  scrollbar-gutter: stable;
+/* Implements to specificity content */
+html, body, div {
+  &::-webkit-scrollbar,
+  &::-webkit-scrollbar-track,
+  &::-webkit-scrollbar-track-piece {
+    background: #1a1a2e !important;
+  }
 }
