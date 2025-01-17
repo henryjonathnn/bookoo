@@ -100,3 +100,7 @@ html, body, div {
     background: #1a1a2e !important;
   }
 }
+
+.sidebar {
+  @apply hidden md:block;
+}

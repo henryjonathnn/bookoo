@@ -23,7 +23,7 @@ app.use(cookieParser());
 
 app.use(router);
 
-// DIAKTIFKAN HANYA KETIKA SINKRONISASI DB
+// // DIAKTIFKAN HANYA KETIKA SINKRONISASI DB
 // try {
 //     await db.authenticate();
 //     console.log('Database Connected...');

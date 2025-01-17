@@ -37,7 +37,7 @@ export default function App() {
             />
         <div className='min-h-screen bg-[#0D0D1A] text-white bg-pattern'>
           <Sidebar />
-          <main className='ml-20'>
+          <main className='md:ml-20'>
             <Navbar />
             <Outlet />
             <Footer />
