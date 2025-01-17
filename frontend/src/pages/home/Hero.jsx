@@ -54,7 +54,7 @@ const Stats = memo(() => (
 
 const StatItem = memo(({ count, label }) => (
   <div className="text-center md:text-left">
-    <p className="text-xl md:text-3xl font-bold mb-1">{count}</p>
+    <p className="text-2xl md:text-4xl font-bold mb-1">{count}</p>
     <p className="text-gray-400 text-sm md:text-base whitespace-nowrap">{label}</p>
   </div>
 ));
