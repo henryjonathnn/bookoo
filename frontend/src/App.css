@@ -1,3 +1,7 @@
+main {
+  overflow-x: hidden;
+}
+
 .glass-effect {
     background: rgba(23, 23, 35, 0.7);
     backdrop-filter: blur(10px);
