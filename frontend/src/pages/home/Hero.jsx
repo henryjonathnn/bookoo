@@ -18,7 +18,7 @@ const Hero = memo(() => {
           <span className="px-4 py-2 rounded-full bg-purple-500/20 text-purple-400 text-sm font-medium mb-6 inline-block">
             💡 Trending Collection
           </span>
-          <div className="text-3xl md:text-6xl font-bold mb-6 leading-tight">
+          <div className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
             Jelajahi<br />
             <span id="dynamic-text" className="bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
               buku favoritmu

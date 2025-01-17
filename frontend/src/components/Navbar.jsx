@@ -101,7 +101,7 @@ const Navbar = () => {
 
             {/* Mobile Menu */}
             {isMobileMenuOpen && (
-                <div className="fixed inset-0 bg-black/95 z-30 md:hidden pt-24">
+                <div className="fixed inset-0 bg-black/95 z-30 md:hidden pt-40">
                     <div className="flex flex-col p-4 space-y-4">
                         {mobileMenuItems.map((item, index) => (
                             <Link
