@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom"
+import { createBrowserRouter, isRouteErrorResponse, useRouteError } from "react-router-dom"
 
 import App from "../App"
 import Home from "../pages/home/Home"
@@ -8,11 +8,24 @@ import Bookmark from "../pages/bookmark/Bookmark"
 import Page403 from "../pages/error/Page403"
 import Page404 from "../pages/error/Page404"
 
+const ErrorBoundary = () => {
+    const error = useRouteError()
+
+    // Handle 403 (forbiden)
+    if (isRouteErrorResponse(error) && error.status === 403) {
+        return <Page403 />
+    }
+
+    // Else 404 (not found)
+    return <Page404 />
+}
+
+
 const router = createBrowserRouter([
     {
         path: "/",
         element: <App />,
-        errorElement: <Page404 />,
+        errorElement: <ErrorBoundary />,
         children: [
             {
                 path: "/",
