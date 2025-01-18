@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Mail, Lock, Eye, EyeOff, User, ArrowRight, ArrowLeft } from 'react-feather';
 import { Card, CardContent } from '../../components/ui/Card';
 import { FormInput } from '../../components/ui/FormInput';
 import { GRADIENT_TEXT, GRADIENT_BUTTON } from '../../constant/index';
 import { useAuth } from '../../contexts/AuthContext';
 import "../../App.css"
-
 
 const AuthModal = ({ isOpen, onClose }) => {
     const { login, register, user, logout } = useAuth();
@@ -22,11 +21,17 @@ const AuthModal = ({ isOpen, onClose }) => {
         confirmPassword: ''
     });
 
+    // Clear error when form data changes
+    useEffect(() => {
+        if (error) {
+            setError('');
+        }
+    }, [formData]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!isLogin && registerStep === 1) {
-
-            // Validaasi kecocokan pw
+            // Validasi kecocokan pw
             if (formData.password !== formData.confirmPassword) {
                 setError('Passwords tidak sesuai dengan konfirm password');
                 return;
@@ -66,6 +71,7 @@ const AuthModal = ({ isOpen, onClose }) => {
 
     const handleBack = () => {
         setRegisterStep(1);
+        setError(''); // Clear error when going back
     };
 
     const resetForm = () => {
@@ -77,6 +83,7 @@ const AuthModal = ({ isOpen, onClose }) => {
             confirmPassword: ''
         });
         setRegisterStep(1);
+        setError(''); // Clear error when resetting form
     };
 
     const handleModeSwitch = () => {
@@ -86,6 +93,7 @@ const AuthModal = ({ isOpen, onClose }) => {
 
     if (!isOpen) return null;
 
+    // Rest of the component remains the same...
     const PasswordToggle = ({ isConf = false }) => (
         <button
             type="button"
@@ -103,12 +111,10 @@ const AuthModal = ({ isOpen, onClose }) => {
         <div className="mb-8">
             <div className="relative pt-2">
                 <div className="w-full bg-gray-700 rounded h-2 flex relative">
-                    {/* Progress indicator */}
                     <div
                         className="bg-purple-600 h-2 rounded transition-all duration-300 ease-in-out absolute"
                         style={{ width: registerStep === 1 ? '0%' : '50%' }}
                     />
-                    {/* Garis pemisah */}
                     <div className="absolute left-1/2 w-0.5 h-2 bg-gray-500/80 -ml-0.5" />
                 </div>
             </div>
