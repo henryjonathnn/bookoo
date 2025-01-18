@@ -44,6 +44,10 @@ export const getUserById = async (req, res) => {
 
 export const register = async (req, res) => {
   const { name, email, username, password, confPassword } = req.body;
+   // Validasi input kosong
+   if (!name || !email || !username || !password || !confPassword) {
+    return res.status(400).json({ msg: "Semua field wajib diisi!" });
+  }
 
   // Jika tidak sesuai antara pw dan confpw
   if (password !== confPassword)
