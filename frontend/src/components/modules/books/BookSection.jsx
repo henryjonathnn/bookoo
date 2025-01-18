@@ -19,13 +19,13 @@ const BookSection = memo(({
 
   if (loading) {
     return (
-      <section className="px-16 mx-2 mb-16">
+      <section className="px-4 md:px-8 lg:px-16 mx-2 mb-8 md:mb-16">
         <div className="animate-pulse">
           <div className="h-12 bg-gray-800 rounded w-1/4 mb-4"></div>
           <div className="h-4 bg-gray-800 rounded w-1/2 mb-8"></div>
-          <div className="grid grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-96 bg-gray-800 rounded-2xl"></div>
+              <div key={i} className="h-72 md:h-96 bg-gray-800 rounded-2xl"></div>
             ))}
           </div>
         </div>
@@ -35,18 +35,18 @@ const BookSection = memo(({
 
   if (error) {
     return (
-      <section className="px-16 mx-2 mb-16">
+      <section className="px-4 md:px-8 lg:px-16 mx-2 mb-8 md:mb-16">
         <div className="text-red-500">{error}</div>
       </section>
     );
   }
 
   return (
-    <section className="px-16 mx-2 mb-16">
-      <div className="flex justify-between items-center mb-8">
-        <div>
+    <section className="px-4 md:px-8 lg:px-16 mx-2 mb-8 md:mb-16">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 md:mb-8">
+        <div className="mb-4 md:mb-0">
           <div className="flex items-center space-x-3">
-            <h2 className="text-3xl font-bold">{title}</h2>
+            <h2 className="text-2xl md:text-3xl font-bold">{title}</h2>
             <span className={`flex items-center space-x-1 px-3 py-1 rounded-full ${BADGE_COLORS[badgeColor]} text-sm`}>
               <span className={`h-2 w-2 ${badgeColor === 'purple' ? 'bg-purple-400' : 'bg-red-400'} rounded-full animate-pulse`}></span>
               <span>{badgeText}</span>
@@ -55,22 +55,22 @@ const BookSection = memo(({
           <p className="text-gray-400 mt-2">{subtitle}</p>
         </div>
         <div className="flex space-x-3">
-          <button className="p-3 rounded-xl bg-[#1A1A2E] hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10">
-            <ChevronLeft size={20} />
+          <button className="p-2 md:p-3 rounded-xl bg-[#1A1A2E] hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10">
+            <ChevronLeft size={18} />
           </button>
-          <button className="p-3 rounded-xl bg-[#1A1A2E] hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10">
-            <ChevronRight size={20} />
+          <button className="p-2 md:p-3 rounded-xl bg-[#1A1A2E] hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10">
+            <ChevronRight size={18} />
           </button>
           <button
             onClick={() => setShowModal(true)}
-            className="px-4 py-2 rounded-xl bg-[#1A1A2E] hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10 text-white"
+            className="px-3 py-1 md:px-4 md:py-2 rounded-xl bg-[#1A1A2E] hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10 text-white text-sm md:text-base"
           >
             Lihat Semua
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
         {books.slice(0, 4).map((book) => (
           <BookCard
             key={book.id}
@@ -88,7 +88,7 @@ const BookSection = memo(({
           title={title}
           subtitle={subtitle}
         >
-          <div className="grid grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {books.map((book) => (
               <BookCard
                 key={book.id}
@@ -103,6 +103,7 @@ const BookSection = memo(({
     </section>
   );
 });
+
 
 BookSection.displayName = 'BookSection';
 export default BookSection;
