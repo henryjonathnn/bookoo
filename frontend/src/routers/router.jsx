@@ -5,11 +5,14 @@ import Home from "../pages/home/Home"
 import Book from "../pages/books/Book"
 import History from "../pages/history/History"
 import Bookmark from "../pages/bookmark/Bookmark"
+import Page403 from "../pages/error/Page403"
+import Page404 from "../pages/error/Page404"
 
 const router = createBrowserRouter([
     {
         path: "/",
         element: <App />,
+        errorElement: <Page404 />,
         children: [
             {
                 path: "/",
