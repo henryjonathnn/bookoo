@@ -5,6 +5,8 @@ import {
   logout,
   getUsers,
   getUserById,
+  validateEmail,
+  validateUsername
   // createUser,
   // updateUser,
   // deleteUser,
@@ -19,6 +21,8 @@ router.post("/register", register)
 router.post("/login", login)
 router.delete("/logout", logout)
 router.get("/token", refreshToken)
+router.get("/validate/email/:email", validateEmail);
+router.get("/validate/username/:username", validateUsername);
 
 // ONLY ADMIN
 router.get("/", verifyToken, getUsers);

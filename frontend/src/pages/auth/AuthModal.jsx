@@ -5,6 +5,8 @@ import { FormInput } from '../../components/ui/FormInput';
 import { GRADIENT_TEXT, GRADIENT_BUTTON } from '../../constant/index';
 import { useAuth } from '../../contexts/AuthContext';
 import "../../App.css"
+import { debounce } from "lodash"
+import { validationService } from '../../services/api';
 
 const AuthModal = ({ isOpen, onClose }) => {
     const { login, register, user, logout } = useAuth();
@@ -13,6 +15,14 @@ const AuthModal = ({ isOpen, onClose }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfPassword, setShowConfPassword] = useState(false);
     const [error, setError] = useState('');
+    const [validationState, setValidationState] = useState({
+        email: { isValid: true, message: '' },
+        username: { isValid: true, message: '' }
+    })
+    const [isValidating, setIsValidating] = useState({
+        email: false,
+        username: false
+    })
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -27,6 +37,66 @@ const AuthModal = ({ isOpen, onClose }) => {
             setError('');
         }
     }, [formData]);
+
+    const debounce = (func, wait) => {
+        let timeout;
+        return (...args) => {
+            clearTimeout(timeout)
+            timeout = setTimeout(() => func(...args), wait)
+        }
+    }
+
+    // Real time validation functions
+    const validateEmail = debounce(async (email) => {
+        if (!email) return;
+        setIsValidating(prev => ({ ...prev, email: true }))
+
+        try {
+            const result = await validationService.checkEmailAvailability(email)
+            setValidationState(prev => ({
+                ...prev, email: {
+                    isValid: result.available,
+                    message: result.available ? '' : 'Email sudah terdaftar!'
+                }
+            }))
+        } catch (error) {
+            setValidationState(prev => ({
+                ...prev, email: {
+                    isValid: false,
+                    message: "Gagal memvalidasi email"
+                }
+            }))
+        } finally {
+            setIsValidating(prev => ({ ...prev, email: false }))
+        }
+    }, 500)
+
+
+    const validateUsername = debounce(async (username) => {
+        if (!username) return;
+        setIsValidating(prev => ({ ...prev, username: true }));
+
+        try {
+            const result = await validationService.checkUsernameAvailability(username);
+            setValidationState(prev => ({
+                ...prev,
+                username: {
+                    isValid: result.available,
+                    message: result.available ? '' : 'Username sudah digunakan'
+                }
+            }));
+        } catch (error) {
+            setValidationState(prev => ({
+                ...prev,
+                username: {
+                    isValid: false,
+                    message: 'Gagal memvalidasi username'
+                }
+            }));
+        } finally {
+            setIsValidating(prev => ({ ...prev, username: false }));
+        }
+    }, 500);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -63,11 +133,20 @@ const AuthModal = ({ isOpen, onClose }) => {
     };
 
     const handleInputChange = (e) => {
+        const { name, value } = e.target
         setFormData(prev => ({
             ...prev,
-            [e.target.name]: e.target.value
+            [name]: value
         }));
+
+        // Trigger validation
+        if (name === 'email') {
+            validateEmail(value);
+        } else if (name === 'username') {
+            validateUsername(value);
+        }
     };
+
 
     const handleBack = () => {
         setRegisterStep(1);
@@ -121,6 +200,21 @@ const AuthModal = ({ isOpen, onClose }) => {
         </div>
     );
 
+    const renderFormInput = (props) => (
+        <FormInput
+            {...props}
+            error={!validationState[props.name]?.isValid}
+            helperText={validationState[props.name]?.message}
+            rightElement={
+                isValidating[props.name] ? (
+                    <span className="loading loading-spinner loading-sm" />
+                ) : (
+                    props.rightElement
+                )
+            }
+        />
+    );
+
     const renderRegisterStep1 = () => (
         <>
             <FormInput
@@ -132,15 +226,15 @@ const AuthModal = ({ isOpen, onClose }) => {
                 placeholder="Masukkan nama kamu"
             />
 
-            <FormInput
-                label="Email"
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Masukkan email kamu"
-                icon={Mail}
-            />
+            {renderFormInput({
+                label: "Email",
+                type: "email",
+                name: "email",
+                value: formData.email,
+                onChange: handleInputChange,
+                placeholder: "Masukkan email kamu",
+                icon: Mail
+            })}
 
             <FormInput
                 label="Password"
@@ -167,17 +261,19 @@ const AuthModal = ({ isOpen, onClose }) => {
     );
 
     const renderRegisterStep2 = () => (
-        <FormInput
-            label="Username"
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleInputChange}
-            placeholder="Masukkan username kamu"
-            icon={User}
-        />
+        <>
+            {renderFormInput({
+                label: "Username",
+                type: "text",
+                name: "username",
+                value: formData.username,
+                onChange: handleInputChange,
+                placeholder: "Masukkan username kamu",
+                icon: User
+            })}
+        </>
     );
-    
+
     return (
         <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />

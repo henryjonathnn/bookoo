@@ -64,7 +64,7 @@ export const register = async (req, res) => {
     return res.status(400).json({ msg: "Email sudah terdaftar!" });
   }
 
-   // Validasi username yang didaftarkan apakah sudah ada atau blm
+  // Validasi username yang didaftarkan apakah sudah ada atau blm
   const existingUsername = await User.findOne({
     where: {
       username: username,
@@ -72,7 +72,7 @@ export const register = async (req, res) => {
   });
 
   if (existingUsername) {
-    return res.status(400).json({ msg: "Username sudah digunakan!" })
+    return res.status(400).json({ msg: "Username sudah digunakan!" });
   }
 
   // Hash pw supaya aman
@@ -170,4 +170,34 @@ export const logout = async (req, res) => {
   );
   res.clearCookie("refreshToken");
   return res.sendStatus(200);
+};
+
+export const validateEmail = async (req, res) => {
+  try {
+    const email = req.params.email;
+    const existingUser = await User.findOne({
+      where: { email },
+    });
+    res.json({ available: !existingUser });
+  } catch (error) {
+    res.status(500).json({
+      available: false,
+      error: error.message,
+    });
+  }
+};
+
+export const validateUsername = async (req, res) => {
+  try {
+    const username = req.params.username;
+    const existingUser = await User.findOne({
+      where: { username },
+    });
+    res.json({ available: !existingUser });
+  } catch (error) {
+    res.status(500).json({
+      available: false,
+      error: error.message,
+    });
+  }
 };

@@ -5,6 +5,8 @@ export const FormInput = ({
   label, 
   icon: Icon, 
   rightElement,
+  error,
+  helperText,
   ...inputProps 
 }) => {
   return (
@@ -13,7 +15,9 @@ export const FormInput = ({
       <div className="relative">
         {Icon && <Icon className={ICON_STYLES} />}
         <input
-          className={`${INPUT_STYLES} ${Icon ? 'pl-12' : 'px-4'} ${rightElement ? 'pr-12' : 'pr-4'} py-3`}
+          className={`${INPUT_STYLES} ${Icon ? 'pl-12' : 'px-4'} ${rightElement ? 'pr-12' : 'pr-4'} py-3 ${
+            error ? 'border-red-500' : ''
+          }`}
           {...inputProps}
         />
         {rightElement && (
@@ -22,6 +26,11 @@ export const FormInput = ({
           </div>
         )}
       </div>
+      {helperText && (
+        <p className={`text-sm ${error ? 'text-red-500' : 'text-gray-400'}`}>
+          {helperText}
+        </p>
+      )}
     </div>
   );
 };
