@@ -15,6 +15,7 @@ const AuthModal = ({ isOpen, onClose }) => {
   const [error, setError] = useState('');
   const [validationState, setValidationState] = useState({});
   const [isValidating, setIsValidating] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,7 +25,7 @@ const AuthModal = ({ isOpen, onClose }) => {
   });
 
   useEffect(() => {
-    error && setError('');
+    if (error) setError('');
   }, [formData]);
 
   const validate = async (field, value, validationFn) => {
@@ -62,15 +63,17 @@ const AuthModal = ({ isOpen, onClose }) => {
   }), []);
 
   const isFormValid = useMemo(() => {
-    if (isLogin) return true;
-    
-    const step1Valid = formData.email && formData.password && formData.confirmPassword && 
-                      formData.password === formData.confirmPassword && 
-                      (!validationState.email || validationState.email.isValid);
-                      
-    const step2Valid = formData.username && (!validationState.username || validationState.username.isValid);
-    
-    return registerStep === 1 ? step1Valid : step2Valid;
+    if (isLogin) {
+      return formData.email && formData.password;
+    }
+
+    if (registerStep === 1) {
+      return formData.email && formData.password && formData.confirmPassword &&
+        formData.name && formData.password === formData.confirmPassword &&
+        (!validationState.email || validationState.email.isValid);
+    }
+
+    return formData.username && (!validationState.username || validationState.username.isValid);
   }, [formData, validationState, registerStep, isLogin]);
 
   const handleInputChange = ({ target: { name, value } }) => {
@@ -82,7 +85,7 @@ const AuthModal = ({ isOpen, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isFormValid) return;
+    if (!isFormValid || isSubmitting) return;
 
     if (!isLogin && registerStep === 1) {
       if (formData.password !== formData.confirmPassword) {
@@ -93,17 +96,30 @@ const AuthModal = ({ isOpen, onClose }) => {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       if (isLogin) {
-        await login({ email: formData.email, password: formData.password });
+        await login({
+          email: formData.email.trim(),
+          password: formData.password
+        });
         onClose();
       } else {
-        await register({ ...formData });
+        await register({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          username: formData.username.trim(),
+          password: formData.password,
+          confPassword: formData.confirmPassword // Pastikan nama field sesuai dengan API
+        });
         setIsLogin(true);
         resetForm();
       }
     } catch (err) {
-      setError(err.response?.data?.msg || 'Terjadi kesalahan');
+      console.error('Auth error:', err);
+      setError(err.response?.data?.msg || 'Terjadi kesalahan pada server');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -112,6 +128,7 @@ const AuthModal = ({ isOpen, onClose }) => {
     setRegisterStep(1);
     setError('');
     setValidationState({});
+    setIsSubmitting(false);
   };
 
   const handleModeSwitch = () => {
@@ -131,7 +148,9 @@ const AuthModal = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const buttonStyle = `px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 ${isFormValid ? GRADIENT_BUTTON : 'bg-gray-600 opacity-50 cursor-not-allowed'}`;
+  const buttonStyle = `px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 
+  ${isFormValid && !isSubmitting ? GRADIENT_BUTTON : 'bg-gray-600 opacity-50 cursor-not-allowed'}`;
+
 
   const renderProgressBar = () => (
     <div className="mb-8">
@@ -198,6 +217,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                       onChange={handleInputChange}
                       placeholder="Masukkan email kamu"
                       icon={Mail}
+                      disabled={isSubmitting}
                     />
                     <FormInput
                       label="Password"
@@ -208,6 +228,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                       placeholder="Masukkan password kamu"
                       icon={Lock}
                       rightElement={<PasswordToggle field="password" />}
+                      disabled={isSubmitting}
                     />
                   </>
                 ) : registerStep === 1 ? (
@@ -219,6 +240,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                       value={formData.name}
                       onChange={handleInputChange}
                       placeholder="Masukkan nama kamu"
+                      disabled={isSubmitting}
                     />
                     <FormInput
                       label="Email"
@@ -233,6 +255,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                       rightElement={isValidating.email && (
                         <span className="loading loading-spinner loading-sm" />
                       )}
+                      disabled={isSubmitting}
                     />
                     <FormInput
                       label="Password"
@@ -243,6 +266,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                       placeholder="Masukkan password kamu"
                       icon={Lock}
                       rightElement={<PasswordToggle field="password" />}
+                      disabled={isSubmitting}
                     />
                     <FormInput
                       label="Konfirmasi Password"
@@ -253,6 +277,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                       placeholder="Konfirmasi password kamu"
                       icon={Lock}
                       rightElement={<PasswordToggle field="confirm" />}
+                      disabled={isSubmitting}
                     />
                   </>
                 ) : (
@@ -269,6 +294,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                     rightElement={isValidating.username && (
                       <span className="loading loading-spinner loading-sm" />
                     )}
+                    disabled={isSubmitting}
                   />
                 )}
 
@@ -278,6 +304,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                       type="button"
                       onClick={() => setRegisterStep(1)}
                       className="flex-1 px-6 py-3 rounded-xl font-medium bg-gray-600 hover:bg-gray-500 transition-colors flex items-center justify-center gap-2"
+                      disabled={isSubmitting}
                     >
                       <ArrowLeft className="h-4 w-4" />
                       Back
@@ -287,14 +314,20 @@ const AuthModal = ({ isOpen, onClose }) => {
                   <button
                     type="submit"
                     className={buttonStyle}
-                    disabled={!isFormValid}
+                    disabled={!isFormValid || isSubmitting}
                   >
-                    {isLogin ? 'Masuk' : registerStep === 1 ? (
+                    {isSubmitting ? (
+                      <span className="loading loading-spinner loading-sm" />
+                    ) : isLogin ? (
+                      'Masuk'
+                    ) : registerStep === 1 ? (
                       <>
                         Next
                         <ArrowRight className="h-4 w-4" />
                       </>
-                    ) : 'Create Account'}
+                    ) : (
+                      'Create Account'
+                    )}
                   </button>
                 </div>
               </form>
