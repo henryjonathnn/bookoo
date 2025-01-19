@@ -7,7 +7,7 @@ const Navbar = () => {
     <header className="bg-[#1a1625]/50 backdrop-blur-sm border-b border-purple-500/10 fixed right-0 left-64 top-0 z-10">
       <div className="flex justify-between items-center px-8 py-4">
         <div className="flex items-center space-x-4">
-          <h2 className="text-2xl font-bold">Dashboard</h2>
+          <h2 className="text-2xl font-bold">Admin Dashboard</h2>
         </div>
         <div className="flex items-center space-x-4">
           <div className="relative">

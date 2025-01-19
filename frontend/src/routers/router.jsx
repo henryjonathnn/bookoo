@@ -16,6 +16,7 @@ import Dashboard from "../pages/admin/Dashboard"
 import Page403 from "../pages/error/Page403"
 import Page404 from "../pages/error/Page404"
 import DataBuku from "../pages/admin/DataBuku"
+import { ProtectedRoute } from "../contexts/AuthContext"
 
 const ErrorBoundary = () => {
     const error = useRouteError()
@@ -59,7 +60,11 @@ const router = createBrowserRouter([
             },
             {
                 path: "admin",
-                element: <AdminLayout />,
+                element: (
+                    <ProtectedRoute allowedRoles={["ADMIN"]}>
+                        <AdminLayout />
+                    </ProtectedRoute>
+                ),
                 children: [
                     {
                         path: "",
