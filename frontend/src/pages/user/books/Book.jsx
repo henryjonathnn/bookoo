@@ -1,13 +1,13 @@
 import React, { useEffect, lazy, Suspense } from 'react';
 import { memo } from 'react';
 import Typewriter from 'typewriter-effect/dist/core';
-import '../../App.css'
-import { SORT_TYPES } from '../../constant';
+import '../../../App.css'
+import { SORT_TYPES } from '../../../constant';
 
 // Lazy load components
 const Hero = lazy(() => import('../home/Hero'));
 const Penulis = lazy(() => import('../home/Penulis'));
-const BookSection = lazy(() => import('../../components/modules/books/BookSection'));
+const BookSection = lazy(() => import('../../../components/modules/user/books/BookSection'));
 const Ranking = lazy(() => import('../home/Ranking'));
 
 // Loading fallback component

@@ -1,13 +1,21 @@
 import { createBrowserRouter, isRouteErrorResponse, useRouteError } from "react-router-dom"
-
 import App from "../App"
-import Home from "../pages/home/Home"
-import Book from "../pages/books/Book"
-import History from "../pages/history/History"
-import Bookmark from "../pages/bookmark/Bookmark"
+import UserLayout from "../layouts/UserLayout"
+import AdminLayout from "../layouts/AdminLayout"
+
+// User pages
+import Home from "../pages/user/home/Home"
+import Book from "../pages/user/books/Book"
+import History from "../pages/user/history/History"
+import Bookmark from "../pages/user/bookmark/Bookmark"
+
+// Admin pages
+import Dashboard from "../pages/admin/Dashboard"
+
+// Error pages
 import Page403 from "../pages/error/Page403"
 import Page404 from "../pages/error/Page404"
-import Dashboard from "../pages/admin/Dashboard"
+import DataBuku from "../pages/admin/DataBuku"
 
 const ErrorBoundary = () => {
     const error = useRouteError()
@@ -29,24 +37,39 @@ const router = createBrowserRouter([
         errorElement: <ErrorBoundary />,
         children: [
             {
-                path: "/",
-                element: <Home />
+                element: <UserLayout />,
+                children: [
+                    {
+                        path: '/',
+                        element: <Home />
+                    },
+                    {
+                        path: '/buku',
+                        element: <Book />
+                    },
+                    {
+                        path: '/riwayat',
+                        element: <History />
+                    },
+                    {
+                        path: '/Bookmark',
+                        element: <Bookmark />
+                    }
+                ]
             },
             {
-                path: "/buku",
-                element: <Book />
-            },
-            {
-                path: "/riwayat",
-                element: <History />
-            },
-            {
-                path: "/bookmark",
-                element: <Bookmark />
-            },
-            {
-                path: "/dashboard",
-                element: <Dashboard />
+                path: "admin",
+                element: <AdminLayout />,
+                children: [
+                    {
+                        path: "",
+                        element: <Dashboard />
+                    },
+                    {
+                        path: "buku",
+                        element: <DataBuku />
+                    }
+                ]
             }
         ]
     }

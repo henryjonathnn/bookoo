@@ -1,9 +1,9 @@
 import React, { memo, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'react-feather';
-import { useBooks } from '../../../hooks/useBook';
+import { useBooks } from '../../../../hooks/useBook';
 import BookCard from './BookCard';
-import Modal from '../../ui/Modal'
-import { BADGE_COLORS } from '../../../constant/index';
+import Modal from '../../../ui/user/Modal'
+import { BADGE_COLORS } from '../../../../constant/index';
 
 const BookSection = memo(({ 
   title, 

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Bell, Search, LogOut, Menu, X, Home, Book, Clock, Heart, Grid } from 'react-feather';
 import { Link } from 'react-router-dom';
-import AuthModal from '../pages/auth/AuthModal';
-import { useAuth } from '../contexts/AuthContext';
+import AuthModal from '../../pages/auth/AuthModal';
+import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 
 const Navbar = () => {

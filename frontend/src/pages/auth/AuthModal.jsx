@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { X, Mail, Lock, Eye, EyeOff, User, ArrowRight, ArrowLeft } from 'react-feather';
-import { Card, CardContent } from '../../components/ui/Card';
-import { FormInput } from '../../components/ui/FormInput';
+import { Card, CardContent } from '../../components/ui/user/Card';
+import { FormInput } from '../../components/ui/user/FormInput';
 import { GRADIENT_TEXT, GRADIENT_BUTTON } from '../../constant/index';
 import { useAuth } from '../../contexts/AuthContext';
 import { validationService } from '../../services/api';

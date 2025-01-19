@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect } from 'react';
-import { SORT_TYPES } from '../../constant/index';
-import BookSection from '../../components/modules/books/BookSection';
+import { SORT_TYPES } from '../../../constant/index';
+import BookSection from '../../../components/modules/user/books/BookSection';
 import Hero from './Hero'
 import Penulis from './Penulis'
 import Ranking from './Ranking'

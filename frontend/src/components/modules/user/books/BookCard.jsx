@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { Bookmark } from 'react-feather';
-import ImageLoader from '../../ImageLoader';
+import ImageLoader from '../../../user/ImageLoader';
 
 const BookCard = memo(({ 
   book, 

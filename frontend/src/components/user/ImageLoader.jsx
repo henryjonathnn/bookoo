@@ -1,5 +1,5 @@
 import React, { memo, useEffect } from 'react';
-import { useImageLoader } from '../hooks/useImageLoader';
+import { useImageLoader } from '../../hooks/useImageLoader';
 import { memoize } from 'lodash';
 
 const generateBlurHash = memoize((width, height) => {

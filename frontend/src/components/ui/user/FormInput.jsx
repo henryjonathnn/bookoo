@@ -1,5 +1,5 @@
 import React from 'react';
-import { INPUT_STYLES, ICON_STYLES } from '../../constant/index';
+import { INPUT_STYLES, ICON_STYLES } from '../../../constant/index';
 
 export const FormInput = ({ 
   label, 
