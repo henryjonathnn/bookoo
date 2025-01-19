@@ -110,7 +110,7 @@ const AuthModal = ({ isOpen, onClose }) => {
           email: formData.email.trim(),
           username: formData.username.trim(),
           password: formData.password,
-          confPassword: formData.confirmPassword // Pastikan nama field sesuai dengan API
+          confPassword: formData.confirmPassword 
         });
         setIsLogin(true);
         resetForm();

@@ -7,6 +7,7 @@ import History from "../pages/history/History"
 import Bookmark from "../pages/bookmark/Bookmark"
 import Page403 from "../pages/error/Page403"
 import Page404 from "../pages/error/Page404"
+import Dashboard from "../pages/admin/Dashboard"
 
 const ErrorBoundary = () => {
     const error = useRouteError()
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
             {
                 path: "/bookmark",
                 element: <Bookmark />
+            },
+            {
+                path: "/dashboard",
+                element: <Dashboard />
             }
         ]
     }
