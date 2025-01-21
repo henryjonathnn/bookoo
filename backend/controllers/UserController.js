@@ -201,50 +201,116 @@ export const authController = {
   },
 
   // Fungsi untuk memperbarui token agar user tidak perlu login login terus
+  // refreshToken: async (req, res) => {
+  //   try {
+  //     const refreshToken = req.cookies.refreshToken;
+  //     if (!refreshToken) return res.sendStatus(401);
+
+  //     const user = await User.findOne({
+  //       where: {
+  //         refresh_token: refreshToken,
+  //       },
+  //     });
+
+  //     if (!user) return res.sendStatus(403);
+
+  //     jwt.verify(
+  //       refreshToken,
+  //       process.env.REFRESH_TOKEN_SECRET,
+  //       (err, decoded) => {
+  //         if (err) return res.sendStatus(403);
+
+  //         const userId = user.id;
+  //         const name = user.name;
+  //         const email = user.email;
+  //         const role = user.role;
+
+  //         const accessToken = jwt.sign(
+  //           { userId, name, email, role },
+  //           process.env.ACCESS_TOKEN_SECRET,
+  //           { expiresIn: "20s" }
+  //         );
+
+  //         res.json({
+  //           accessToken,
+  //           user: {
+  //             id: userId,
+  //             name,
+  //             email,
+  //             role,
+  //           },
+  //         });
+  //       }
+  //     );
+  //   } catch (error) {
+  //     console.error(error);
+  //     return res.status(500).json({ msg: error.message });
+  //   }
+  // },
+
+
   refreshToken: async (req, res) => {
     try {
       const refreshToken = req.cookies.refreshToken;
-      if (!refreshToken) return res.sendStatus(401);
-
+      
+      if (!refreshToken) {
+        return res.sendStatus(401);
+      }
+  
+      // Verify refresh token
+      const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+      
+      // Get user from database
       const user = await User.findOne({
         where: {
-          refresh_token: refreshToken,
-        },
-      });
-
-      if (!user) return res.sendStatus(403);
-
-      jwt.verify(
-        refreshToken,
-        process.env.REFRESH_TOKEN_SECRET,
-        (err, decoded) => {
-          if (err) return res.sendStatus(403);
-
-          const userId = user.id;
-          const name = user.name;
-          const email = user.email;
-          const role = user.role;
-
-          const accessToken = jwt.sign(
-            { userId, name, email, role },
-            process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: "20s" }
-          );
-
-          res.json({
-            accessToken,
-            user: {
-              id: userId,
-              name,
-              email,
-              role,
-            },
-          });
+          id: decoded.userId
         }
+      });
+  
+      if (!user) {
+        return res.sendStatus(403);
+      }
+  
+      // Generate new access token
+      const accessToken = jwt.sign(
+        { userId: user.id, role: user.role },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: '15m' } // Access token expires in 15 minutes
       );
+  
+      // Generate new refresh token
+      const newRefreshToken = jwt.sign(
+        { userId: user.id },
+        process.env.REFRESH_TOKEN_SECRET,
+        { expiresIn: '7d' } // Refresh token expires in 7 days
+      );
+  
+      // Save new refresh token to database if you're tracking them
+      await User.update(
+        { refresh_token: newRefreshToken },
+        { where: { id: user.id } }
+      );
+  
+      // Set new refresh token in cookie
+      res.cookie('refreshToken', newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+  
+      // Send new access token to client
+      res.json({
+        accessToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+        }
+      });
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ msg: error.message });
+      console.error('Refresh token error:', error);
+      return res.sendStatus(403);
     }
   },
 

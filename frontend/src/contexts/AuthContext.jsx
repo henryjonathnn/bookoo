@@ -15,30 +15,58 @@ export const AuthProvider = ({ children }) => {
 
     const checkAuth = async () => {
         try {
-            const response = await authService.refreshToken();
-            console.log('Response from refresh token:', response.data); // Debug log
-            if (response.data) {
-                setUser(response.data.user);
-                console.log('User set in state:', response.data.user); // Debug log
-            }
-        } catch (error) {
-            console.error('Auth check failed:', error);
-            setUser(null);
-        } finally {
+          const token = localStorage.getItem('accessToken');
+          if (!token) {
             setLoading(false);
+            return;
+          }
+    
+          // Try to get a new token using refresh token
+          const response = await authService.refreshToken();
+          const { accessToken, user } = response.data;
+          
+          localStorage.setItem('accessToken', accessToken);
+          setUser(user);
+        } catch (error) {
+          console.error('Auth check failed:', error);
+          localStorage.removeItem('accessToken');
+          setUser(null);
+        } finally {
+          setLoading(false);
         }
-    };
+      };
+    
+      useEffect(() => {
+        checkAuth();
+        
+        // Set up timer to refresh token before it expires
+        const refreshInterval = setInterval(async () => {
+          const token = localStorage.getItem('accessToken');
+          if (token) {
+            try {
+              const response = await authService.refreshToken();
+              const { accessToken } = response.data;
+              localStorage.setItem('accessToken', accessToken);
+            } catch (error) {
+              console.error('Token refresh failed:', error);
+              // Handle failed refresh (optional)
+            }
+          }
+        }, 14 * 60 * 1000); // Refresh every 14 minutes (before 15-minute expiration)
+    
+        return () => clearInterval(refreshInterval);
+      }, []);
 
     const login = async (credentials) => {
         try {
             const response = await authService.login(credentials);
-            console.log('Login response:', response.data); // Debug log
+            // Make sure you're storing both user data and token
             setUser(response.data.user);
-            console.log('User after login:', response.data.user); // Debug log
+            localStorage.setItem('accessToken', response.data.accessToken);
             toast.success('Login berhasil!');
             return response;
         } catch (error) {
-            toast.error(error.response?.data?.msg || 'Login gagal. Silakan coba lagi.');
+            toast.error(error.response?.data?.msg || 'Login gagal');
             throw error;
         }
     };
@@ -58,8 +86,11 @@ export const AuthProvider = ({ children }) => {
         try {
             await authService.logout();
             setUser(null);
+            localStorage.removeItem('accessToken');
+            toast.success('Logout berhasil!');
         } catch (error) {
             console.error('Logout failed:', error);
+            toast.error('Logout gagal');
             throw error;
         }
     };

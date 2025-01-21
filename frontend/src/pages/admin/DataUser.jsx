@@ -1,23 +1,42 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from 'react-feather';
 import PageHeader from '../../components/modules/admin/PageHeader';
 import SearchFilterBar from '../../components/modules/admin/SearchFilterBar';
 import DataTable from '../../components/modules/admin/DataTable';
 import TombolAksi from '../../components/modules/admin/TombolAksi';
+import { userService } from '../../services/userService';
+import { useAuth } from '../../contexts/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const DataUser = () => {
-  const [currentPage, setCurrentPage] = useState(1);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [paginatedUsers, setPaginatedUsers] = useState([]);
-  const usersPerPage = 10;
+  const [params, setParams] = useState({
+    page: 1,
+    limit: 10,
+    search: ''
+  });
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const { user } = useAuth();
 
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedUsers(users.map(user => user.id));
+    } else {
+      setSelectedUsers([]);
+    }
+  };
+
+  // Define columns after handleSelectAll is declared
   const columns = [
     {
       header: <input
         type="checkbox"
         className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
+        onChange={handleSelectAll}
+        checked={selectedUsers.length === users.length && users.length > 0}
       />
     },
     { header: 'User Info' },
@@ -27,127 +46,57 @@ const DataUser = () => {
     { header: 'Actions' }
   ];
 
-  const mockUsers = [
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      role: 'Admin',
-      status: 'Active',
-      joinDate: 'Jan 19, 2024',
-    },
-    {
-      id: 2,
-      name: 'Cantika Aurel',
-      email: 'aurel@gmail.com',
-      role: 'User',
-      status: 'Active',
-      joinDate: 'Jan 18, 2024',
-    },
-    {
-      id: 3,
-      name: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      role: 'Petugas',
-      status: 'Inactive',
-      joinDate: 'Jan 17, 2024',
-    },
-    {
-      id: 4,
-      name: 'Henry Jonathan',
-      email: 'henry@gmail.com',
-      role: 'Admin',
-      status: 'Active',
-      joinDate: 'Jan 17, 2024',
-    },
-    {
-      id: 5,
-      name: 'Nala Rohmatal',
-      email: 'nala@gmail.com',
-      role: 'Petugas',
-      status: 'Inactive',
-      joinDate: 'Jan 17, 2024',
-    },
-    {
-      id: 6,
-      name: 'Nila Rohmatal',
-      email: 'nila@gmail.com',
-      role: 'Petugas',
-      status: 'Inactive',
-      joinDate: 'Jan 17, 2024',
-    },
-    {
-      id: 7,
-      name: 'Hyura Developer',
-      email: 'hyuradev@gmail.com',
-      role: 'Admin',
-      status: 'Active',
-      joinDate: 'Jan 17, 2024',
-    },
-    {
-      id: 8,
-      name: 'Hyura',
-      email: 'hyura@gmail.com',
-      role: 'User',
-      status: 'Inactive',
-      joinDate: 'Jan 17, 2024',
-    },
-    {
-      id: 9,
-      name: 'Abel Putra',
-      email: 'abel@gmail.com',
-      role: 'User',
-      status: 'Active',
-      joinDate: 'Jan 17, 2024',
-    },
-    {
-      id: 10,
-      name: 'Fauzi',
-      email: 'fauzi@gmail.com',
-      role: 'User',
-      status: 'Active',
-      joinDate: 'Jan 17, 2024',
-    },
-    {
-      id: 11,
-      name: 'Wafi Udin',
-      email: 'udin@gmail.com',
-      role: 'User',
-      status: 'Active',
-      joinDate: 'Jan 17, 2024',
-    },
-  ];
-
-  // Efek untuk filter data berdasarkan pencarian dengan debounce
   useEffect(() => {
-    const query = searchQuery.toLowerCase();
-    const results = mockUsers.filter(
-      (user) =>
-        user.name.toLowerCase().includes(query) ||
-        user.email.toLowerCase().includes(query) ||
-        user.role.toLowerCase().includes(query)
-    );
-    setFilteredUsers(results);
-  }, [searchQuery]);
+    fetchUsers();
+  }, [params]);
 
-  // Efek untuk memperbarui data paginasi
-  useEffect(() => {
-    const startIndex = (currentPage - 1) * usersPerPage;
-    const endIndex = startIndex + usersPerPage;
-    setPaginatedUsers(filteredUsers.slice(startIndex, endIndex));
-  }, [filteredUsers, currentPage]);
-
-  const handlePageChange = (page) => {
-    if (page < 1 || page > Math.ceil(filteredUsers.length / usersPerPage)) return;
-    setCurrentPage(page);
+  const fetchUsers = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      const data = await userService.getUsers(params);
+      setUsers(data.users);
+      setTotalItems(data.totalItems);
+      setTotalPages(data.totalPages);
+    } catch (err) {
+      toast.error('Failed to fetch users');
+      console.error('Error fetching users:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Set data awal ke semua users
-  useEffect(() => {
-    setFilteredUsers(mockUsers);
-  }, []);
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    // Debounce implementation
+    const timeoutId = setTimeout(() => {
+      setParams(prev => ({
+        ...prev,
+        search: value,
+        page: 1 // Reset to first page on new search
+      }));
+    }, 500);
 
-  const renderUserRow = (user, index) => (
+    return () => clearTimeout(timeoutId);
+  };
+
+  const handlePageChange = (page) => {
+    setParams(prev => ({
+      ...prev,
+      page
+    }));
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const renderUserRow = (user) => (
     <tr key={user.id} className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors">
       <td className="px-6 py-4">
         <input
@@ -181,16 +130,22 @@ const DataUser = () => {
       </td>
       <td className="px-6 py-4">
         <span className="px-3 py-1 bg-green-500/10 text-green-400 rounded-full text-sm">
-          {user.status}
+          Active
         </span>
       </td>
       <td className="px-6 py-4 text-gray-400">
-        {user.joinDate}
+        {formatDate(user.createdAt)}
       </td>
       <td className="px-6 py-4">
         <TombolAksi />
       </td>
     </tr>
+  );
+
+  const LoadingSpinner = () => (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+    </div>
   );
 
   return (
@@ -203,19 +158,24 @@ const DataUser = () => {
 
       <SearchFilterBar
         searchPlaceholder="Search users..."
-        onSearch={(e) => setSearchQuery(e.target.value)}
+        onSearch={handleSearch}
+        value={params.search}
       />
 
-      <DataTable
-        columns={columns}
-        data={paginatedUsers}
-        renderRow={renderUserRow}
-        totalEntries={filteredUsers.length}
-        currentPage={currentPage}
-        onPageChange={handlePageChange}
-        entriesPerPage={usersPerPage}
-      />
-
+      {loading ? (
+        <LoadingSpinner />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={users}
+          renderRow={renderUserRow}
+          totalEntries={totalItems}
+          currentPage={params.page}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          entriesPerPage={params.limit}
+        />
+      )}
     </div>
   );
 };

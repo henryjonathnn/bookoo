@@ -12,7 +12,7 @@ router.delete("/logout", authController.logout)
 router.get("/token", authController.refreshToken)
 router.get("/validate/:field/:value", authController.validateField);
 
-// Protected Routes (Admin Only)
+// Protected Routes 
 router.get("/", auth.verifyToken, authController.getUsers);
 router.get("/:id", auth.verifyToken, authController.getUserById);
 
