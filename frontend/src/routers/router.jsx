@@ -17,6 +17,7 @@ import Page403 from "../pages/error/Page403"
 import Page404 from "../pages/error/Page404"
 import DataBuku from "../pages/admin/DataBuku"
 import { ProtectedRoute } from "../contexts/AuthContext"
+import DataUser from "../pages/admin/DataUser"
 
 const ErrorBoundary = () => {
     const error = useRouteError()
@@ -69,6 +70,10 @@ const router = createBrowserRouter([
                     {
                         path: "",
                         element: <Dashboard />
+                    },
+                    {
+                        path: "users",
+                        element: <DataUser />
                     },
                     {
                         path: "buku",
