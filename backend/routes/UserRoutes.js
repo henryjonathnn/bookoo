@@ -12,10 +12,8 @@ router.delete("/logout", authController.logout)
 router.get("/token", authController.refreshToken)
 router.get("/validate/:field/:value", authController.validateField);
 
-// ONLY ADMIN
-// router.get("/", auth.verifyToken, auth.requireRole(['admin']), authController.getUsers);
-// router.get("/:id", getUserById);
-// router.get('/protected', verifyToken, (req, res) => {
-//   res.json({ msg: "Protected resource accessed successfully" });
-// });
+// Protected Routes (Admin Only)
+router.get("/", auth.verifyToken, auth.requireRole(['ADMIN']), authController.getUsers);
+router.get("/:id", auth.verifyToken, auth.requireRole(['ADMIN']), authController.getUserById);
+
 export default router;

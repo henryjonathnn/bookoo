@@ -18,6 +18,62 @@ const generateTokens = (userData) => {
 };
 
 export const authController = {
+  getUsers: async (req, res) => {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const search = req.query.search || '';
+      const offset = (page - 1) * limit;
+
+      const whereClause = search ? {
+        [Op.or]: [
+          { name: { [Op.iLike]: `%${search}%` } },
+          { email: { [Op.iLike]: `%${search}%` } },
+          { username: { [Op.iLike]: `%${search}%` } }
+        ]
+      } : {};
+
+      const { count, rows } = await User.findAndCountAll({
+        where: whereClause,
+        attributes: ['id', 'name', 'email', 'username', 'role', 'createdAt'],
+        limit,
+        offset,
+        order: [['createdAt', 'DESC']],
+      });
+
+      res.json({
+        totalItems: count,
+        users: rows,
+        currentPage: page,
+        totalPages: Math.ceil(count / limit)
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        message: "Error fetching users", 
+        error: error.message 
+      });
+    }
+  },
+  
+  getUserById: async (req, res) => {
+    try {
+      const user = await User.findByPk(req.params.id, {
+        attributes: ['id', 'name', 'email', 'username', 'role', 'createdAt']
+      });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ 
+        message: "Error fetching user", 
+        error: error.message 
+      });
+    }
+  },
+
   register: async (req, res) => {
     try {
       const { name, email, username, password, confPassword } = req.body;
