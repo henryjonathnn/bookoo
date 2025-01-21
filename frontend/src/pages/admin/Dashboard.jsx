@@ -2,8 +2,9 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { BookOpen, Users, Bookmark, Award, ChevronDown, Search, Bell } from 'react-feather';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/admin/Card";
+import DatePicker from '../../components/ui/admin/DatePicker';
 
-// Mock data for charts
+// Mock data untuk chart
 const borrowingData = [
   { month: 'Jan', books: 350 }, { month: 'Feb', books: 400 },
   { month: 'Mar', books: 380 }, { month: 'Apr', books: 450 },
@@ -12,7 +13,8 @@ const borrowingData = [
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  
+  const [selectedDate, setSelectedDate] = useState(new Date())
+
   // Memoized stats to prevent unnecessary recalculations
   const stats = useMemo(() => [
     {
@@ -69,9 +71,15 @@ const Dashboard = () => {
     }
   ], []);
 
+  const handleDateChange = (date) => {
+    setSelectedDate(date)
+
+    console.log("Menghasilkan data untuk tanggal:", date)
+  }
+
   // Memoized filter function for activities
-  const filteredActivities = useMemo(() => 
-    activities.filter(activity => 
+  const filteredActivities = useMemo(() =>
+    activities.filter(activity =>
       activity.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
       activity.book.toLowerCase().includes(searchQuery.toLowerCase())
     ),
@@ -84,6 +92,23 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#1a1625] p-6 mt-20 mb-1">
+      <div className="flex justify-between items-center mb-8">
+        <div className="flex items-center gap-4">
+          <DatePicker onDateChange={handleDateChange} />
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="Cari aktivitas..."
+              className="pl-10 pr-4 py-2 bg-[#2a2438] border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -106,18 +131,18 @@ const Dashboard = () => {
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                   <XAxis dataKey="month" stroke="#9CA3AF" />
                   <YAxis stroke="#9CA3AF" />
-                  <Tooltip 
-                    contentStyle={{ 
+                  <Tooltip
+                    contentStyle={{
                       backgroundColor: '#1F2937',
                       border: 'none',
                       borderRadius: '8px',
                       color: '#fff'
                     }}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="books" 
-                    stroke="#8B5CF6" 
+                  <Line
+                    type="monotone"
+                    dataKey="books"
+                    stroke="#8B5CF6"
                     strokeWidth={2}
                     dot={{ fill: '#8B5CF6' }}
                   />
