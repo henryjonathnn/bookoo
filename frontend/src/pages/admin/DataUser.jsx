@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { User } from 'react-feather';
 import PageHeader from '../../components/modules/admin/PageHeader';
 import SearchFilterBar from '../../components/modules/admin/SearchFilterBar';
@@ -8,10 +8,14 @@ import TombolAksi from '../../components/modules/admin/TombolAksi';
 const DataUser = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [paginatedUsers, setPaginatedUsers] = useState([]);
+  const usersPerPage = 10;
 
   const columns = [
     {
-      header: <input 
+      header: <input
         type="checkbox"
         className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
       />
@@ -23,19 +27,130 @@ const DataUser = () => {
     { header: 'Actions' }
   ];
 
-  const mockUsers = [1, 2, 3, 4, 5].map((id) => ({
-    id,
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    role: 'Admin',
-    status: 'Active',
-    joinDate: 'Jan 19, 2024'
-  }));
+  const mockUsers = [
+    {
+      id: 1,
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+      role: 'Admin',
+      status: 'Active',
+      joinDate: 'Jan 19, 2024',
+    },
+    {
+      id: 2,
+      name: 'Cantika Aurel',
+      email: 'aurel@gmail.com',
+      role: 'User',
+      status: 'Active',
+      joinDate: 'Jan 18, 2024',
+    },
+    {
+      id: 3,
+      name: 'Jane Smith',
+      email: 'jane.smith@example.com',
+      role: 'Petugas',
+      status: 'Inactive',
+      joinDate: 'Jan 17, 2024',
+    },
+    {
+      id: 4,
+      name: 'Henry Jonathan',
+      email: 'henry@gmail.com',
+      role: 'Admin',
+      status: 'Active',
+      joinDate: 'Jan 17, 2024',
+    },
+    {
+      id: 5,
+      name: 'Nala Rohmatal',
+      email: 'nala@gmail.com',
+      role: 'Petugas',
+      status: 'Inactive',
+      joinDate: 'Jan 17, 2024',
+    },
+    {
+      id: 6,
+      name: 'Nila Rohmatal',
+      email: 'nila@gmail.com',
+      role: 'Petugas',
+      status: 'Inactive',
+      joinDate: 'Jan 17, 2024',
+    },
+    {
+      id: 7,
+      name: 'Hyura Developer',
+      email: 'hyuradev@gmail.com',
+      role: 'Admin',
+      status: 'Active',
+      joinDate: 'Jan 17, 2024',
+    },
+    {
+      id: 8,
+      name: 'Hyura',
+      email: 'hyura@gmail.com',
+      role: 'User',
+      status: 'Inactive',
+      joinDate: 'Jan 17, 2024',
+    },
+    {
+      id: 9,
+      name: 'Abel Putra',
+      email: 'abel@gmail.com',
+      role: 'User',
+      status: 'Active',
+      joinDate: 'Jan 17, 2024',
+    },
+    {
+      id: 10,
+      name: 'Fauzi',
+      email: 'fauzi@gmail.com',
+      role: 'User',
+      status: 'Active',
+      joinDate: 'Jan 17, 2024',
+    },
+    {
+      id: 11,
+      name: 'Wafi Udin',
+      email: 'udin@gmail.com',
+      role: 'User',
+      status: 'Active',
+      joinDate: 'Jan 17, 2024',
+    },
+  ];
+
+  // Efek untuk filter data berdasarkan pencarian dengan debounce
+  useEffect(() => {
+    const query = searchQuery.toLowerCase();
+    const results = mockUsers.filter(
+      (user) =>
+        user.name.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query) ||
+        user.role.toLowerCase().includes(query)
+    );
+    setFilteredUsers(results);
+  }, [searchQuery]);
+
+  // Efek untuk memperbarui data paginasi
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * usersPerPage;
+    const endIndex = startIndex + usersPerPage;
+    setPaginatedUsers(filteredUsers.slice(startIndex, endIndex));
+  }, [filteredUsers, currentPage]);
+
+  const handlePageChange = (page) => {
+    if (page < 1 || page > Math.ceil(filteredUsers.length / usersPerPage)) return;
+    setCurrentPage(page);
+  };
+
+  // Set data awal ke semua users
+  useEffect(() => {
+    setFilteredUsers(mockUsers);
+  }, []);
 
   const renderUserRow = (user, index) => (
     <tr key={user.id} className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors">
       <td className="px-6 py-4">
-        <input 
+        <input
           type="checkbox"
           className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
           checked={selectedUsers.includes(user.id)}
@@ -80,24 +195,29 @@ const DataUser = () => {
 
   return (
     <div className="pt-16">
-      <PageHeader 
+      <PageHeader
         title="User Management"
         subtitle="Manage and organize your system users"
         buttonLabel="Add New User"
       />
-      
-      <SearchFilterBar searchPlaceholder="Search users..." />
-      
+
+      <SearchFilterBar
+        searchPlaceholder="Search users..."
+        onSearch={(e) => setSearchQuery(e.target.value)}
+      />
+
       <DataTable
         columns={columns}
-        data={mockUsers}
+        data={paginatedUsers}
         renderRow={renderUserRow}
-        totalEntries={50}
+        totalEntries={filteredUsers.length}
         currentPage={currentPage}
-        onPageChange={setCurrentPage}
+        onPageChange={handlePageChange}
+        entriesPerPage={usersPerPage}
       />
+
     </div>
   );
 };
 
-export default DataUser
+export default DataUser;
