@@ -17,6 +17,7 @@
     "react-feather": "^2.0.10",
     "react-hot-toast": "^2.5.1",
     "react-router-dom": "^7.1.1",
+    "recharts": "^2.15.0",
     "typewriter-effect": "^2.21.0"
   },
   "devDependencies": {

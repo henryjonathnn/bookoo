@@ -10,14 +10,14 @@ const Navbar = () => {
           <h2 className="text-2xl font-bold">Admin Dashboard</h2>
         </div>
         <div className="flex items-center space-x-4">
-          <div className="relative">
+          {/* <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
               placeholder="Search..."
               className="bg-[#1a1625] rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
-          </div>
+          </div> */}
           <button className="relative p-2 hover:bg-[#1a1625] rounded-lg">
             <Bell size={20} />
             <span className="absolute top-1 right-1 w-2 h-2 bg-purple-500 rounded-full"></span>
