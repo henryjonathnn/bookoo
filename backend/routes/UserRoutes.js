@@ -13,7 +13,7 @@ router.get("/token", authController.refreshToken)
 router.get("/validate/:field/:value", authController.validateField);
 
 // Protected Routes (Admin Only)
-router.get("/", auth.verifyToken, auth.requireRole(['ADMIN']), authController.getUsers);
-router.get("/:id", auth.verifyToken, auth.requireRole(['ADMIN']), authController.getUserById);
+router.get("/", auth.verifyToken, authController.getUsers);
+router.get("/:id", auth.verifyToken, authController.getUserById);
 
 export default router;
