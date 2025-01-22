@@ -1,17 +1,26 @@
 import React from 'react';
-import { Plus } from 'react-feather';
+import { PlusCircle } from 'react-feather';
 
-const PageHeader = ({ title, subtitle, buttonLabel }) => (
-  <div className="flex justify-between items-center mb-6">
-    <div>
-      <h1 className="text-2xl font-bold mb-2">{title}</h1>
-      <p className="text-gray-400">{subtitle}</p>
+const PageHeader = ({ title, subtitle, buttonLabel, onButtonClick }) => {
+  return (
+    <div className="mb-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{title}</h1>
+          <p className="text-gray-400 mt-1">{subtitle}</p>
+        </div>
+        {buttonLabel && (
+          <button
+            onClick={onButtonClick}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            <PlusCircle className="w-5 h-5" />
+            <span>{buttonLabel}</span>
+          </button>
+        )}
+      </div>
     </div>
-    <button className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center gap-2 transition-colors">
-      <Plus size={20} />
-      {buttonLabel}
-    </button>
-  </div>
-);
+  );
+};
 
 export default PageHeader;
