@@ -1,6 +1,7 @@
 import { User } from "../models/index.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { Op } from "sequelize";
 
 // Fungsi untuk generate token
 const generateTokens = (userData) => {
@@ -25,32 +26,41 @@ export const authController = {
       const search = req.query.search || '';
       const offset = (page - 1) * limit;
 
+      // Construct the where clause only if search is provided
       const whereClause = search ? {
         [Op.or]: [
-          { name: { [Op.iLike]: `%${search}%` } },
-          { email: { [Op.iLike]: `%${search}%` } },
-          { username: { [Op.iLike]: `%${search}%` } }
+          { name: { [Op.like]: `%${search}%` } },
+          { email: { [Op.like]: `%${search}%` } },
+          { username: { [Op.like]: `%${search}%` } }
         ]
       } : {};
 
+      // Add error handling for database query
       const { count, rows } = await User.findAndCountAll({
         where: whereClause,
         attributes: ['id', 'name', 'email', 'username', 'role', 'createdAt'],
         limit,
         offset,
         order: [['createdAt', 'DESC']],
+      }).catch(error => {
+        console.error('Database query error:', error);
+        throw new Error('Database query failed');
       });
 
-      res.json({
+      // Send response
+      return res.status(200).json({
         totalItems: count,
         users: rows,
         currentPage: page,
         totalPages: Math.ceil(count / limit)
       });
+
     } catch (error) {
-      res.status(500).json({ 
+      console.error('Server error in getUsers:', error);
+      return res.status(500).json({ 
         message: "Error fetching users", 
-        error: error.message 
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   },

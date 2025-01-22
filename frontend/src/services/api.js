@@ -46,7 +46,7 @@ api.interceptors.response.use(
 
     if (error.response?.status === 403 && !originalRequest._retry) {
       if (isRefreshing) {
-        // If refresh is in progress, add request to queue
+        // Jika refresh dalam proses, tambahkan req ke antrian
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -86,66 +86,6 @@ api.interceptors.response.use(
   }
 );
 
-const RETRY_COUNT = 3;
-const RETRY_DELAY = 1000;
-
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// api.interceptors.response.use(
-//   (response) => response,
-//   async (error) => {
-//     const originalRequest = error.config;
-
-//     // Handle network errors dengan retry
-//     if (
-//       !error.response &&
-//       !originalRequest._retry &&
-//       originalRequest._retryCount < RETRY_COUNT
-//     ) {
-//       originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
-//       await sleep(RETRY_DELAY * originalRequest._retryCount);
-//       return api(originalRequest);
-//     }
-
-//     // Handle 401 errors
-//     if (error.response?.status === 401) {
-//       // Jika request bukan ke endpoint /token dan belum pernah di-retry
-//       if (!originalRequest._retry && !originalRequest.url.includes("/token")) {
-//         originalRequest._retry = true;
-
-//         if (!isRefreshing) {
-//           isRefreshing = true;
-
-//           try {
-//             await api.get("/token");
-//             isRefreshing = false;
-//             processQueue(null);
-//             return api(originalRequest);
-//           } catch (refreshError) {
-//             isRefreshing = false;
-//             processQueue(refreshError, null);
-//             // Redirect ke halaman login atau dispatch logout action
-//             window.location.href = "/login";
-//             return Promise.reject(refreshError);
-//           }
-//         } else {
-//           // Jika sedang refresh token, queue request
-//           return new Promise((resolve, reject) => {
-//             failedQueue.push({ resolve, reject });
-//           })
-//             .then(() => {
-//               return api(originalRequest);
-//             })
-//             .catch((err) => {
-//               return Promise.reject(err);
-//             });
-//         }
-//       }
-//     }
-
-//     return Promise.reject(error);
-//   }
-// );
 
 export const authService = {
   async register(userData) {

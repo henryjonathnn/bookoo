@@ -1,25 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { User } from 'react-feather';
 import PageHeader from '../../components/modules/admin/PageHeader';
 import SearchFilterBar from '../../components/modules/admin/SearchFilterBar';
 import DataTable from '../../components/modules/admin/DataTable';
 import TombolAksi from '../../components/modules/admin/TombolAksi';
-import { userService } from '../../services/userService';
-import { useAuth } from '../../contexts/AuthContext';
+import { useUsers } from '../../hooks/useUsers';
 import { toast } from 'react-hot-toast';
 
 const DataUser = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  const [params, setParams] = useState({
-    page: 1,
-    limit: 10,
-    search: ''
-  });
-  const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const { user } = useAuth();
+  const {
+    users,
+    loading,
+    error,
+    totalItems,
+    totalPages,
+    currentPage,
+    updateParams,
+    refresh
+  } = useUsers();
+
+  const [selectedUsers, setSelectedUsers] = React.useState([]);
+
+  React.useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
+  const handleSearch = React.useCallback((searchValue) => {
+    updateParams({ search: searchValue, page: 1 });
+  }, [updateParams]);
+
+  const handlePageChange = React.useCallback((page) => {
+    updateParams({ page });
+  }, [updateParams]);
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -29,7 +43,6 @@ const DataUser = () => {
     }
   };
 
-  // Define columns after handleSelectAll is declared
   const columns = [
     {
       header: <input
@@ -45,48 +58,6 @@ const DataUser = () => {
     { header: 'Join Date' },
     { header: 'Actions' }
   ];
-
-  useEffect(() => {
-    fetchUsers();
-  }, [params]);
-
-  const fetchUsers = async () => {
-    if (!user) return;
-    
-    try {
-      setLoading(true);
-      const data = await userService.getUsers(params);
-      setUsers(data.users);
-      setTotalItems(data.totalItems);
-      setTotalPages(data.totalPages);
-    } catch (err) {
-      toast.error('Failed to fetch users');
-      console.error('Error fetching users:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    // Debounce implementation
-    const timeoutId = setTimeout(() => {
-      setParams(prev => ({
-        ...prev,
-        search: value,
-        page: 1 // Reset to first page on new search
-      }));
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  };
-
-  const handlePageChange = (page) => {
-    setParams(prev => ({
-      ...prev,
-      page
-    }));
-  };
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -159,7 +130,7 @@ const DataUser = () => {
       <SearchFilterBar
         searchPlaceholder="Search users..."
         onSearch={handleSearch}
-        value={params.search}
+        initialValue=""
       />
 
       {loading ? (
@@ -170,10 +141,10 @@ const DataUser = () => {
           data={users}
           renderRow={renderUserRow}
           totalEntries={totalItems}
-          currentPage={params.page}
+          currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={handlePageChange}
-          entriesPerPage={params.limit}
+          entriesPerPage={10}
         />
       )}
     </div>

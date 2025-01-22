@@ -13,21 +13,28 @@ export const useUsers = (initialParams = { page: 1, limit: 10, search: '' }) => 
   const { user } = useAuth();
 
   const fetchUsers = useCallback(async () => {
-    if (!user || user.role !== 'admin') {
+    if (!user) {
       setError('Unauthorized access');
       return;
     }
 
     try {
       setLoading(true);
+      setError(null); // Clear errors
       const data = await userService.getUsers(params);
-      setUsers(data.users);
-      setTotalItems(data.totalItems);
-      setTotalPages(data.totalPages);
-      setError(null);
+      
+      if (data && data.users) {
+        setUsers(data.users);
+        setTotalItems(data.totalItems);
+        setTotalPages(data.totalPages);
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Error fetching users');
-      toast.error('Failed to fetch users');
+      console.error('Error details:', err);
+      setError(err.response?.data?.message || 'Gagal fetch users');
+      toast.error('Gagal fetch users');
+      setUsers([]);
+      setTotalItems(0);
+      setTotalPages(0);
     } finally {
       setLoading(false);
     }
@@ -37,9 +44,9 @@ export const useUsers = (initialParams = { page: 1, limit: 10, search: '' }) => 
     fetchUsers();
   }, [fetchUsers]);
 
-  const updateParams = (newParams) => {
+  const updateParams = useCallback((newParams) => {
     setParams(prev => ({ ...prev, ...newParams }));
-  };
+  }, []);
 
   return {
     users,

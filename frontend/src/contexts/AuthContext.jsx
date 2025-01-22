@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }) => {
       useEffect(() => {
         checkAuth();
         
-        // Set up timer to refresh token before it expires
+        // Set up timer untuk refresh token sebelum expired
         const refreshInterval = setInterval(async () => {
           const token = localStorage.getItem('accessToken');
           if (token) {
