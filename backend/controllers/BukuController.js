@@ -1,12 +1,41 @@
 import express from "express";
 import { Buku } from "../models/index.js";
+import { Op } from "sequelize";
 
 export const getBuku = async (req, res) => {
   try {
-    const buku = await Buku.findAll();
-    res.json(buku);
-  } catch (error) {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const offset = (page - 1) * limit;
+
+    // Untuk searching data
+    const condition = search
+      ? {
+          [Op.or]: [
+            { judul: { [Op.like]: `%${search}%` } },
+            { penulis: { [Op.like]: `%${search}%` } },
+            { isbn: { [Op.like]: `%${search}%` } },
+          ],
+        }
+      : {};
+
+    const { count, rows } = await Buku.findAndCountAll({
+      where: condition,
+      limit: limit,
+      offset: offset,
+      order: [["createdAt", "DESC"]],
+    });
+
     res.json({
+      rows,
+      count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    console.error("Error:", error); // Log untuk debugging
+    res.status(500).json({
       msg: "Gagal mendapatkan data buku",
       error: error.message,
     });

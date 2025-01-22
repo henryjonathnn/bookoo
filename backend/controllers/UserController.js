@@ -26,7 +26,7 @@ export const authController = {
       const search = req.query.search || '';
       const offset = (page - 1) * limit;
 
-      // Construct the where clause only if search is provided
+      // Untuk searching data
       const whereClause = search ? {
         [Op.or]: [
           { name: { [Op.like]: `%${search}%` } },
@@ -35,7 +35,7 @@ export const authController = {
         ]
       } : {};
 
-      // Add error handling for database query
+      // Tambah error handling untuk query db
       const { count, rows } = await User.findAndCountAll({
         where: whereClause,
         attributes: ['id', 'name', 'email', 'username', 'role', 'createdAt'],
