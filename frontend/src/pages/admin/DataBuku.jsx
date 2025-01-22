@@ -1,24 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { BookOpen } from 'react-feather';
 import PageHeader from '../../components/modules/admin/PageHeader';
 import SearchFilterBar from '../../components/modules/admin/SearchFilterBar';
 import DataTable from '../../components/modules/admin/DataTable';
 import TombolAksi from '../../components/modules/admin/TombolAksi';
-import api from '../../services/api';
 import Dialog from '../../components/ui/admin/Dialog';
 import Button from '../../components/ui/admin/Button';
 import Input from '../../components/ui/admin/Input';
 import Label from '../../components/ui/admin/Label';
 import { toast } from 'react-hot-toast';
+import { useBooks } from '../../hooks/useBook';
+import { bookService } from '../../services/bookService';
 
 const DataBuku = () => {
-  // Initialize states with proper database column names
-  const [books, setBooks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [totalItems, setTotalItems] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState('');
+  // Initialize with default values
+  const {
+    books,
+    loading,
+    error,
+    totalItems,
+    totalPages,
+    currentPage,
+    updateParams,
+    refresh
+  } = useBooks({
+    page: 1,
+    limit: 10,
+    search: ''
+  });
+
   const [selectedBooks, setSelectedBooks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('create');
@@ -35,51 +45,43 @@ const DataBuku = () => {
     tahun_terbit: '',
   });
 
-  const fetchBooks = async (page = 1, search = '') => {
-    try {
-      setLoading(true);
-      const response = await api.get('/buku', {
-        params: {
-          page,
-          limit: 10,
-          search,
-        },
-      });
-      
-      setBooks(response.data?.rows || []);
-      setTotalItems(response.data?.count || 0);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
-      setBooks([]);
-      toast.error('Failed to fetch books');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Error handling
   useEffect(() => {
-    fetchBooks(currentPage, searchQuery);
-  }, [currentPage, searchQuery]);
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
-  const handleSearch = (value) => {
-    setSearchQuery(value);
-    setCurrentPage(1);
-  };
+  // Search handler with debounce
+  const handleSearch = useCallback((searchValue) => {
+    updateParams({ search: searchValue, page: 1 });
+  }, [updateParams]);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
+  // Page change handler
+  const handlePageChange = useCallback((page) => {
+    updateParams({ page });
+  }, [updateParams]);
 
-  const handleSelectAll = (e) => {
-    if (e.target.checked && books.length > 0) {
+  // Select all handler
+  const handleSelectAll = useCallback((e) => {
+    if (e.target.checked && books?.length > 0) {
       setSelectedBooks(books.map(book => book.id));
     } else {
       setSelectedBooks([]);
     }
-  };
+  }, [books]);
 
-  const openCreateModal = () => {
+  // Individual select handler
+  const handleSelectBook = useCallback((bookId, checked) => {
+    setSelectedBooks(prev => {
+      if (checked) {
+        return [...prev, bookId];
+      }
+      return prev.filter(id => id !== bookId);
+    });
+  }, []);
+
+  const openCreateModal = useCallback(() => {
     setModalMode('create');
     setCurrentBook(null);
     setFormData({
@@ -94,9 +96,9 @@ const DataBuku = () => {
       tahun_terbit: '',
     });
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const openEditModal = (book) => {
+  const openEditModal = useCallback((book) => {
     setModalMode('edit');
     setCurrentBook(book);
     setFormData({
@@ -111,36 +113,36 @@ const DataBuku = () => {
       tahun_terbit: book.tahun_terbit || '',
     });
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     const formDataObj = new FormData();
-    
+
     Object.entries(formData).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
         formDataObj.append(key, value);
       }
     });
-    
+
     if (e.target.cover_img?.files?.[0]) {
       formDataObj.append('cover_img', e.target.cover_img.files[0]);
     }
 
     try {
       if (modalMode === 'create') {
-        await api.post('/buku', formDataObj);
+        await bookService.createBook(formDataObj);
         toast.success('Book created successfully');
       } else if (currentBook?.id) {
-        await api.patch(`/buku/${currentBook.id}`, formDataObj);
+        await bookService.updateBook(currentBook.id, formDataObj);
         toast.success('Book updated successfully');
       }
       setIsModalOpen(false);
-      fetchBooks(currentPage, searchQuery);
+      refresh();
     } catch (err) {
-      toast.error(err.response?.data?.msg || 'Operation failed');
+      toast.error(err.message);
     }
-  };
+  }, [modalMode, formData, currentBook, refresh]);
 
   const columns = [
     {
@@ -148,7 +150,7 @@ const DataBuku = () => {
         type="checkbox"
         className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
         onChange={handleSelectAll}
-        checked={books.length > 0 && selectedBooks.length === books.length}
+        checked={books?.length > 0 && selectedBooks.length === books.length}
       />
     },
     { header: 'Book Info' },
@@ -159,27 +161,14 @@ const DataBuku = () => {
     { header: 'Actions' }
   ];
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR'
-    }).format(value);
-  };
-
-  const renderBookRow = (book) => (
+  const renderBookRow = useCallback((book) => (
     <tr key={book.id} className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors">
       <td className="px-6 py-4">
         <input
           type="checkbox"
           className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
           checked={selectedBooks.includes(book.id)}
-          onChange={(e) => {
-            if (e.target.checked) {
-              setSelectedBooks([...selectedBooks, book.id]);
-            } else {
-              setSelectedBooks(selectedBooks.filter(id => id !== book.id));
-            }
-          }}
+          onChange={(e) => handleSelectBook(book.id, e.target.checked)}
         />
       </td>
       <td className="px-6 py-4">
@@ -201,24 +190,24 @@ const DataBuku = () => {
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 text-gray-400">
-        {book.isbn || 'N/A'}
-      </td>
+      <td className="px-6 py-4 text-gray-400">{book.isbn || 'N/A'}</td>
       <td className="px-6 py-4">
         <span className="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-sm">
           {book.kategori || 'Uncategorized'}
         </span>
       </td>
-      <td className="px-6 py-4 text-gray-400">
-        {book.stock || 0}
-      </td>
-      <td className="px-6 py-4 text-gray-400">
-        {book.penerbit || 'N/A'}
-      </td>
+      <td className="px-6 py-4 text-gray-400">{book.stock || 0}</td>
+      <td className="px-6 py-4 text-gray-400">{book.penerbit || 'N/A'}</td>
       <td className="px-6 py-4">
-        <TombolAksi onEdit={() => openEditModal(book)} />
+        <TombolAksi onEdit={() => openEditModal(book)} onRefresh={refresh} />
       </td>
     </tr>
+  ), [selectedBooks, handleSelectBook, openEditModal, refresh]);
+
+  const LoadingSpinner = () => (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+    </div>
   );
 
   return (
@@ -233,13 +222,11 @@ const DataBuku = () => {
       <SearchFilterBar
         searchPlaceholder="Search books..."
         onSearch={handleSearch}
-        initialValue={searchQuery}
+        initialValue=""
       />
 
       {loading ? (
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-        </div>
+        <LoadingSpinner />
       ) : (
         <DataTable
           columns={columns}
@@ -247,7 +234,7 @@ const DataBuku = () => {
           renderRow={renderBookRow}
           totalEntries={totalItems}
           currentPage={currentPage}
-          totalPages={Math.ceil(totalItems / 10)}
+          totalPages={totalPages}
           onPageChange={handlePageChange}
           entriesPerPage={10}
         />

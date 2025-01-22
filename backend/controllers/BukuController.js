@@ -28,10 +28,10 @@ export const getBuku = async (req, res) => {
     });
 
     res.json({
-      rows,
-      count,
-      totalPages: Math.ceil(count / limit),
+      totalItems: count,
+      books: rows,
       currentPage: page,
+      totalPages: Math.ceil(count / limit)
     });
   } catch (error) {
     console.error("Error:", error); // Log untuk debugging

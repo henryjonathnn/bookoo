@@ -5,7 +5,12 @@ export const bookService = {
   async getBooks(params = {}) {
     try {
       const response = await api.get("/buku", { params });
-      return response.data;
+      return {
+        data: response.data.books,
+        count: response.data.totalItems,
+        currentPage: response.data.currentPage,
+        totalPages: response.data.totalPages
+      };
     } catch (error) {
       throw new Error(handleApiError(error));
     }

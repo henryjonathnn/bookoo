@@ -5,7 +5,6 @@ export const userService = {
   async getUsers(params = {}) {
     try {
       const response = await api.get("/users", { params });
-      // Transform the response to match what the hooks expect
       return {
         data: response.data.users,
         count: response.data.totalItems,

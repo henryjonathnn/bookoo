@@ -4,7 +4,7 @@ import { Card, CardContent } from '../../components/ui/user/Card';
 import { FormInput } from '../../components/ui/user/FormInput';
 import { GRADIENT_TEXT, GRADIENT_BUTTON } from '../../constant/index';
 import { useAuth } from '../../contexts/AuthContext';
-import { validationService } from '../../services/api';
+import { authService } from '../../services/authService';
 import { debounce } from 'lodash';
 
 const AuthModal = ({ isOpen, onClose }) => {
@@ -58,8 +58,8 @@ const AuthModal = ({ isOpen, onClose }) => {
   };
 
   const debouncedValidate = useMemo(() => ({
-    email: debounce(value => validate('email', value, validationService.checkEmailAvailability), 500),
-    username: debounce(value => validate('username', value, validationService.checkUsernameAvailability), 500)
+    email: debounce(value => validate('email', value, authService.checkEmailAvailability), 500),
+    username: debounce(value => validate('username', value, authService.checkUsernameAvailability), 500)
   }), []);
 
   const isFormValid = useMemo(() => {
