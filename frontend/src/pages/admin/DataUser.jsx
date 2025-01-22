@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { User } from 'react-feather';
 import PageHeader from '../../components/modules/admin/PageHeader';
 import SearchFilterBar from '../../components/modules/admin/SearchFilterBar';
@@ -8,6 +8,7 @@ import { useUsers } from '../../hooks/useUsers';
 import { toast } from 'react-hot-toast';
 
 const DataUser = () => {
+  // Initialize with default values
   const {
     users,
     loading,
@@ -17,31 +18,49 @@ const DataUser = () => {
     currentPage,
     updateParams,
     refresh
-  } = useUsers();
+  } = useUsers({
+    page: 1,
+    limit: 10,
+    search: ''
+  });
 
-  const [selectedUsers, setSelectedUsers] = React.useState([]);
+  const [selectedUsers, setSelectedUsers] = useState([]);
 
-  React.useEffect(() => {
+  // Error handling
+  useEffect(() => {
     if (error) {
       toast.error(error);
     }
   }, [error]);
 
-  const handleSearch = React.useCallback((searchValue) => {
+  // Search handler with debounce
+  const handleSearch = useCallback((searchValue) => {
     updateParams({ search: searchValue, page: 1 });
   }, [updateParams]);
 
-  const handlePageChange = React.useCallback((page) => {
+  // Page change handler
+  const handlePageChange = useCallback((page) => {
     updateParams({ page });
   }, [updateParams]);
 
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
+  // Select all handler
+  const handleSelectAll = useCallback((e) => {
+    if (e.target.checked && users?.length > 0) {
       setSelectedUsers(users.map(user => user.id));
     } else {
       setSelectedUsers([]);
     }
-  };
+  }, [users]);
+
+  // Individual select handler
+  const handleSelectUser = useCallback((userId, checked) => {
+    setSelectedUsers(prev => {
+      if (checked) {
+        return [...prev, userId];
+      }
+      return prev.filter(id => id !== userId);
+    });
+  }, []);
 
   const columns = [
     {
@@ -49,7 +68,7 @@ const DataUser = () => {
         type="checkbox"
         className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
         onChange={handleSelectAll}
-        checked={selectedUsers.length === users.length && users.length > 0}
+        checked={users?.length > 0 && selectedUsers.length === users.length}
       />
     },
     { header: 'User Info' },
@@ -59,28 +78,22 @@ const DataUser = () => {
     { header: 'Actions' }
   ];
 
-  const formatDate = (dateString) => {
+  const formatDate = useCallback((dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
-  };
+  }, []);
 
-  const renderUserRow = (user) => (
+  const renderUserRow = useCallback((user) => (
     <tr key={user.id} className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors">
       <td className="px-6 py-4">
         <input
           type="checkbox"
           className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
           checked={selectedUsers.includes(user.id)}
-          onChange={(e) => {
-            if (e.target.checked) {
-              setSelectedUsers([...selectedUsers, user.id]);
-            } else {
-              setSelectedUsers(selectedUsers.filter(id => id !== user.id));
-            }
-          }}
+          onChange={(e) => handleSelectUser(user.id, e.target.checked)}
         />
       </td>
       <td className="px-6 py-4">
@@ -108,10 +121,10 @@ const DataUser = () => {
         {formatDate(user.createdAt)}
       </td>
       <td className="px-6 py-4">
-        <TombolAksi />
+        <TombolAksi onRefresh={refresh} userId={user.id} />
       </td>
     </tr>
-  );
+  ), [selectedUsers, handleSelectUser, formatDate, refresh]);
 
   const LoadingSpinner = () => (
     <div className="flex items-center justify-center min-h-[400px]">

@@ -1,25 +1,19 @@
-import api from "./api";
+import api from './axios.instance';
+import { handleApiError } from '../utils/api.utils';
 
 export const userService = {
-  async getUsers(params) {
+  async getUsers(params = {}) {
     try {
-      const response = await api.get("/users", {
-        params: {
-          page: params.page,
-          limit: params.limit,
-          search: params.search || "", 
-        },
-      });
-      return response.data;
+      const response = await api.get("/users", { params });
+      // Transform the response to match what the hooks expect
+      return {
+        data: response.data.users,
+        count: response.data.totalItems,
+        currentPage: response.data.currentPage,
+        totalPages: response.data.totalPages
+      };
     } catch (error) {
-      console.error("Error gagal fetch users:", error);
-      if (error.response) {
-        throw new Error(error.response.data.message || "Terjadi kesalahan server");
-      } else if (error.request) {
-        throw new Error("Tidak ada respon dari server");
-      } else {
-        throw new Error("Terjadi kesalahan saat menyiapkan request");
-      }
+      throw new Error(handleApiError(error));
     }
   },
 
@@ -28,8 +22,8 @@ export const userService = {
       const response = await api.get(`/users/${id}`);
       return response.data;
     } catch (error) {
-      console.error("Error fetching user:", error);
-      throw new Error(error.response?.data?.message || "Error fetching user");
+      console.error('Error fetching user by ID:', error);
+      throw new Error(handleApiError(error));
     }
-  },
+  }
 };
