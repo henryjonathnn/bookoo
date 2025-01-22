@@ -3,7 +3,7 @@ import api from "./api";
 export const userService = {
   async getUsers(params) {
     try {
-      const response = await api.get("/", {
+      const response = await api.get("/users", {
         params: {
           page: params.page,
           limit: params.limit,
@@ -25,7 +25,7 @@ export const userService = {
 
   async getUserById(id) {
     try {
-      const response = await api.get(`/${id}`);
+      const response = await api.get(`/users/${id}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching user:", error);

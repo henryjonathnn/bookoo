@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/users"; // Ini URL API backend
+const API_URL = "http://localhost:5000"; // Ini URL API backend
 
 // State untuk tracking status auth
 let isRefreshing = false;
@@ -61,7 +61,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const response = await api.get("/token");
+        const response = await api.get("/users/token");
         const { accessToken } = response.data;
         
         localStorage.setItem('accessToken', accessToken);
@@ -74,7 +74,7 @@ api.interceptors.response.use(
         
         // Clear auth state
         localStorage.removeItem('accessToken');
-        window.location.href = '/login';
+        window.location.href = '/users/login';
         
         return Promise.reject(refreshError);
       } finally {
@@ -89,13 +89,13 @@ api.interceptors.response.use(
 
 export const authService = {
   async register(userData) {
-    return api.post("/register", userData);
+    return api.post("/users/register", userData);
   },
 
 // Di authService.login di api.js
 async login(credentials) {
   try {
-    const response = await api.post("/login", credentials);
+    const response = await api.post("/users/login", credentials);
     // Simpan token ke localStorage
     if (response.data.accessToken) {
       localStorage.setItem('accessToken', response.data.accessToken);
@@ -107,15 +107,15 @@ async login(credentials) {
 },
 
   async logout() {
-    return api.delete("/logout");
+    return api.delete("/users/logout");
   },
 
   async refreshToken() {
-    return api.get("/token");
+    return api.get("/users/token");
   },
 
   async getProfile() {
-    return api.get("/profile");
+    return api.get("/users/profile");
   },
 };
 
@@ -123,7 +123,7 @@ export const validationService = {
   async checkEmailAvailability(email) {
     try {
       const response = await api.get(
-        `/validate/email/${encodeURIComponent(email)}`
+        `/users/validate/email/${encodeURIComponent(email)}`
       );
       return response.data;
     } catch (error) {
@@ -134,7 +134,7 @@ export const validationService = {
   async checkUsernameAvailability(username) {
     try {
       const response = await api.get(
-        `/validate/username/${encodeURIComponent(username)}`
+        `/users/validate/username/${encodeURIComponent(username)}`
       );
       return response.data;
     } catch (error) {
