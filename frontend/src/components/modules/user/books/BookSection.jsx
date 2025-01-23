@@ -15,7 +15,30 @@ const BookSection = memo(({
   rightLabel
 }) => {
   const [showModal, setShowModal] = useState(false);
-  const { books, loading, error } = useBooks(sortType);
+  const { 
+    books, 
+    loading, 
+    error, 
+    currentPage, 
+    totalPages, 
+    updateParams 
+  } = useBooks({
+    page: 1,
+    limit: 4,
+    // You can add additional sorting logic here if needed
+  });
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      updateParams({ page: currentPage - 1 });
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      updateParams({ page: currentPage + 1 });
+    }
+  };
 
   if (loading) {
     return (
@@ -55,10 +78,18 @@ const BookSection = memo(({
           <p className="text-gray-400 mt-2">{subtitle}</p>
         </div>
         <div className="flex space-x-3">
-          <button className="p-2 md:p-3 rounded-xl bg-[#1A1A2E] hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10">
+          <button 
+            onClick={handlePrevPage} 
+            disabled={currentPage === 1}
+            className="p-2 md:p-3 rounded-xl bg-[#1A1A2E] hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10 disabled:opacity-50"
+          >
             <ChevronLeft size={18} />
           </button>
-          <button className="p-2 md:p-3 rounded-xl bg-[#1A1A2E] hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10">
+          <button 
+            onClick={handleNextPage} 
+            disabled={currentPage === totalPages}
+            className="p-2 md:p-3 rounded-xl bg-[#1A1A2E] hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10 disabled:opacity-50"
+          >
             <ChevronRight size={18} />
           </button>
           <button
@@ -71,7 +102,7 @@ const BookSection = memo(({
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-        {books.slice(0, 4).map((book) => (
+        {books.map((book) => (
           <BookCard
             key={book.id}
             book={book}
@@ -103,7 +134,6 @@ const BookSection = memo(({
     </section>
   );
 });
-
 
 BookSection.displayName = 'BookSection';
 export default BookSection;

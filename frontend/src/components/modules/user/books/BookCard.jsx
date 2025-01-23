@@ -1,20 +1,23 @@
 import React, { memo } from 'react';
 import { Bookmark } from 'react-feather';
 import ImageLoader from '../../../user/ImageLoader';
+import { API_CONFIG } from '../../../../config/api.config';
 
-const BookCard = memo(({ 
-  book, 
-  isBookmarked = false, 
-  onToggleBookmark = () => {}, 
-  showRating = false, 
-  rightLabel 
+const BookCard = memo(({
+  book,
+  isBookmarked = false,
+  onToggleBookmark = () => { },
+  showRating = false,
+  rightLabel
 }) => {
-  const coverImg = `/assets/books/${book.cover}`;
-  const authorImg = `/assets/author/${book.author.image}`;
+  // Adjust these paths based on your actual backend image serving
+  const coverImg = book.cover_img
+    ? `${API_CONFIG.baseURL}${book.cover_img}`
+    : '/default-book-cover.jpg';
 
   const getValue = () => {
     if (showRating) {
-      return `${book.rating}/5`;
+      return `${book.rating || 0}/5`;
     }
     return book.peminjam?.toLocaleString() || '0';
   };
@@ -24,7 +27,7 @@ const BookCard = memo(({
       <div className="relative">
         <ImageLoader
           src={coverImg}
-          alt={book.title}
+          alt={book.judul || 'Book Title'}
           className="w-full h-48 md:h-64 rounded-xl object-cover mb-3 md:mb-4"
           width={400}
           height={300}
@@ -40,21 +43,12 @@ const BookCard = memo(({
           />
         </button>
       </div>
-      
+
       <div className="flex items-center justify-between mb-3 md:mb-4">
         <div className="flex items-center flex-1 min-w-0">
-          <div className="w-6 h-6 md:w-8 md:h-8 rounded-full border-2 border-purple-500 flex-shrink-0 overflow-hidden">
-            <ImageLoader
-              src={authorImg}
-              alt={book.author.name}
-              className="w-full h-full object-cover"
-              width={32}
-              height={32}
-            />
-          </div>
           <div className="ml-2 md:ml-3 min-w-0">
-            <h3 className="font-medium text-sm md:text-base truncate">{book.title}</h3>
-            <p className="text-gray-400 text-xs md:text-sm truncate">by {book.author.name}</p>
+            <h3 className="font-medium text-sm md:text-base truncate">{book.judul}</h3>
+            <p className="text-gray-400 text-xs md:text-sm truncate">by {book.penulis}</p>
           </div>
         </div>
       </div>
@@ -62,7 +56,7 @@ const BookCard = memo(({
       <div className="flex items-center justify-between text-xs md:text-sm border-t border-purple-500/10 pt-3 md:pt-4">
         <div>
           <p className="text-gray-400">Kategori</p>
-          <p className="font-medium">{book.category}</p>
+          <p className="font-medium">{book.kategori || 'Umum'}</p>
         </div>
         <div className="text-right">
           <p className="text-gray-400">{rightLabel}</p>
