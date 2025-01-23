@@ -138,20 +138,20 @@ const DataBuku = () => {
         checked={books?.length > 0 && selectedBooks.length === books.length}
       />
     },
-    { header: 'Book Info' },
+    { header: 'Info Buku' },
     { header: 'ISBN' },
-    { header: 'Category' },
-    { header: 'Stock' },
-    { header: 'Publisher' },
-    { header: 'Actions' }
+    { header: 'Kategori' },
+    { header: 'Stok' },
+    { header: 'Penerbit' },
+    { header: 'Aksi' }
   ];
 
   return (
     <div className="pt-16">
       <PageHeader
-        title="Books Management"
-        subtitle="Manage and organize your library's book collection"
-        buttonLabel="Add New Book"
+        title="Data Buku"
+        subtitle="Pengelolaan koleksi buku perpustakaan BooKoo"
+        buttonLabel="Tambah Buku"
         onButtonClick={handleOpenCreateModal}
       />
 

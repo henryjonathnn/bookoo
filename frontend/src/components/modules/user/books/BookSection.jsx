@@ -25,7 +25,6 @@ const BookSection = memo(({
   } = useBooks({
     page: 1,
     limit: 4,
-    // You can add additional sorting logic here if needed
   });
 
   const handlePrevPage = () => {

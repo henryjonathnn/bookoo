@@ -43,7 +43,6 @@ const Penulis = memo(() => {
       likes: 10,
       readers: 90
     },
-    // Add more authors as needed
   ];
 
   return (

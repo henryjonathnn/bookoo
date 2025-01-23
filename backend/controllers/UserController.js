@@ -295,21 +295,20 @@ export const authController = {
         { expiresIn: '7d' } // Refresh token expires in 7 days
       );
   
-      // Save new refresh token to database if you're tracking them
       await User.update(
         { refresh_token: newRefreshToken },
         { where: { id: user.id } }
       );
   
-      // Set new refresh token in cookie
+      // Set refresh token baru di dalam cookie
       res.cookie('refreshToken', newRefreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 1 Minggu
       });
   
-      // Send new access token to client
+      // Kirim access token baru ke client
       res.json({
         accessToken,
         user: {

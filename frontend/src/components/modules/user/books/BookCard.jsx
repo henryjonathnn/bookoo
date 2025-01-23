@@ -10,7 +10,6 @@ const BookCard = memo(({
   showRating = false,
   rightLabel
 }) => {
-  // Adjust these paths based on your actual backend image serving
   const coverImg = book.cover_img
     ? `${API_CONFIG.baseURL}${book.cover_img}`
     : '/default-book-cover.jpg';
