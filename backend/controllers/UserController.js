@@ -23,28 +23,30 @@ export const authController = {
     try {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
-      const search = req.query.search || '';
+      const search = req.query.search || "";
       const offset = (page - 1) * limit;
 
       // Untuk searching data
-      const whereClause = search ? {
-        [Op.or]: [
-          { name: { [Op.like]: `%${search}%` } },
-          { email: { [Op.like]: `%${search}%` } },
-          { username: { [Op.like]: `%${search}%` } }
-        ]
-      } : {};
+      const whereClause = search
+        ? {
+            [Op.or]: [
+              { name: { [Op.like]: `%${search}%` } },
+              { email: { [Op.like]: `%${search}%` } },
+              { username: { [Op.like]: `%${search}%` } },
+            ],
+          }
+        : {};
 
       // Tambah error handling untuk query db
       const { count, rows } = await User.findAndCountAll({
         where: whereClause,
-        attributes: ['id', 'name', 'email', 'username', 'role', 'createdAt'],
+        attributes: ["id", "name", "email", "username", "role", "createdAt"],
         limit,
         offset,
-        order: [['createdAt', 'DESC']],
-      }).catch(error => {
-        console.error('Database query error:', error);
-        throw new Error('Database query failed');
+        order: [["createdAt", "DESC"]],
+      }).catch((error) => {
+        console.error("Database query error:", error);
+        throw new Error("Database query failed");
       });
 
       // Send response
@@ -52,23 +54,22 @@ export const authController = {
         totalItems: count,
         users: rows,
         currentPage: page,
-        totalPages: Math.ceil(count / limit)
+        totalPages: Math.ceil(count / limit),
       });
-
     } catch (error) {
-      console.error('Server error in getUsers:', error);
-      return res.status(500).json({ 
-        message: "Error fetching users", 
+      console.error("Server error in getUsers:", error);
+      return res.status(500).json({
+        message: "Error fetching users",
         error: error.message,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
       });
     }
   },
-  
+
   getUserById: async (req, res) => {
     try {
       const user = await User.findByPk(req.params.id, {
-        attributes: ['id', 'name', 'email', 'username', 'role', 'createdAt']
+        attributes: ["id", "name", "email", "username", "role", "createdAt"],
       });
 
       if (!user) {
@@ -77,9 +78,9 @@ export const authController = {
 
       res.json(user);
     } catch (error) {
-      res.status(500).json({ 
-        message: "Error fetching user", 
-        error: error.message 
+      res.status(500).json({
+        message: "Error fetching user",
+        error: error.message,
       });
     }
   },
@@ -213,52 +214,55 @@ export const authController = {
   refreshToken: async (req, res) => {
     try {
       const refreshToken = req.cookies.refreshToken;
-      
+
       if (!refreshToken) {
         return res.sendStatus(401);
       }
-  
+
       // Verify refresh token
-      const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-      
+      const decoded = jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET
+      );
+
       // Get user from database
       const user = await User.findOne({
         where: {
-          id: decoded.userId
-        }
+          id: decoded.userId,
+        },
       });
-  
+
       if (!user) {
         return res.sendStatus(403);
       }
-  
+
       // Generate new access token
       const accessToken = jwt.sign(
         { userId: user.id, role: user.role },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: '15m' } // Access token expires in 15 minutes
+        { expiresIn: "15m" } // Access token expires in 15 minutes
       );
-  
+
       // Generate new refresh token
       const newRefreshToken = jwt.sign(
         { userId: user.id },
         process.env.REFRESH_TOKEN_SECRET,
-        { expiresIn: '7d' } // Refresh token expires in 7 days
+        { expiresIn: "7d" } // Refresh token expires in 7 days
       );
-  
+
       await User.update(
         { refresh_token: newRefreshToken },
         { where: { id: user.id } }
       );
-  
+
       // Set refresh token baru di dalam cookie
-      res.cookie('refreshToken', newRefreshToken, {
+      res.cookie("refreshToken", newRefreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 1 Minggu
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 1 Minggu
       });
-  
+
       // Kirim access token baru ke client
       res.json({
         accessToken,
@@ -266,11 +270,76 @@ export const authController = {
           id: user.id,
           email: user.email,
           role: user.role,
-        }
+        },
       });
     } catch (error) {
-      console.error('Refresh token error:', error);
+      console.error("Refresh token error:", error);
       return res.sendStatus(403);
+    }
+  },
+
+  createUser: async (req, res) => {
+    try {
+      const { name, email, username, password, role } = req.body;
+
+      // Validate input
+      if (!name || !email || !username || !password) {
+        return res.status(400).json({ message: "Semua kolom harus diisi!" });
+      }
+
+      // Check for existing email and username
+      const [existingEmail, existingUsername] = await Promise.all([
+        User.findOne({ where: { email } }),
+        User.findOne({ where: { username } }),
+      ]);
+
+      if (existingEmail) {
+        return res.status(400).json({ message: "Email sudah digunakan" });
+      }
+
+      if (existingUsername) {
+        return res.status(400).json({ message: "Username sudah digunakan" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Prepare user data
+      const userData = {
+        name,
+        email,
+        username,
+        password: hashedPassword,
+        role: role || "USER", // Default to USER if no role provided
+      };
+
+      // Handle profile image upload
+      if (req.file) {
+        userData.profile_img = `/uploads/profiles/${req.file.filename}`;
+      }
+
+      // Create user
+      const newUser = await User.create(userData);
+
+      // Remove sensitive data from response
+      const { password: removedPassword, ...userResponse } = newUser.get({
+        plain: true,
+      });
+
+      res.status(201).json({
+        message: "User berhasil ditambahkan!",
+        data: userResponse,
+      });
+    } catch (error) {
+      // Remove uploaded file if there's an error
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+
+      res.status(500).json({
+        message: "Gagal menambahkan user",
+        error: error.message,
+      });
     }
   },
 

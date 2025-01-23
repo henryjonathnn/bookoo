@@ -2,6 +2,7 @@ import express from "express";
 import { authController } from "../controllers/UserController.js";
 import { refreshToken } from "../controllers/RefreshTokenController.js";
 import { auth } from "../middlewares/AuthMiddleware.js";
+import { profileUpload } from "../middlewares/uploadImage.js";
 
 const router = express.Router();
 
@@ -11,6 +12,7 @@ router.post("/login", authController.login)
 router.delete("/logout", authController.logout)
 router.get("/token", authController.refreshToken)
 router.get("/validate/:field/:value", authController.validateField);
+router.post("/", profileUpload.single("profile_img"), authController.createUser);
 
 // Protected Routes 
 router.get("/", auth.verifyToken, authController.getUsers);

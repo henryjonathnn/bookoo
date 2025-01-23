@@ -96,11 +96,11 @@ const DataUser = () => {
   
     const handleSubmit = async (formData) => {
       try {
-        if (selectedBook) {
+        if (selectedUser) {
           await userService.updateUser(selectedUser.id, formData);
           toast.success('User updated successfully!');
         } else {
-          await bookService.createUser(formData);
+          await userService.createUser(formData);
           toast.success('User created successfully!');
         }
         refresh();

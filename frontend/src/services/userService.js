@@ -24,5 +24,14 @@ export const userService = {
       console.error('Error fetching user by ID:', error);
       throw new Error(handleApiError(error));
     }
-  }
+  },
+
+  async createUser(userData) {
+    try {
+      const response = await api.post("/users", userData);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
 };
