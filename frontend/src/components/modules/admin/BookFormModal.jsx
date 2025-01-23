@@ -4,14 +4,7 @@ import Alert from '../../ui/admin/Alert';
 
 const BookFormModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     const BOOK_CATEGORIES = [
-        'FIKSI',
-        'NON_FIKSI',
-        'PENDIDIKAN',
-        'TEKNOLOGI',
-        'BISNIS',
-        'SENI',
-        'SEJARAH',
-        'AGAMA'
+        'FIKSI', 'NON-FIKSI', 'SAINS', 'TEKNOLOGI', 'SEJARAH', 'SASTRA', 'KOMIK', 'LAINNYA'
     ];
     const [preview, setPreview] = useState('');
     const [formData, setFormData] = useState({
