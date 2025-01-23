@@ -4,7 +4,7 @@ import PageHeader from '../../components/modules/admin/PageHeader';
 import SearchFilterBar from '../../components/modules/admin/SearchFilterBar';
 import DataTable from '../../components/modules/admin/DataTable';
 import TombolAksi from '../../components/modules/admin/TombolAksi';
-import BookFormModal from '../../components/modules/admin/BookFormModal';
+import FormModal from '../../components/modules/admin/FormModal';
 import { useBooks } from '../../hooks/useBook';
 import { bookService } from '../../services/bookService';
 import { toast } from 'react-hot-toast';
@@ -28,6 +28,42 @@ const DataBuku = () => {
     limit: 10,
     search: ''
   });
+
+  const bookFormConfig = {
+    type: 'book',
+    title: 'Buku',
+    imageField: 'cover_img',
+    fields: [
+      { id: 'judul', label: 'Judul', required: true },
+      { id: 'penulis', label: 'Penulis', required: true },
+      { id: 'isbn', label: 'ISBN', required: true },
+      {
+        id: 'kategori',
+        label: 'Kategori',
+        required: true,
+        component: ({ value, onChange, options }) => (
+          <select
+            value={value}
+            onChange={onChange}
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="">Pilih Kategori</option>
+            {options.map(category => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        ),
+        options: ['FIKSI', 'NON-FIKSI', 'SAINS', 'TEKNOLOGI', 'SEJARAH', 'SASTRA', 'KOMIK', 'LAINNYA']
+      },
+      { id: 'stock', label: 'Stok', type: 'number', required: true },
+      { id: 'denda_harian', label: 'Denda Harian', type: 'number', required: true },
+      { id: 'penerbit', label: 'Penerbit', required: true },
+      { id: 'tahun_terbit', label: 'Tahun Terbit', required: true },
+      { id: 'deskripsi', label: 'Deskripsi', required: false }
+    ]
+  };
 
   const handleSearch = useCallback((searchValue) => {
     updateParams({ search: searchValue, page: 1 });
@@ -179,11 +215,12 @@ const DataBuku = () => {
       )}
 
       {isModalOpen && (
-        <BookFormModal
+        <FormModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           onSubmit={handleSubmit}
           initialData={selectedBook}
+          formConfig={bookFormConfig}
         />
       )}
     </div>

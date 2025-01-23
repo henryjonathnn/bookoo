@@ -37,6 +37,10 @@ const User = db.define(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    profile_img: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,

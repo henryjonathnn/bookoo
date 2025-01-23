@@ -6,6 +6,8 @@ import DataTable from '../../components/modules/admin/DataTable';
 import TombolAksi from '../../components/modules/admin/TombolAksi';
 import { useUsers } from '../../hooks/useUsers';
 import { toast } from 'react-hot-toast';
+import FormModal from '../../components/modules/admin/FormModal';
+import { userService } from '../../services/userService';
 
 const DataUser = () => {
   // Initialize with default values
@@ -24,7 +26,41 @@ const DataUser = () => {
     search: ''
   });
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
+
+  const userFormConfig = {
+    type: 'user',
+    title: 'User',
+    imageField: 'profile_img',
+    fields: [
+      { id: 'name', label: 'Nama', required: true },
+      { id: 'email', label: 'Email', type: 'email', required: true },
+      { id: 'username', label: 'Username', required: true },
+      { id: 'password', label: 'Password', type: 'password', required: true },
+      {
+        id: 'role',
+        label: 'Role',
+        required: true,
+        component: ({ value, onChange, options }) => (
+          <select
+            value={value}
+            onChange={onChange}
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="">Pilih Role</option>
+            {options.map(role => (
+              <option key={role} value={role}>
+                {role}
+              </option>
+            ))}
+          </select>
+        ),
+        options: ['USER', 'STAFF', 'ADMIN']
+      }
+    ]
+  };
 
   // Error handling
   useEffect(() => {
@@ -42,6 +78,38 @@ const DataUser = () => {
   const handlePageChange = useCallback((page) => {
     updateParams({ page });
   }, [updateParams]);
+
+    const handleOpenCreateModal = useCallback(() => {
+      setSelectedUser(null);
+      setIsModalOpen(true);
+    }, []);
+  
+    const handleOpenEditModal = useCallback((book) => {
+      setSelectedUser(book);
+      setIsModalOpen(true);
+    }, []);
+  
+    const handleCloseModal = useCallback(() => {
+      setIsModalOpen(false);
+      setSelectedUser(null);
+    }, []);
+  
+    const handleSubmit = async (formData) => {
+      try {
+        if (selectedBook) {
+          await userService.updateUser(selectedUser.id, formData);
+          toast.success('User updated successfully!');
+        } else {
+          await bookService.createUser(formData);
+          toast.success('User created successfully!');
+        }
+        refresh();
+        handleCloseModal();
+      } catch (error) {
+        toast.error(error.message);
+        throw error;
+      }
+    };
 
   // Select all handler
   const handleSelectAll = useCallback((e) => {
@@ -137,7 +205,8 @@ const DataUser = () => {
       <PageHeader
         title="User Management"
         subtitle="Manage and organize your system users"
-        buttonLabel="Add New User"
+        buttonLabel="Tambah User"
+        onButtonClick={handleOpenCreateModal}
       />
 
       <SearchFilterBar
@@ -158,6 +227,16 @@ const DataUser = () => {
           totalPages={totalPages}
           onPageChange={handlePageChange}
           entriesPerPage={10}
+        />
+      )}
+
+      {isModalOpen && (
+        <FormModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onSubmit={handleSubmit}
+          initialData={selectedUser}
+          formConfig={userFormConfig}
         />
       )}
     </div>
