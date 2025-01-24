@@ -15,11 +15,20 @@ const FormModal = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Initialize form data based on form config
+      // Initialize form data with default empty strings or initial data values
       const initialFormData = formConfig.fields.reduce((acc, field) => {
-        acc[field.id] = initialData?.[field.id] || '';
+        // Ensure a defined value, prioritizing initial data, then empty string
+        acc[field.id] = initialData && initialData[field.id] !== undefined 
+          ? initialData[field.id] 
+          : (field.type === 'password' ? '' : '');
         return acc;
       }, {});
+
+      // Special handling for password field when editing
+      if (initialData) {
+        initialFormData.password = ''; // Always reset password field
+      }
+
       setFormData(initialFormData);
 
       // Handle image preview with API base URL

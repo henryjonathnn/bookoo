@@ -216,8 +216,8 @@ const DataUser = () => {
   return (
     <div className="pt-16">
       <PageHeader
-        title="User Management"
-        subtitle="Manage and organize your system users"
+        title="Data User"
+        subtitle="Pengelolaan data user yang ada di perpustakaan BooKoo"
         buttonLabel="Tambah User"
         onButtonClick={handleOpenCreateModal}
       />

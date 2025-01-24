@@ -13,6 +13,7 @@ router.delete("/logout", authController.logout)
 router.get("/token", authController.refreshToken)
 router.get("/validate/:field/:value", authController.validateField);
 router.post("/", profileUpload.single("profile_img"), authController.createUser);
+router.patch("/:id", auth.verifyToken, profileUpload.single("profile_img"), authController.updateUser);
 router.delete("/:id", authController.deleteUser);
 
 // Protected Routes 

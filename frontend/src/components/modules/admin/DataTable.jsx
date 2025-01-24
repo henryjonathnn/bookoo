@@ -31,8 +31,8 @@ const DataTable = ({
 
       <div className="px-6 py-4 flex items-center justify-between border-t border-gray-800">
         <div className="text-gray-400">
-          Showing {(currentPage - 1) * entriesPerPage + 1} to{' '}
-          {Math.min(currentPage * entriesPerPage, totalEntries)} of {totalEntries} entries
+          Menampilkan {(currentPage - 1) * entriesPerPage + 1} sampai{' '}
+          {Math.min(currentPage * entriesPerPage, totalEntries)} dari {totalEntries} data
         </div>
         <div className="flex items-center gap-2">
           <button

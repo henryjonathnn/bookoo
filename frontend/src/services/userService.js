@@ -35,6 +35,15 @@ export const userService = {
     }
   },
 
+  async updateUser(id, userData) {
+    try {
+      const response = await api.patch(`/users/${id}`, userData);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
+
   async deleteUser(id) {
     try {
       const response = await api.delete(`/users/${id}`);

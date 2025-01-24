@@ -42,7 +42,15 @@ export const authController = {
       // Tambah error handling untuk query db
       const { count, rows } = await User.findAndCountAll({
         where: whereClause,
-        attributes: ["id", "name", "email", "username", "role", "createdAt", "profile_img"],
+        attributes: [
+          "id",
+          "name",
+          "email",
+          "username",
+          "role",
+          "createdAt",
+          "profile_img",
+        ],
         limit,
         offset,
         order: [["createdAt", "DESC"]],
@@ -340,6 +348,94 @@ export const authController = {
 
       res.status(500).json({
         message: "Gagal menambahkan user",
+        error: error.message,
+      });
+    }
+  },
+
+  updateUser: async (req, res) => {
+    try {
+      const userId = req.params.id;
+      const { name, email, username, role } = req.body;
+
+      // Mwncari data user dari userId
+      const user = await User.findByPk(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User tidak ditemukan" });
+      }
+
+      // Validate input
+      if (!name || !email || !username) {
+        return res
+          .status(400)
+          .json({ message: "Nama, email, dan username harus diisi!" });
+      }
+
+      // Cek email yang sudah ada untuk menghindari duplikasi (kecuali email user saat ini)
+      const existingEmail = await User.findOne({
+        where: {
+          email,
+          id: { [Op.ne]: userId },
+        },
+      });
+      if (existingEmail) {
+        return res.status(400).json({ message: "Email sudah digunakan" });
+      }
+
+      // Cek username yang sudah ada untuk menghindari duplikasi (kecuali username saat ini)
+      const existingUsername = await User.findOne({
+        where: {
+          username,
+          id: { [Op.ne]: userId },
+        },
+      });
+      if (existingUsername) {
+        return res.status(400).json({ message: "Username sudah digunakan" });
+      }
+
+      // Persiapan update data
+      const updateData = {
+        name,
+        email,
+        username,
+        role: role || user.role,
+      };
+
+      // Handle upload foto profil
+      if (req.file) {
+        // Hapus foto profil lama jika ada 
+        if (user.profile_img) {
+          const oldFilePath = path.join("public", user.profile_img);
+          if (fs.existsSync(oldFilePath)) {
+            fs.unlinkSync(oldFilePath);
+          }
+        }
+
+        // Set path foto profil baru
+        updateData.profile_img = `/uploads/profiles/${req.file.filename}`;
+      }
+
+      // Update user
+      await user.update(updateData);
+
+      // Persiapan response
+      const { password, refresh_token, ...userResponse } = user.get({
+        plain: true,
+      });
+
+      res.status(200).json({
+        message: "User berhasil diperbarui!",
+        data: userResponse,
+      });
+    } catch (error) {
+      // Hapus uploaded file kalo ada error
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+
+      console.error("Error updating user:", error);
+      res.status(500).json({
+        message: "Gagal memperbarui user",
         error: error.message,
       });
     }
