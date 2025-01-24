@@ -8,9 +8,13 @@ import { useUsers } from '../../hooks/useUsers';
 import { toast } from 'react-hot-toast';
 import FormModal from '../../components/modules/admin/FormModal';
 import { userService } from '../../services/userService';
+import { API_CONFIG } from '../../config/api.config';
 
 const DataUser = () => {
-  // Initialize with default values
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+
   const {
     users,
     loading,
@@ -25,10 +29,6 @@ const DataUser = () => {
     limit: 10,
     search: ''
   });
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedUsers, setSelectedUsers] = useState([]);
 
   const userFormConfig = {
     type: 'user',
@@ -98,10 +98,10 @@ const DataUser = () => {
     try {
       if (selectedUser) {
         await userService.updateUser(selectedUser.id, formData);
-        toast.success('User updated successfully!');
+        toast.success('User berhasil diupdate!');
       } else {
         await userService.createUser(formData);
-        toast.success('User created successfully!');
+        toast.success('User berhasil ditambahkan!');
       }
       refresh();
       handleCloseModal();
@@ -167,8 +167,18 @@ const DataUser = () => {
       </td>
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center">
-            <User className="text-gray-600" />
+          <div className="w-12 h-12 bg-gray-800 rounded-full overflow-hidden">
+            {user.profile_img ? (
+              <img
+                src={`${API_CONFIG.baseURL}${user.profile_img}`}
+                alt={user.name}
+                className="w-full h-full object-cover rounded-full"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <User className="w-6 h-6 text-gray-600" />
+              </div>
+            )}
           </div>
           <div>
             <h3 className="font-medium">{user.name}</h3>
@@ -240,6 +250,7 @@ const DataUser = () => {
           onSubmit={handleSubmit}
           initialData={selectedUser}
           formConfig={userFormConfig}
+          apiConfig={API_CONFIG}
         />
       )}
     </div>

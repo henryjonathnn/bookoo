@@ -42,7 +42,7 @@ export const authController = {
       // Tambah error handling untuk query db
       const { count, rows } = await User.findAndCountAll({
         where: whereClause,
-        attributes: ["id", "name", "email", "username", "role", "createdAt"],
+        attributes: ["id", "name", "email", "username", "role", "createdAt", "profile_img"],
         limit,
         offset,
         order: [["createdAt", "DESC"]],

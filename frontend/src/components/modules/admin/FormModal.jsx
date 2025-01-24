@@ -6,7 +6,8 @@ const FormModal = ({
   onClose, 
   onSubmit, 
   initialData = null, 
-  formConfig 
+  formConfig,
+  apiConfig 
 }) => {
   const [preview, setPreview] = useState('');
   const [formData, setFormData] = useState({});
@@ -20,9 +21,16 @@ const FormModal = ({
         return acc;
       }, {});
       setFormData(initialFormData);
-      setPreview(initialData?.[formConfig.imageField] || '');
+
+      // Handle image preview with API base URL
+      if (initialData && formConfig.imageField) {
+        const imageUrl = formConfig.type === 'book' 
+          ? `${apiConfig.baseURL}${initialData.cover_img}`
+          : `${apiConfig.baseURL}${initialData.profile_img}`;
+        setPreview(imageUrl);
+      }
     }
-  }, [isOpen, initialData, formConfig]);
+  }, [isOpen, initialData, formConfig, apiConfig]);
 
   useEffect(() => {
     const handleEscape = (e) => {

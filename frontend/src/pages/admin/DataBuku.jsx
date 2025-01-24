@@ -92,10 +92,10 @@ const DataBuku = () => {
     try {
       if (selectedBook) {
         await bookService.updateBook(selectedBook.id, formData);
-        toast.success('Book updated successfully!');
+        toast.success('Buku berhasil diupdate!');
       } else {
         await bookService.createBook(formData);
-        toast.success('Book created successfully!');
+        toast.success('Buku berhasil ditambahkan!');
       }
       refresh();
       handleCloseModal();
@@ -225,6 +225,7 @@ const DataBuku = () => {
           onSubmit={handleSubmit}
           initialData={selectedBook}
           formConfig={bookFormConfig}
+          apiConfig={API_CONFIG}
         />
       )}
     </div>

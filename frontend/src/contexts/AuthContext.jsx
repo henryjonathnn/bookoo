@@ -75,8 +75,7 @@ export const AuthProvider = ({ children }) => {
             setUser(null);
             toast.success('Logout berhasil!');
         } catch (error) {
-            console.error('Logout failed:', error);
-            toast.error('Logout gagal');
+            console.error('Logout gagl:', error);
             throw error;
         }
     };

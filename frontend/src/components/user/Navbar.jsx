@@ -14,10 +14,8 @@ const Navbar = () => {
         if (user) {
             try {
                 await logout();
-                toast.success('Berhasil logout!');
             } catch (error) {
-                console.error('Logout failed:', error);
-                toast.error('Gagal logout. Silakan coba lagi.');
+                console.error('Logout gagal:', error);
             }
         } else {
             setIsAuthModalOpen(true);
