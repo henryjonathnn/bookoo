@@ -1,5 +1,5 @@
-import api from './axios.instance';
-import { handleApiError } from '../utils/api.utils';
+import api from "./axios.instance";
+import { handleApiError } from "../utils/api.utils";
 
 export const userService = {
   async getUsers(params = {}) {
@@ -9,7 +9,7 @@ export const userService = {
         data: response.data.users,
         count: response.data.totalItems,
         currentPage: response.data.currentPage,
-        totalPages: response.data.totalPages
+        totalPages: response.data.totalPages,
       };
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -21,7 +21,7 @@ export const userService = {
       const response = await api.get(`/users/${id}`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching user by ID:', error);
+      console.error("Error fetching user by ID:", error);
       throw new Error(handleApiError(error));
     }
   },
@@ -29,6 +29,15 @@ export const userService = {
   async createUser(userData) {
     try {
       const response = await api.post("/users", userData);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
+
+  async deleteUser(id) {
+    try {
+      const response = await api.delete(`/users/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));

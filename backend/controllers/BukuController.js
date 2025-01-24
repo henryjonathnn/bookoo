@@ -1,6 +1,8 @@
 import express from "express";
 import { Buku } from "../models/index.js";
 import { Op } from "sequelize";
+import path from "path";
+import fs from "fs";
 
 export const getBuku = async (req, res) => {
   try {
@@ -31,7 +33,7 @@ export const getBuku = async (req, res) => {
       totalItems: count,
       books: rows,
       currentPage: page,
-      totalPages: Math.ceil(count / limit)
+      totalPages: Math.ceil(count / limit),
     });
   } catch (error) {
     console.error("Error:", error); // Log untuk debugging
@@ -136,7 +138,7 @@ export const deleteBuku = async (req, res) => {
   try {
     const buku = await Buku.findByPk(req.params.id);
     if (!buku) {
-      res.status(404).json({ msg: "Data buku tidak ditemukan" });
+      return res.status(404).json({ msg: "Data buku tidak ditemukan" });
     }
 
     // Hapus file yang lama jika ada
@@ -148,8 +150,9 @@ export const deleteBuku = async (req, res) => {
     }
 
     await buku.destroy();
-    res.status(204).json({ msg: "Data buku berhasil dihapus" });
+    res.status(200).json({ msg: "Data buku berhasil dihapus" });
   } catch (error) {
+    console.error("Error deleting book:", error);
     res.status(500).json({
       msg: "Tidak dapat menghapus buku",
       error: error.message,

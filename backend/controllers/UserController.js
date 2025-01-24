@@ -2,6 +2,8 @@ import { User } from "../models/index.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Op } from "sequelize";
+import path from "path";
+import fs from "fs";
 
 // Fungsi untuk generate token
 const generateTokens = (userData) => {
@@ -338,6 +340,32 @@ export const authController = {
 
       res.status(500).json({
         message: "Gagal menambahkan user",
+        error: error.message,
+      });
+    }
+  },
+
+  deleteUser: async (req, res) => {
+    try {
+      const user = await User.findByPk(req.params.id);
+      if (!user) {
+        return res.status(404).json({ msg: "User tidak ditemukan" });
+      }
+
+      // Optional: Hapus file profil jika ada
+      if (user.profile_img) {
+        const filePath = path.join("public", user.profile_img);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+
+      await user.destroy();
+      res.status(200).json({ msg: "User berhasil dihapus" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({
+        msg: "Tidak dapat menghapus user",
         error: error.message,
       });
     }

@@ -79,37 +79,38 @@ const DataUser = () => {
     updateParams({ page });
   }, [updateParams]);
 
-    const handleOpenCreateModal = useCallback(() => {
-      setSelectedUser(null);
-      setIsModalOpen(true);
-    }, []);
-  
-    const handleOpenEditModal = useCallback((book) => {
-      setSelectedUser(book);
-      setIsModalOpen(true);
-    }, []);
-  
-    const handleCloseModal = useCallback(() => {
-      setIsModalOpen(false);
-      setSelectedUser(null);
-    }, []);
-  
-    const handleSubmit = async (formData) => {
-      try {
-        if (selectedUser) {
-          await userService.updateUser(selectedUser.id, formData);
-          toast.success('User updated successfully!');
-        } else {
-          await userService.createUser(formData);
-          toast.success('User created successfully!');
-        }
-        refresh();
-        handleCloseModal();
-      } catch (error) {
-        toast.error(error.message);
-        throw error;
+  const handleOpenCreateModal = useCallback(() => {
+    setSelectedUser(null);
+    setIsModalOpen(true);
+  }, []);
+
+  const handleOpenEditModal = useCallback((book) => {
+    setSelectedUser(book);
+    setIsModalOpen(true);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedUser(null);
+  }, []);
+
+  const handleSubmit = async (formData) => {
+    try {
+      if (selectedUser) {
+        await userService.updateUser(selectedUser.id, formData);
+        toast.success('User updated successfully!');
+      } else {
+        await userService.createUser(formData);
+        toast.success('User created successfully!');
       }
-    };
+      refresh();
+      handleCloseModal();
+    } catch (error) {
+      toast.error(error.message);
+      throw error;
+    }
+  };
+
 
   // Select all handler
   const handleSelectAll = useCallback((e) => {
@@ -189,7 +190,9 @@ const DataUser = () => {
         {formatDate(user.createdAt)}
       </td>
       <td className="px-6 py-4">
-        <TombolAksi onRefresh={refresh} userId={user.id} />
+        <TombolAksi onEdit={() => handleOpenEditModal(user)}
+          onDelete={() => userService.deleteUser(user.id)}
+          onRefresh={refresh} />
       </td>
     </tr>
   ), [selectedUsers, handleSelectUser, formatDate, refresh]);

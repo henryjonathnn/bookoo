@@ -160,7 +160,11 @@ const DataBuku = () => {
       <td className="px-3 py-2 text-sm text-gray-400">{book.stock}</td>
       <td className="px-3 py-2 text-sm text-gray-400">{book.penerbit}</td>
       <td className="px-3 py-2">
-        <TombolAksi onEdit={() => handleOpenEditModal(book)} onRefresh={refresh} />
+        <TombolAksi
+          onEdit={() => handleOpenEditModal(book)}
+          onDelete={() => bookService.deleteBook(book.id)}
+          onRefresh={refresh}
+        />
       </td>
     </tr>
   );
