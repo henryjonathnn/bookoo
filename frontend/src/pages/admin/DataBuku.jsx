@@ -247,7 +247,7 @@ const DataBuku = () => {
       />
 
       <SearchFilterBar
-        searchPlaceholder="Search books..."
+        searchPlaceholder="Cari buku..."
         onSearch={handleSearch}
         initialValue=""
       />

@@ -1,20 +1,21 @@
 import React, { memo, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'react-feather';
+import { ChevronLeft, ChevronRight, Filter } from 'react-feather';
 import { useBooks } from '../../../../hooks/useBook';
 import BookCard from './BookCard';
-import Modal from '../../../ui/user/Modal'
-import { BADGE_COLORS } from '../../../../constant/index';
+import Modal from '../../../ui/user/Modal';
+import { BADGE_COLORS, SORT_TYPES } from '../../../../constant/index';
 
 const BookSection = memo(({ 
   title, 
   subtitle, 
   badgeText, 
   badgeColor = 'purple',
-  sortType,
-  showRating,
-  rightLabel
+  sortType = SORT_TYPES.NEWEST,
+  showRating = false,
+  rightLabel = 'Peminjam'
 }) => {
   const [showModal, setShowModal] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
   const { 
     books, 
     loading, 
@@ -24,7 +25,8 @@ const BookSection = memo(({
     updateParams 
   } = useBooks({
     page: 1,
-    limit: 4,
+    limit: 10, // Fetch 10 books
+    sortType: sortType
   });
 
   const handlePrevPage = () => {
@@ -44,10 +46,9 @@ const BookSection = memo(({
       <section className="px-4 md:px-8 lg:px-16 mx-2 mb-8 md:mb-16">
         <div className="animate-pulse">
           <div className="h-12 bg-gray-800 rounded w-1/4 mb-4"></div>
-          <div className="h-4 bg-gray-800 rounded w-1/2 mb-8"></div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-72 md:h-96 bg-gray-800 rounded-2xl"></div>
+          <div className="grid grid-cols-5 gap-6">
+            {[...Array(10)].map((_, i) => (
+              <div key={i} className="h-96 bg-gray-800 rounded-2xl"></div>
             ))}
           </div>
         </div>
@@ -92,6 +93,12 @@ const BookSection = memo(({
             <ChevronRight size={18} />
           </button>
           <button
+            onClick={() => setShowFilterModal(true)}
+            className="p-2 md:p-3 rounded-xl bg-[#1A1A2E] hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10"
+          >
+            <Filter size={18} />
+          </button>
+          <button
             onClick={() => setShowModal(true)}
             className="px-3 py-1 md:px-4 md:py-2 rounded-xl bg-[#1A1A2E] hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10 text-white text-sm md:text-base"
           >
@@ -100,7 +107,7 @@ const BookSection = memo(({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
         {books.map((book) => (
           <BookCard
             key={book.id}
@@ -118,7 +125,7 @@ const BookSection = memo(({
           title={title}
           subtitle={subtitle}
         >
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
             {books.map((book) => (
               <BookCard
                 key={book.id}

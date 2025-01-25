@@ -1,43 +1,64 @@
 import React from 'react';
 
-const Card = ({ className = '', children, ...props }) => {
+const Card = ({ children, className = '' }) => {
   return (
-    <div
-      className={`rounded-xl border bg-[#1a1625] border-slate-800 shadow ${className}`}
-      {...props}
+    <div 
+      className={`
+        bg-[#1a1625] 
+        rounded-xl 
+        border 
+        border-slate-700 
+        overflow-hidden 
+        shadow-lg 
+        ${className}
+      `}
     >
       {children}
     </div>
   );
 };
 
-const CardHeader = ({ className = '', children, ...props }) => {
+const CardHeader = ({ children, className = '' }) => {
   return (
-    <div
-      className={`flex flex-col space-y-1.5 p-6 ${className}`}
-      {...props}
+    <div 
+      className={`
+        px-6 
+        py-4 
+        border-b 
+        border-slate-700 
+        flex 
+        justify-between 
+        items-center 
+        ${className}
+      `}
     >
       {children}
     </div>
   );
 };
 
-const CardTitle = ({ className = '', children, ...props }) => {
+const CardTitle = ({ children, className = '' }) => {
   return (
-    <h3
-      className={`text-xl font-semibold leading-none tracking-tight text-white ${className}`}
-      {...props}
+    <h3 
+      className={`
+        text-lg 
+        font-semibold 
+        text-white 
+        ${className}
+      `}
     >
       {children}
     </h3>
   );
 };
 
-const CardContent = ({ className = '', children, ...props }) => {
+const CardContent = ({ children, className = '' }) => {
   return (
-    <div
-      className={`p-6 pt-0 mt-6 ${className}`}
-      {...props}
+    <div 
+      className={`
+        p-6 
+        ${className}
+      `}
     >
       {children}
     </div>

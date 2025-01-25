@@ -2,7 +2,6 @@ import React, { Suspense, useEffect } from 'react';
 import { SORT_TYPES } from '../../../constant/index';
 import BookSection from '../../../components/modules/user/books/BookSection';
 import Hero from './Hero'
-import Penulis from './Penulis'
 import Ranking from './Ranking'
 
 const LoadingFallback = () => (
@@ -43,24 +42,23 @@ const Home = () => {
       <Suspense fallback={<LoadingFallback />}>
         <Hero />
         <BookSection
-          title="Sedang Trending"
-          subtitle="Top buku trending minggu ini"
-          badgeText="Trending"
-          badgeColor="red"
-          sortType={SORT_TYPES.TRENDING}
-          showRating={false}
-          rightLabel="Peminjam"
-        />
-        <BookSection
           title="Buku Terfavorit"
-          subtitle="Top buku terfavorit minggu ini"
+          subtitle="Buku-buku dengan jumlah suka terbanyak"
           badgeText="Favorit"
           badgeColor="purple"
           sortType={SORT_TYPES.FAVORITE}
+          showRating={false}
+          rightLabel="Suka"
+        />
+        <BookSection
+          title="Buku Terpopuler"
+          subtitle="Buku-buku dengan rating tertinggi dalam minggu ini"
+          badgeText="Populer"
+          badgeColor="red"
+          sortType={SORT_TYPES.RATING}
           showRating={true}
           rightLabel="Rating"
         />
-        <Penulis />
         <Ranking />
       </Suspense>
     </main>

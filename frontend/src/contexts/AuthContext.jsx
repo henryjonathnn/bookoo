@@ -92,11 +92,11 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
     const location = useLocation();
 
     if (loading) return <div>Loading...</div>;
-    if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
+    if (!user) return <Navigate to="/" state={{ from: location }} replace />;
     if (!allowedRoles) return children;
     
     const hasPermission = allowedRoles.includes(user.role);
-    return hasPermission ? children : <Navigate to="/403" replace />;
+    return hasPermission ? children : <Navigate to="/404" replace />;
 };
 
 export const useAuth = () => {

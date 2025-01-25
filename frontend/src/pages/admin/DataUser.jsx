@@ -258,7 +258,7 @@ const DataUser = () => {
       />
 
       <SearchFilterBar
-        searchPlaceholder="Search users..."
+        searchPlaceholder="Cari user..."
         onSearch={handleSearch}
         initialValue=""
       />

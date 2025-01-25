@@ -6,7 +6,6 @@ import { SORT_TYPES } from '../../../constant';
 
 // Lazy load components
 const Hero = lazy(() => import('../home/Hero'));
-const Penulis = lazy(() => import('../home/Penulis'));
 const BookSection = lazy(() => import('../../../components/modules/user/books/BookSection'));
 const Ranking = lazy(() => import('../home/Ranking'));
 

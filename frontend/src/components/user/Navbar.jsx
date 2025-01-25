@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, Search, LogOut, Menu, X, Home, Book, Clock, Heart, Grid, User, ChevronDown } from 'react-feather';
+import { Bell, Search, LogOut, Menu, X, Home, Book, Clock, Heart, Grid, User, ChevronDown, ShoppingCart } from 'react-feather';
 import { Link } from 'react-router-dom';
 import AuthModal from '../../pages/auth/AuthModal';
 import { useAuth } from '../../contexts/AuthContext';
@@ -58,12 +58,14 @@ const Navbar = () => {
                         </div>
                     </div>
 
-                    <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-3">
                         <button className="relative p-3 rounded-xl hover:bg-purple-500/10 text-gray-400 hover:text-purple-400">
                             <Bell size={20} />
                             <span className="absolute top-2 right-2 h-2 w-2 bg-purple-500 rounded-full"></span>
                         </button>
-                        
+                        <button  className='relative p-3 rounded-xl hover:bg-purple-500/10 text-gray-400 hover:text-purple-400'>
+                        <ShoppingCart />
+                        </button>
                         {user ? (
                             <div className="relative">
                                 <button 
