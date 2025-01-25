@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, Search, LogOut, Menu, X, Home, Book, Clock, Heart, Grid } from 'react-feather';
+import { Bell, Search, LogOut, Menu, X, Home, Book, Clock, Heart, Grid, User, ChevronDown } from 'react-feather';
 import { Link } from 'react-router-dom';
 import AuthModal from '../../pages/auth/AuthModal';
 import { useAuth } from '../../contexts/AuthContext';
@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 const Navbar = () => {
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
     const { user, logout } = useAuth();
 
     const handleAuthAction = async () => {
@@ -62,26 +63,46 @@ const Navbar = () => {
                             <Bell size={20} />
                             <span className="absolute top-2 right-2 h-2 w-2 bg-purple-500 rounded-full"></span>
                         </button>
-                        <button 
-                            onClick={handleAuthAction}
-                            className={`px-6 py-2 ${
-                                user 
-                                    ? 'bg-red-600 hover:bg-red-700' 
-                                    : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90'
-                            } rounded-xl font-medium transition-all duration-300 flex items-center space-x-2`}
-                        >
-                            {user ? (
-                                <>
-                                    <LogOut size={18} />
-                                    <span>Logout</span>
-                                </>
-                            ) : (
-                                <span>Masuk</span>
-                            )}
-                        </button>
+                        
+                        {user ? (
+                            <div className="relative">
+                                <button 
+                                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                                    className="flex items-center space-x-2 p-2 rounded-xl hover:bg-purple-500/10"
+                                >
+                                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                                        <User size={20} className="text-white" />
+                                    </div>
+                                    <ChevronDown size={16} />
+                                </button>
+                                {isProfileDropdownOpen && (
+                                    <div className="absolute right-0 top-full mt-2 w-48 bg-[#1A1A2E] rounded-xl shadow-lg border border-purple-500/10 py-2">
+                                        <Link 
+                                            to="/profile" 
+                                            className="block px-4 py-2 hover:bg-purple-500/10"
+                                            onClick={() => setIsProfileDropdownOpen(false)}
+                                        >
+                                            Profil
+                                        </Link>
+                                        <button 
+                                            onClick={handleAuthAction}
+                                            className="w-full text-left px-4 py-2 hover:bg-purple-500/10 text-red-500"
+                                        >
+                                            Logout
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <button 
+                                onClick={handleAuthAction}
+                                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 rounded-xl font-medium transition-all duration-300 px-6 py-2"
+                            >
+                                Masuk
+                            </button>
+                        )}
                     </div>
                 </div>
-
                 {/* Mobile Search - Shown below navbar when menu is open */}
                 {isMobileMenuOpen && (
                     <div className="p-4 md:hidden border-t border-purple-500/10">

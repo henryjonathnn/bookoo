@@ -234,7 +234,7 @@ const DataUser = () => {
       <td className="px-6 py-4 text-gray-400">
         {formatDate(user.createdAt)}
       </td>
-      <td className="px-6 py-4">
+      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
         <TombolAksi onEdit={() => handleOpenEditModal(user)}
           onDelete={() => userService.deleteUser(user.id)}
           onRefresh={refresh} />

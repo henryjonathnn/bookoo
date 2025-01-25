@@ -45,8 +45,8 @@ const DetailModal = ({ data, isOpen, onClose, config = {} }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={onClose}>
-      <div className="bg-[#2a2435] rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0f0a19] bg-opacity-50 p-4" onClick={onClose}>
+      <div className="bg-[#0f0a19] rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="p-6">
           {/* Image and Primary Info Section */}
           <div className="flex items-start mb-6">
