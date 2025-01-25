@@ -3,33 +3,16 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Op } from "sequelize";
 import path from "path";
-import fs from "fs";
-
-// Fungsi untuk generate token
-const generateTokens = (userData) => {
-  // ACCESS TOKEN
-  const accessToken = jwt.sign(userData, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "15m",
-  });
-
-  // REFRESH TOKEN
-  const refreshToken = jwt.sign(userData, process.env.REFRESH_TOKEN_SECRET, {
-    expiresIn: "7d",
-  });
-
-  return { accessToken, refreshToken };
-};
+import fs from "fs/promises";
 
 export const authController = {
   getUsers: async (req, res) => {
     try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-      const search = req.query.search || "";
+      const { page = 1, limit = 10, search = "" } = req.query;
       const offset = (page - 1) * limit;
 
-      // Untuk searching data
-      const whereClause = search
+      // Use more efficient query construction
+      const where = search
         ? {
             [Op.or]: [
               { name: { [Op.like]: `%${search}%` } },
@@ -39,31 +22,30 @@ export const authController = {
           }
         : {};
 
-      // Tambah error handling untuk query db
-      const { count, rows } = await User.findAndCountAll({
-        where: whereClause,
-        attributes: [
-          "id",
-          "name",
-          "email",
-          "username",
-          "role",
-          "createdAt",
-          "profile_img",
-        ],
-        limit,
-        offset,
-        order: [["createdAt", "DESC"]],
-      }).catch((error) => {
-        console.error("Database query error:", error);
-        throw new Error("Database query failed");
-      });
+      // Parallel database operations for better performance
+      const [{ count, rows }, totalRows] = await Promise.all([
+        User.findAndCountAll({
+          where,
+          attributes: [
+            "id",
+            "name",
+            "email",
+            "username",
+            "role",
+            "createdAt",
+            "profile_img",
+          ],
+          limit: Number(limit),
+          offset: Number(offset),
+          order: [["createdAt", "DESC"]],
+        }),
+        User.count({ where }), // Separate count for more accurate pagination
+      ]);
 
-      // Send response
       return res.status(200).json({
         totalItems: count,
         users: rows,
-        currentPage: page,
+        currentPage: Number(page),
         totalPages: Math.ceil(count / limit),
       });
     } catch (error) {
@@ -71,7 +53,7 @@ export const authController = {
       return res.status(500).json({
         message: "Error fetching users",
         error: error.message,
-        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+        ...(process.env.NODE_ENV === "development" && { stack: error.stack }),
       });
     }
   },
@@ -96,102 +78,115 @@ export const authController = {
   },
 
   register: async (req, res) => {
+    const { name, email, username, password, confPassword } = req.body;
+
+    // Early validation to reduce unnecessary database calls
+    if (!name || !email || !username || !password || !confPassword) {
+      return res.status(400).json({ message: "Semua kolom harus diisi!" });
+    }
+
+    if (password !== confPassword) {
+      return res.status(400).json({ message: "Password tidak sesuai!" });
+    }
+
     try {
-      const { name, email, username, password, confPassword } = req.body;
+      // Use transaction for atomic operation
+      const result = await User.sequelize.transaction(async (t) => {
+        // Efficient unique check
+        const existingUser = await User.findOne({
+          where: {
+            [Op.or]: [{ email }, { username }],
+          },
+          transaction: t,
+        });
 
-      // Validasi register
-      if (!name || !email || !username || !password || !confPassword) {
-        return res.status(400).json({ message: "Semua kolom harus diisi!" });
-      }
+        if (existingUser) {
+          const errorMessage =
+            existingUser.email === email
+              ? "Email sudah digunakan"
+              : "Username sudah digunakan";
+          throw new Error(errorMessage);
+        }
 
-      if (password !== confPassword) {
-        return res.status(400).json({ message: "Password tidak sesuai!" });
-      }
+        // Hash password with more secure params
+        const hashedPassword = await bcrypt.hash(password, 12);
 
-      // Cek email dan username yang sudah ada untuk menghindari duplikasi
-      const [existingEmail, existingUsername] = await Promise.all([
-        User.findOne({ where: { email } }),
-        User.findOne({ where: { username } }),
-      ]);
-
-      if (existingEmail) {
-        return res.status(400).json({ message: "Email sudah digunakan" });
-      }
-
-      if (existingUsername) {
-        return res.status(400).json({ message: "Username sudah digunakan" });
-      }
-
-      // Jika berhasil validasi, maka data user akan didafatarkan ke DB
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await User.create({
-        name,
-        email,
-        username,
-        password: hashedPassword,
-        role: "user", // Default role
+        // Create user
+        return await User.create(
+          {
+            name,
+            email,
+            username,
+            password: hashedPassword,
+            role: "user",
+          },
+          { transaction: t }
+        );
       });
 
-      // Respon
       res.status(201).json({ message: "Registrasi berhasil!" });
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Registrasi Gagal!", error: error.message });
+      res.status(400).json({
+        message: error.message || "Registrasi Gagal!",
+      });
     }
   },
 
+  // Optimize login with more secure token generation
   login: async (req, res) => {
     try {
-      const user = await User.findOne({
-        where: {
-          email: req.body.email,
-        },
-      });
+      const { email, password } = req.body;
 
+      // Efficient user retrieval
+      const user = await User.findOne({ where: { email } });
       if (!user) {
         return res.status(404).json({ msg: "Email tidak ditemukan" });
       }
 
-      const match = await bcrypt.compare(req.body.password, user.password);
-      if (!match) {
+      // Secure password comparison
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
         return res.status(400).json({ msg: "Password salah" });
       }
 
-      const userId = user.id;
-      const name = user.name;
-      const email = user.email;
-      const role = user.role;
+      // More compact token generation
+      const tokenPayload = {
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      };
 
       const accessToken = jwt.sign(
-        { userId, name, email, role },
+        tokenPayload,
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "20s" }
+        { expiresIn: "15m" }
       );
 
       const refreshToken = jwt.sign(
-        { userId, name, email, role },
+        { userId: user.id },
         process.env.REFRESH_TOKEN_SECRET,
-        { expiresIn: "1d" }
+        { expiresIn: "7d" }
       );
 
-      await User.update(
-        { refresh_token: refreshToken },
-        { where: { id: userId } }
-      );
+      // Atomic update of refresh token
+      await user.update({ refresh_token: refreshToken });
 
+      // More secure cookie settings
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
       res.json({
         accessToken,
         user: {
-          id: userId,
-          name,
-          email,
-          role,
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
         },
       });
     } catch (error) {
@@ -292,47 +287,49 @@ export const authController = {
     try {
       const { name, email, username, password, role } = req.body;
 
-      // Validate input
+      // Early validation
       if (!name || !email || !username || !password) {
         return res.status(400).json({ message: "Semua kolom harus diisi!" });
       }
 
-      // Check for existing email and username
-      const [existingEmail, existingUsername] = await Promise.all([
-        User.findOne({ where: { email } }),
-        User.findOne({ where: { username } }),
-      ]);
+      // Use transaction for atomic operation
+      const result = await User.sequelize.transaction(async (t) => {
+        // Efficient unique check
+        const existingUser = await User.findOne({
+          where: {
+            [Op.or]: [{ email }, { username }],
+          },
+          transaction: t,
+        });
 
-      if (existingEmail) {
-        return res.status(400).json({ message: "Email sudah digunakan" });
-      }
+        if (existingUser) {
+          const errorMessage =
+            existingUser.email === email
+              ? "Email sudah digunakan"
+              : "Username sudah digunakan";
+          throw new Error(errorMessage);
+        }
 
-      if (existingUsername) {
-        return res.status(400).json({ message: "Username sudah digunakan" });
-      }
+        // Prepare user data
+        const userData = {
+          name,
+          email,
+          username,
+          password: await bcrypt.hash(password, 10),
+          role: role || "USER",
+        };
 
-      // Hash password
-      const hashedPassword = await bcrypt.hash(password, 10);
+        // Efficient file handling
+        if (req.file) {
+          userData.profile_img = `/uploads/profiles/${req.file.filename}`;
+        }
 
-      // Prepare user data
-      const userData = {
-        name,
-        email,
-        username,
-        password: hashedPassword,
-        role: role || "USER", // Default to USER if no role provided
-      };
-
-      // Handle profile image upload
-      if (req.file) {
-        userData.profile_img = `/uploads/profiles/${req.file.filename}`;
-      }
-
-      // Create user
-      const newUser = await User.create(userData);
+        // Create user
+        return await User.create(userData, { transaction: t });
+      });
 
       // Remove sensitive data from response
-      const { password: removedPassword, ...userResponse } = newUser.get({
+      const { password: removedPassword, ...userResponse } = result.get({
         plain: true,
       });
 
@@ -341,9 +338,9 @@ export const authController = {
         data: userResponse,
       });
     } catch (error) {
-      // Remove uploaded file if there's an error
+      // Use promise-based file removal
       if (req.file) {
-        fs.unlinkSync(req.file.path);
+        await fs.unlink(req.file.path).catch(console.error);
       }
 
       res.status(500).json({
@@ -403,7 +400,7 @@ export const authController = {
 
       // Handle upload foto profil
       if (req.file) {
-        // Hapus foto profil lama jika ada 
+        // Hapus foto profil lama jika ada
         if (user.profile_img) {
           const oldFilePath = path.join("public", user.profile_img);
           if (fs.existsSync(oldFilePath)) {

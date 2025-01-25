@@ -1,8 +1,17 @@
 import api from "./axios.instance";
 import { handleApiError } from "../utils/api.utils";
 
+const createApiMethod = (apiCall) => async (...args) => {
+  try {
+    const response = await apiCall(...args);
+    return response.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 export const userService = {
-  async getUsers(params = {}) {
+  getUsers: async (params = {}) => {
     try {
       const response = await api.get("/users", { params });
       return {
@@ -16,40 +25,8 @@ export const userService = {
     }
   },
 
-  async getUserById(id) {
-    try {
-      const response = await api.get(`/users/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching user by ID:", error);
-      throw new Error(handleApiError(error));
-    }
-  },
-
-  async createUser(userData) {
-    try {
-      const response = await api.post("/users", userData);
-      return response.data;
-    } catch (error) {
-      throw new Error(handleApiError(error));
-    }
-  },
-
-  async updateUser(id, userData) {
-    try {
-      const response = await api.patch(`/users/${id}`, userData);
-      return response.data;
-    } catch (error) {
-      throw new Error(handleApiError(error));
-    }
-  },
-
-  async deleteUser(id) {
-    try {
-      const response = await api.delete(`/users/${id}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(handleApiError(error));
-    }
-  },
+  getUserById: createApiMethod(async (id) => api.get(`/users/${id}`)),
+  createUser: createApiMethod((userData) => api.post("/users", userData)),
+  updateUser: createApiMethod((id, userData) => api.patch(`/users/${id}`, userData)),
+  deleteUser: createApiMethod((id) => api.delete(`/users/${id}`)),
 };
