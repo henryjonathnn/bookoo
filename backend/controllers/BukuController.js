@@ -1,161 +1,236 @@
-import express from "express";
 import { Buku } from "../models/index.js";
 import { Op } from "sequelize";
 import path from "path";
-import fs from "fs";
+import fs from "fs/promises"; // Use promise-based file system
 
-export const getBuku = async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const search = req.query.search || "";
-    const offset = (page - 1) * limit;
+export const bukuController = {
+  // Optimized get method with more efficient querying
+  getBuku: async (req, res) => {
+    try {
+      const { page = 1, limit = 10, search = "" } = req.query;
 
-    // Untuk searching data
-    const condition = search
-      ? {
-          [Op.or]: [
-            { judul: { [Op.like]: `%${search}%` } },
-            { penulis: { [Op.like]: `%${search}%` } },
-            { isbn: { [Op.like]: `%${search}%` } },
-          ],
-        }
-      : {};
+      const offset = (page - 1) * limit;
 
-    const { count, rows } = await Buku.findAndCountAll({
-      where: condition,
-      limit: limit,
-      offset: offset,
-      order: [["createdAt", "DESC"]],
-    });
+      // More efficient search condition
+      const condition = search
+        ? {
+            [Op.or]: [
+              { judul: { [Op.like]: `%${search}%` } },
+              { penulis: { [Op.like]: `%${search}%` } },
+              { isbn: { [Op.like]: `%${search}%` } },
+            ],
+          }
+        : {};
 
-    res.json({
-      totalItems: count,
-      books: rows,
-      currentPage: page,
-      totalPages: Math.ceil(count / limit),
-    });
-  } catch (error) {
-    console.error("Error:", error); // Log untuk debugging
-    res.status(500).json({
-      msg: "Gagal mendapatkan data buku",
-      error: error.message,
-    });
-  }
-};
+      // Use Promise.all for parallel operations
+      const [{ count, rows }, totalCount] = await Promise.all([
+        Buku.findAndCountAll({
+          where: condition,
+          limit: Number(limit),
+          offset: Number(offset),
+          order: [["createdAt", "DESC"]],
+          attributes: {
+            exclude: ["content"], // Exclude large text fields if not needed
+          },
+        }),
+        Buku.count({ where: condition }),
+      ]);
 
-export const getBukuById = async (req, res) => {
-  try {
-    const buku = await Buku.findOne({
-      where: {
-        id: req.params.id,
-      },
-    });
-    if (buku) {
+      res.json({
+        totalItems: count,
+        books: rows,
+        currentPage: Number(page),
+        totalPages: Math.ceil(count / limit),
+      });
+    } catch (error) {
+      console.error("Error fetching books:", error);
+      res.status(500).json({
+        msg: "Gagal mendapatkan data buku",
+        ...(process.env.NODE_ENV === "development" && { error: error.message }),
+      });
+    }
+  },
+
+  getBukuById: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const buku = await Buku.findByPk(id);
+  
+      if (!buku) {
+        return res.status(404).json({ msg: "Buku tidak ditemukan" });
+      }
+  
       res.json(buku);
-    } else {
-      res.status(404).json({ msg: "Buku tidak ditemukan" });
+    } catch (error) {
+      console.error("Error fetching book by ID:", error);
+      res.status(500).json({
+        msg: "Gagal mendapatkan data buku",
+        ...(process.env.NODE_ENV === "development" && { error: error.message }),
+      });
     }
-  } catch (error) {
-    res.json({ msg: "Gagal mendapatkan data buku", error: error.message });
-  }
-};
+  },
 
-export const createBuku = async (req, res) => {
-  try {
-    const dataFile = req.file;
-    const dataBuku = req.body;
+  // Implement transaction for create and update operations
+  createBuku: async (req, res) => {
+    const transaction = await Buku.sequelize.transaction();
 
-    if (dataFile) {
-      dataBuku.cover_img = `/uploads/covers/${dataFile.filename}`;
-    }
+    try {
+      const dataFile = req.file;
+      const dataBuku = req.body;
 
-    const buku = await Buku.create(dataBuku);
-    res.status(201).json({
-      msg: "Data buku berhasil ditambahkan!",
-      data: buku,
-    });
-  } catch (error) {
-    // Hapus file jika ada error saat create data
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
-    }
-    res
-      .status(500)
-      .json({ msg: "Gagal menambahkan data buku", error: error.message });
-  }
-};
-
-export const updateBuku = async (req, res) => {
-  try {
-    const dataBuku = req.body;
-    const oldBuku = await Buku.findByPk(req.params.id);
-
-    if (!oldBuku) {
-      if (req.file) {
-        fs.unlinkSync(req.file.path);
+      // Handle file upload with transaction
+      if (dataFile) {
+        dataBuku.cover_img = `/uploads/covers/${dataFile.filename}`;
       }
-      return res.status(404).json({ msg: "Data buku tidak ditemukan" });
+
+      // Create book within transaction
+      const buku = await Buku.create(dataBuku, { transaction });
+
+      // Commit transaction
+      await transaction.commit();
+
+      res.status(201).json({
+        msg: "Data buku berhasil ditambahkan!",
+        data: buku,
+      });
+    } catch (error) {
+      // Rollback transaction
+      await transaction.rollback();
+
+      // Remove uploaded file if exists
+      if (req.file) {
+        await fs.unlink(req.file.path).catch(console.error);
+      }
+
+      res.status(500).json({
+        msg: "Gagal menambahkan data buku",
+        ...(process.env.NODE_ENV === "development" && { error: error.message }),
+      });
     }
+  },
 
-    // Jika ada file baru
-    if (req.file) {
-      dataBuku.cover_img = `/uploads/covers/${req.file.filename}`;
+  // Implement more robust update method
+  updateBuku: async (req, res) => {
+    const transaction = await Buku.sequelize.transaction();
 
-      // Hapus file yang lama jika ada
-      if (oldBuku.cover_img) {
-        const oldPath = path.join("public", oldBuku.cover_img);
-        if (fs.existsSync(oldPath)) {
-          fs.unlinkSync(oldPath);
+    try {
+      const { id } = req.params;
+      const dataBuku = req.body;
+
+      // Find existing book with transaction
+      const oldBuku = await Buku.findByPk(id, { transaction });
+
+      if (!oldBuku) {
+        await transaction.rollback();
+
+        // Clean up uploaded file if any
+        if (req.file) {
+          await fs.unlink(req.file.path).catch(console.error);
+        }
+
+        return res.status(404).json({ msg: "Data buku tidak ditemukan" });
+      }
+
+      // Handle file upload
+      if (req.file) {
+        dataBuku.cover_img = `/uploads/covers/${req.file.filename}`;
+
+        // Remove old file if exists
+        if (oldBuku.cover_img) {
+          const oldPath = path.join("public", oldBuku.cover_img);
+          await fs.unlink(oldPath).catch(() => {});
         }
       }
-    }
-    // Update data buku sesuai request dari params
-    const buku = await Buku.update(dataBuku, {
-      where: {
-        id: req.params.id,
-      },
-    });
 
-    // Jika ada 1 baris atau lebih yang terupdate, maka berhasil
-    res.status(200).json({
-      msg: "Data buku berhasil diupdate!",
-      data: await Buku.findByPk(req.params.id),
-    });
-  } catch (error) {
-    // Hapus file baru jika ada error
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
-    }
-    res.status(500).json({
-      msg: "Gagal update data buku",
-      error: error.message,
-    });
-  }
-};
+      // Update book
+      await Buku.update(dataBuku, {
+        where: { id },
+        transaction,
+      });
 
-export const deleteBuku = async (req, res) => {
-  try {
-    const buku = await Buku.findByPk(req.params.id);
-    if (!buku) {
-      return res.status(404).json({ msg: "Data buku tidak ditemukan" });
-    }
+      // Commit transaction and fetch updated book
+      await transaction.commit();
+      const updatedBuku = await Buku.findByPk(id);
 
-    // Hapus file yang lama jika ada
-    if (buku.cover_img) {
-      const filePath = path.join("public", buku.cover_img);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+      res.status(200).json({
+        msg: "Data buku berhasil diupdate!",
+        data: updatedBuku,
+      });
+    } catch (error) {
+      // Rollback transaction
+      await transaction.rollback();
+
+      // Remove uploaded file if exists
+      if (req.file) {
+        await fs.unlink(req.file.path).catch(console.error);
       }
-    }
 
-    await buku.destroy();
-    res.status(200).json({ msg: "Data buku berhasil dihapus" });
-  } catch (error) {
-    console.error("Error deleting book:", error);
-    res.status(500).json({
-      msg: "Tidak dapat menghapus buku",
-      error: error.message,
-    });
-  }
+      res.status(500).json({
+        msg: "Gagal update data buku",
+        ...(process.env.NODE_ENV === "development" && { error: error.message }),
+      });
+    }
+  },
+
+  // Optimized delete method
+  deleteBuku: async (req, res) => {
+    const transaction = await Buku.sequelize.transaction();
+
+    try {
+      const { id } = req.params;
+
+      // Find book within transaction
+      const buku = await Buku.findByPk(id, { transaction });
+
+      if (!buku) {
+        await transaction.rollback();
+        return res.status(404).json({ msg: "Data buku tidak ditemukan" });
+      }
+
+      // Remove cover image if exists
+      if (buku.cover_img) {
+        const filePath = path.join("public", buku.cover_img);
+        await fs.unlink(filePath).catch(() => {});
+      }
+
+      // Delete book
+      await buku.destroy({ transaction });
+
+      // Commit transaction
+      await transaction.commit();
+
+      res.status(200).json({ msg: "Data buku berhasil dihapus" });
+    } catch (error) {
+      // Rollback transaction
+      await transaction.rollback();
+
+      res.status(500).json({
+        msg: "Tidak dapat menghapus buku",
+        ...(process.env.NODE_ENV === "development" && { error: error.message }),
+      });
+    }
+  },
+
+  // Additional method for bulk operations if needed
+  bulkCreateBuku: async (req, res) => {
+    const transaction = await Buku.sequelize.transaction();
+
+    try {
+      const books = req.body;
+      const createdBooks = await Buku.bulkCreate(books, { transaction });
+
+      await transaction.commit();
+
+      res.status(201).json({
+        msg: "Buku berhasil ditambahkan secara massal!",
+        data: createdBooks,
+      });
+    } catch (error) {
+      await transaction.rollback();
+      res.status(500).json({
+        msg: "Gagal menambahkan buku secara massal",
+        ...(process.env.NODE_ENV === "development" && { error: error.message }),
+      });
+    }
+  },
 };

@@ -12,7 +12,7 @@ export const useBooks = (initialParams = { page: 1, limit: 10, search: '' }) => 
     params,
     updateParams,
     refresh
-  } = useResource(bookService.getBooks, initialParams);
+  } = useResource(bookService.getBuku, initialParams);
 
   return {
     books,

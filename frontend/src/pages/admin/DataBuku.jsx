@@ -126,10 +126,10 @@ const DataBuku = () => {
   const handleSubmit = async (formData) => {
     try {
       if (selectedBook) {
-        await bookService.updateBook(selectedBook.id, formData);
+        await bookService.updateBuku(selectedBook.id, formData);
         toast.success('Buku berhasil diupdate!');
       } else {
-        await bookService.createBook(formData);
+        await bookService.createBuku(formData);
         toast.success('Buku berhasil ditambahkan!');
       }
       refresh();
@@ -213,7 +213,7 @@ const DataBuku = () => {
       <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
         <TombolAksi
           onEdit={() => handleOpenEditModal(book)}
-          onDelete={() => bookService.deleteBook(book.id)}
+          onDelete={() => bookService.deleteBuku(book.id)}
           onRefresh={refresh}
         />
       </td>

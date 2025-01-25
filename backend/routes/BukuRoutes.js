@@ -1,13 +1,17 @@
-import express from "express"
-import { createBuku, deleteBuku, getBuku, getBukuById, updateBuku } from "../controllers/BukuController.js"
-import { coverUpload } from "../middlewares/uploadImage.js"
+import express from "express";
+import { bukuController } from "../controllers/BukuController.js";
+import { coverUpload } from "../middlewares/uploadImage.js";
 
-const router = express.Router()
+const router = express.Router();
 
-router.get("/", getBuku)
-router.get("/:id", getBukuById)
-router.post("/", coverUpload.single("cover_img"), createBuku)
-router.patch("/:id", coverUpload.single("cover_img"), updateBuku)
-router.delete("/:id", deleteBuku)
+// Ensure all methods exist in the controller
+router
+  .get("/", bukuController.getBuku)
+  .post("/", coverUpload.single("cover_img"), bukuController.createBuku);
 
-export default router
+router
+  .get("/:id", bukuController.getBukuById)
+  .patch("/:id", coverUpload.single("cover_img"), bukuController.updateBuku)
+  .delete("/:id", bukuController.deleteBuku);
+
+export default router;
