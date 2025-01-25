@@ -222,12 +222,12 @@ const DataUser = () => {
         </div>
       </td>
       <td className="px-6 py-4">
-        <span className="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-sm">
+        <span className="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-md text-sm">
           {user.role}
         </span>
       </td>
       <td className="px-6 py-4">
-        <span className="px-3 py-1 bg-green-500/10 text-green-400 rounded-full text-sm">
+        <span className="px-3 py-1 bg-green-500/10 text-green-400 rounded-md text-sm">
           Active
         </span>
       </td>
