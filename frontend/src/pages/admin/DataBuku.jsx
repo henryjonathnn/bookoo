@@ -9,9 +9,11 @@ import { useBooks } from '../../hooks/useBook';
 import { bookService } from '../../services/bookService';
 import { toast } from 'react-hot-toast';
 import { API_CONFIG } from '../../config/api.config';
+import DetailModal from '../../components/modules/admin/DetailModal';
 
 const DataBuku = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [selectedBook, setSelectedBook] = useState(null);
   const [selectedBooks, setSelectedBooks] = useState([]);
 
@@ -29,6 +31,7 @@ const DataBuku = () => {
     search: ''
   });
 
+  // INI FORM
   const bookFormConfig = {
     type: 'book',
     title: 'Buku',
@@ -62,6 +65,38 @@ const DataBuku = () => {
       { id: 'penerbit', label: 'Penerbit', required: true },
       { id: 'tahun_terbit', label: 'Tahun Terbit', required: true },
       { id: 'deskripsi', label: 'Deskripsi', required: false }
+    ]
+  };
+
+  // INI DETAIL
+  const bookDetailConfig = {
+    title: 'Detail Buku',
+    imageField: 'cover_img',
+    defaultIcon: BookOpen,
+    primaryTextField: 'judul',
+    secondaryFields: [
+      { key: 'penulis', label: 'Penulis' },
+      { key: 'isbn', label: 'ISBN' },
+      { key: 'penerbit', label: 'Penerbit' }
+    ],
+    sections: [
+      {
+        title: 'Deskripsi',
+        render: (book) => (
+          <div className="col-span-full">
+            <p>{book.deskripsi || 'Tidak ada deskripsi.'}</p>
+          </div>
+        )
+      },
+      {
+        title: 'Informasi Tambahan',
+        fields: [
+          { key: 'stock', label: 'Stok Tersedia' },
+          { key: 'denda_harian', label: 'Denda Harian', format: (value) => `Rp ${value.toLocaleString()}` },
+          { key: 'kategori', label: 'Kategori' },
+          { key: 'tahun_terbit', label: 'Tahun Terbit' }
+        ]
+      }
     ]
   };
 
@@ -122,9 +157,24 @@ const DataBuku = () => {
     });
   };
 
+  const handleOpenDetailModal = useCallback((book) => {
+    setSelectedBook(book);
+    setIsDetailModalOpen(true);
+  }, []);
+
+  const handleCloseDetailModal = useCallback(() => {
+    setSelectedBook(null);
+    setIsDetailModalOpen(false);
+  }, []);
+
+
   const renderBookRow = (book) => (
-    <tr key={book.id} className="border-b border-gray-800 hover:bg-[#2a2435]">
-      <td className="px-6 py-2">
+    <tr
+      key={book.id}
+      className="border-b border-gray-800 hover:bg-[#2a2435] cursor-pointer"
+      onClick={() => handleOpenDetailModal(book)}
+    >
+      <td className="px-6 py-2" onClick={(e) => e.stopPropagation()}>
         <input
           type="checkbox"
           className="rounded border-gray-600 text-purple-600"
@@ -159,7 +209,8 @@ const DataBuku = () => {
       </td>
       <td className="px-3 py-2 text-sm text-gray-400">{book.stock}</td>
       <td className="px-3 py-2 text-sm text-gray-400">{book.penerbit}</td>
-      <td className="px-3 py-2">
+      {/* StopPropgation agar tombol aksi tidak terkena efek pointer detail modal ketika dipencet */}
+      <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
         <TombolAksi
           onEdit={() => handleOpenEditModal(book)}
           onDelete={() => bookService.deleteBook(book.id)}
@@ -228,6 +279,13 @@ const DataBuku = () => {
           apiConfig={API_CONFIG}
         />
       )}
+
+      <DetailModal
+        data={selectedBook}
+        isOpen={isDetailModalOpen}
+        onClose={handleCloseDetailModal}
+        config={bookDetailConfig}
+      />
     </div>
   );
 };

@@ -9,9 +9,11 @@ import { toast } from 'react-hot-toast';
 import FormModal from '../../components/modules/admin/FormModal';
 import { userService } from '../../services/userService';
 import { API_CONFIG } from '../../config/api.config';
+import DetailModal from '../../components/modules/admin/DetailModal';
 
 const DataUser = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
 
@@ -30,6 +32,7 @@ const DataUser = () => {
     search: ''
   });
 
+  // INI FORM
   const userFormConfig = {
     type: 'user',
     title: 'User',
@@ -61,6 +64,28 @@ const DataUser = () => {
       }
     ]
   };
+
+  // INI DETAIL
+  const userDetailConfig = {
+    title: 'Detail User',
+    imageField: 'profile_img',
+    defaultIcon: User,
+    primaryTextField: 'name',
+    secondaryFields: [
+      { key: 'email', label: 'Email' },
+      { key: 'username', label: 'Username' }
+    ],
+    sections: [
+      {
+        title: 'Informasi Akun',
+        fields: [
+          { key: 'role', label: 'Role' },
+          { key: 'createdAt', label: 'Tanggal Bergabung', format: (date) => new Date(date).toLocaleDateString() }
+        ]
+      }
+    ]
+  };
+
 
   // Error handling
   useEffect(() => {
@@ -131,6 +156,15 @@ const DataUser = () => {
     });
   }, []);
 
+  const handleOpenDetailModal = useCallback((user) => {
+    setSelectedUser(user)
+    setIsDetailModalOpen(true)
+  }, [])
+
+  const handleCloseDetailModal = useCallback(() => {
+    setSelectedUser(null)
+    setIsDetailModalOpen(false)
+  }, [])
   const columns = [
     {
       header: <input
@@ -156,7 +190,8 @@ const DataUser = () => {
   }, []);
 
   const renderUserRow = useCallback((user) => (
-    <tr key={user.id} className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors">
+    <tr key={user.id} className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors cursor-pointer"
+      onClick={() => {handleOpenDetailModal(user)}}>
       <td className="px-6 py-4">
         <input
           type="checkbox"
@@ -253,6 +288,13 @@ const DataUser = () => {
           apiConfig={API_CONFIG}
         />
       )}
+
+      <DetailModal
+        data={selectedUser}
+        isOpen={isDetailModalOpen}
+        onClose={handleCloseDetailModal}
+        config={userDetailConfig}
+      />
     </div>
   );
 };
