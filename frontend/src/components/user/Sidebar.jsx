@@ -13,6 +13,14 @@ const Sidebar = () => {
 
     return (
         <aside className="hidden md:flex flex-col fixed top-0 left-0 h-screen w-20 bg-[#1A1A2E] border-r border-purple-500/10 z-50">
+            {/* Logo */}
+            <div className="flex items-center justify-center h-20 bg-[#1A1A2E] border-b border-purple-500/10">
+                <div className="h-8 w-8 bg-gradient-to-br from-purple-600 via-purple-500 to-indigo-600 rounded-lg flex items-center justify-center purple-glow">
+                    <Book size={16} className="text-white" />
+                </div>
+            </div>
+            
+            {/* Menu Items */}
             <div className="flex-1 flex flex-col items-center justify-center space-y-8">
                 {menuItems.map((item, index) => (
                     <NavLink
