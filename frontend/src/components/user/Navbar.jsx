@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { Bell, Search, LogOut, Menu, X, Home, Book, Clock, Heart, Grid, User, ChevronDown, ShoppingCart } from 'react-feather';
+import { Bell, Search, LogOut, Menu, X, Home, Book, Clock, Heart, Grid, User, ChevronDown, ShoppingCart, Settings, Star, FileText } from 'react-feather';
 import { Link } from 'react-router-dom';
 import AuthModal from '../../pages/auth/AuthModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
+import { API_CONFIG } from '../../config/api.config';
 
 const Navbar = () => {
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+    const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
     const { user, logout } = useAuth();
 
     const handleAuthAction = async () => {
@@ -17,6 +18,7 @@ const Navbar = () => {
                 await logout();
             } catch (error) {
                 console.error('Logout gagal:', error);
+                toast.error('Gagal logout');
             }
         } else {
             setIsAuthModalOpen(true);
@@ -36,7 +38,7 @@ const Navbar = () => {
             <nav className="fixed top-0 right-0 left-0 md:left-20 glass-effect z-40 border-b border-purple-500/10">
                 <div className="flex items-center justify-between px-4 md:px-8 py-4">
                     {/* Hamburger Menu - Mobile Only */}
-                    <button 
+                    <button
                         className="p-2 md:hidden rounded-xl hover:bg-purple-500/10"
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                     >
@@ -58,45 +60,112 @@ const Navbar = () => {
                         </div>
                     </div>
 
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-6">
+                        {/* Notification Bell */}
                         <button className="relative p-3 rounded-xl hover:bg-purple-500/10 text-gray-400 hover:text-purple-400">
                             <Bell size={20} />
                             <span className="absolute top-2 right-2 h-2 w-2 bg-purple-500 rounded-full"></span>
                         </button>
-                        <button  className='relative p-3 rounded-xl hover:bg-purple-500/10 text-gray-400 hover:text-purple-400'>
-                        <ShoppingCart />
-                        </button>
+
+                        {/* Order/Cart Icon */}
+                        <Link
+                            to="/pesanan"
+                            className="relative p-3 rounded-xl hover:bg-purple-500/10 text-gray-400 hover:text-purple-400"
+                        >
+                            <ShoppingCart size={20} />
+                            {/* Optional: Add order count badge */}
+                            <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full"></span>
+                        </Link>
+
                         {user ? (
                             <div className="relative">
-                                <button 
+                                <button
                                     onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                                     className="flex items-center space-x-2 p-2 rounded-xl hover:bg-purple-500/10"
                                 >
-                                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                                        <User size={20} className="text-white" />
+                                    <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-purple-500">
+                                        {user.profile_img ? (
+                                            <img
+                                                src={`${API_CONFIG.baseURL}${user.profile_img}`}
+                                                alt="Profile"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-purple-500 flex items-center justify-center">
+                                                <User size={20} className="text-white" />
+                                            </div>
+                                        )}
                                     </div>
                                     <ChevronDown size={16} />
                                 </button>
                                 {isProfileDropdownOpen && (
-                                    <div className="absolute right-0 top-full mt-2 w-48 bg-[#1A1A2E] rounded-xl shadow-lg border border-purple-500/10 py-2">
-                                        <Link 
-                                            to="/profile" 
-                                            className="block px-4 py-2 hover:bg-purple-500/10"
+                                    <div className="absolute right-0 top-full mt-2 w-64 bg-[#1A1A2E] rounded-xl shadow-lg border border-purple-500/10 py-2">
+                                        {/* User Info Header */}
+                                        <div className="flex items-center space-x-3 px-4 py-3 border-b border-purple-500/10">
+                                            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-purple-500">
+                                                {user.profile_img ? (
+                                                    <img
+                                                        src={`${API_CONFIG.baseURL}${user.profile_img}`}
+                                                        alt="Profile"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full bg-purple-500 flex items-center justify-center">
+                                                        <User size={20} className="text-white" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-sm">{user.username}</p>
+                                                <p className="text-xs text-gray-400">{user.email}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Dropdown Menu Items with Icons */}
+                                        <Link
+                                            to="/profile"
+                                            className="flex items-center space-x-3 px-4 py-2 hover:bg-purple-500/10 text-sm"
                                             onClick={() => setIsProfileDropdownOpen(false)}
                                         >
-                                            Profil
+                                            <User size={16} className="text-gray-400" />
+                                            <span>Profil Saya</span>
                                         </Link>
-                                        <button 
-                                            onClick={handleAuthAction}
-                                            className="w-full text-left px-4 py-2 hover:bg-purple-500/10 text-red-500"
+                                        <Link
+                                            to="/pesanan"
+                                            className="flex items-center space-x-3 px-4 py-2 hover:bg-purple-500/10 text-sm"
+                                            onClick={() => setIsProfileDropdownOpen(false)}
                                         >
-                                            Logout
+                                            <FileText size={16} className="text-gray-400" />
+                                            <span>Pesanan Saya</span>
+                                        </Link>
+                                        <Link
+                                            to="/favorit"
+                                            className="flex items-center space-x-3 px-4 py-2 hover:bg-purple-500/10 text-sm"
+                                            onClick={() => setIsProfileDropdownOpen(false)}
+                                        >
+                                            <Star size={16} className="text-gray-400" />
+                                            <span>Favorit</span>
+                                        </Link>
+                                        <Link
+                                            to="/pengaturan"
+                                            className="flex items-center space-x-3 px-4 py-2 hover:bg-purple-500/10 text-sm"
+                                            onClick={() => setIsProfileDropdownOpen(false)}
+                                        >
+                                            <Settings size={16} className="text-gray-400" />
+                                            <span>Pengaturan</span>
+                                        </Link>
+                                        <button
+                                            onClick={handleAuthAction}
+                                            className="flex items-center space-x-3 w-full text-left px-4 py-2 hover:bg-purple-500/10 text-red-500 text-sm"
+                                        >
+                                            <LogOut size={16} className="text-red-500" />
+                                            <span>Logout</span>
                                         </button>
                                     </div>
                                 )}
                             </div>
                         ) : (
-                            <button 
+                            <button
                                 onClick={handleAuthAction}
                                 className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 rounded-xl font-medium transition-all duration-300 px-6 py-2"
                             >
@@ -139,7 +208,7 @@ const Navbar = () => {
                 </div>
             )}
 
-            <AuthModal 
+            <AuthModal
                 isOpen={isAuthModalOpen}
                 onClose={() => setIsAuthModalOpen(false)}
             />

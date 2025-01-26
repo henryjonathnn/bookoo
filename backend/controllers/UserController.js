@@ -61,7 +61,7 @@ export const authController = {
   getUserById: async (req, res) => {
     try {
       const user = await User.findByPk(req.params.id, {
-        attributes: ["id", "name", "email", "username", "role", "createdAt"],
+        attributes: ["id", "name", "email", "username", "role", "createdAt", "profile_img"],
       });
 
       if (!user) {
@@ -154,6 +154,7 @@ export const authController = {
         userId: user.id,
         name: user.name,
         email: user.email,
+        profile_img: user.profile_img,
         role: user.role,
       };
 
@@ -186,6 +187,7 @@ export const authController = {
           id: user.id,
           name: user.name,
           email: user.email,
+          profile_img: user.profile_img,
           role: user.role,
         },
       });
@@ -274,6 +276,7 @@ export const authController = {
         user: {
           id: user.id,
           email: user.email,
+          profile_img: user.profile_img,
           role: user.role,
         },
       });
