@@ -154,6 +154,7 @@ export const authController = {
         userId: user.id,
         name: user.name,
         email: user.email,
+        username: user.username,
         profile_img: user.profile_img,
         role: user.role,
       };
@@ -187,6 +188,7 @@ export const authController = {
           id: user.id,
           name: user.name,
           email: user.email,
+          username: user.username,
           profile_img: user.profile_img,
           role: user.role,
         },
@@ -276,6 +278,7 @@ export const authController = {
         user: {
           id: user.id,
           email: user.email,
+          username: user.username,
           profile_img: user.profile_img,
           role: user.role,
         },

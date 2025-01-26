@@ -19,6 +19,7 @@ import DataBuku from "../pages/admin/DataBuku"
 import { ProtectedRoute } from "../contexts/AuthContext"
 import DataUser from "../pages/admin/DataUser"
 import DataPeminjaman from "../pages/admin/DataPeminjaman"
+import Profile from "../pages/profile/Profile"
 
 const ErrorBoundary = () => {
     const error = useRouteError()
@@ -57,6 +58,10 @@ const router = createBrowserRouter([
                     {
                         path: '/Bookmark',
                         element: <Bookmark />
+                    },
+                    {
+                        path:'/profile',
+                        element: <Profile />
                     }
                 ]
             },
