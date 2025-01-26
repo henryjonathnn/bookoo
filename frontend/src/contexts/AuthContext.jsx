@@ -94,7 +94,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
     if (loading) return <div>Loading...</div>;
     
     // Cek apakah route memiliki awalan /admin/
-    const isAdminRoute = location.pathname.startsWith('/admin/');
+    const isAdminRoute = location.pathname.startsWith('/admin');
     
     // Jika tidak ada user, redirect ke halaman login
     if (!user) return <Navigate to="/" state={{ from: location }} replace />;
