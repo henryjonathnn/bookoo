@@ -1,7 +1,8 @@
 import express from "express";
 import { authController } from "../controllers/UserController.js";
-import { auth } from "../middlewares/AuthMiddleware.js";
 import { profileUpload } from "../middlewares/uploadImage.js";
+import { authMiddleware } from "../middlewares/AuthMiddleware.js";
+import { adminMiddleware } from "../middlewares/AuthMiddleware.js";
 
 const router = express.Router();
 
@@ -13,11 +14,11 @@ router.get("/token", authController.refreshToken);
 router.get("/validate/:field/:value", authController.validateField);
 
 router
-  .use(auth.verifyToken)
-  .post("/", profileUpload.single("profile_img"), authController.createUser)
-  .patch("/:id", profileUpload.single("profile_img"), authController.updateUser)
-  .delete("/:id", authController.deleteUser)
-  .get("/", authController.getUsers)
-  .get("/:id", authController.getUserById);
+  .use(authMiddleware)
+  .post("/", adminMiddleware, profileUpload.single("profile_img"), authController.createUser)
+  .patch("/:id", adminMiddleware, profileUpload.single("profile_img"), authController.updateUser)
+  .delete("/:id", adminMiddleware, authController.deleteUser)
+  .get("/", authMiddleware, authController.getUsers)
+  .get("/:id", authMiddleware, authController.getUserById);
 
 export default router;

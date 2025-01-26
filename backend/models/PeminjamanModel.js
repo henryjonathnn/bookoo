@@ -12,48 +12,81 @@ const Peminjaman = db.define(
     },
     id_user: {
       type: DataTypes.INTEGER,
+      allowNull: false,
     },
     id_buku: {
       type: DataTypes.INTEGER,
+      allowNull: false,
     },
     id_staff: {
       type: DataTypes.INTEGER,
+      allowNull: true,
     },
-    tgl_pinjam: {
+    alamat_pengiriman: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    catatan_pengiriman: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    tgl_peminjaman_diinginkan: {
       type: DataTypes.DATE,
-      defaultValue: Sequelize.NOW,
+      allowNull: false,
     },
-    tgl_kembali: {
+    tgl_pinjam_aktual: {
       type: DataTypes.DATE,
+      allowNull: true,
     },
-    tgl_dikembalikan: {
+    tgl_kembali_rencana: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    tgl_kembali_aktual: {
       type: DataTypes.DATE,
       allowNull: true,
     },
     status: {
-      type: DataTypes.ENUM("PENDING", "APPROVED", "RETURNED", "OVERDUE"),
+      type: DataTypes.ENUM(
+        "PENDING", 
+        "DIPROSES", 
+        "DIKIRIM", 
+        "DIPINJAM", 
+        "TERLAMBAT", 
+        "DIKEMBALIKAN", 
+        "DITOLAK"
+      ),
       defaultValue: "PENDING",
     },
-    jumlah_denda: {
+    metode_pengiriman: {
+      type: DataTypes.ENUM("KURIR", "AMBIL_DI_TEMPAT"),
+      defaultValue: "KURIR",
+    },
+    total_denda: {
       type: DataTypes.DECIMAL(10, 2),
       defaultValue: 0,
     },
-    isDendaDibayar: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
+    bukti_pembayaran_denda: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
+    alasan_penolakan: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    nomor_resi: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    }
   },
   {
     freezeTableName: true,
     timestamps: true,
     indexes: [
-      {
-        fields: ["status"],
-      },
-      {
-        fields: ["tgl_kembali"],
-      },
-    ],
+      { fields: ["status"] },
+      { fields: ["tgl_peminjaman_diinginkan"] },
+      { fields: ["id_user"] }
+    ]
   }
 );
 

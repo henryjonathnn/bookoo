@@ -92,11 +92,34 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
     const location = useLocation();
 
     if (loading) return <div>Loading...</div>;
-    if (!user) return <Navigate to="/" state={{ from: location }} replace />;
-    if (!allowedRoles) return children;
     
-    const hasPermission = allowedRoles.includes(user.role);
-    return hasPermission ? children : <Navigate to="/404" replace />;
+    // Cek apakah route memiliki awalan /admin/
+    const isAdminRoute = location.pathname.startsWith('/admin/');
+    
+    // Jika tidak ada user, redirect ke halaman login
+    if (!user) return <Navigate to="/" state={{ from: location }} replace />;
+    
+    // Jika route adalah admin route
+    if (isAdminRoute) {
+        const adminAllowedRoles = ['ADMIN', 'STAFF'];
+        const hasPermission = adminAllowedRoles.includes(user.role);
+        
+        if (!hasPermission) {
+            // Redirect ke halaman 404 atau halaman tidak diizinkan
+            return <Navigate to="/404" replace />;
+        }
+    }
+    
+    // Jika ada pembatasan role yang spesifik
+    if (allowedRoles) {
+        const hasPermission = allowedRoles.includes(user.role);
+        if (!hasPermission) {
+            return <Navigate to="/404" replace />;
+        }
+    }
+    
+    // Jika lolos semua pengecekan, render children
+    return children;
 };
 
 export const useAuth = () => {
