@@ -1,33 +1,36 @@
 // hooks/usePeminjaman.js
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
-import { peminjamanService } from '../services/peminjamanService';
-import { useAuth } from '../contexts/AuthContext';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import { peminjamanService } from "../services/peminjamanService";
+import { useAuth } from "../contexts/AuthContext";
 
 export const usePeminjaman = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const { user } = useAuth();  // Get user from auth context
+  const { user } = useAuth(); // Get user from auth context
 
   const createPeminjaman = async (data) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Add user ID to the peminjaman data
       const peminjamanWithUser = {
         ...data,
-        id_user: user.id  
+        id_user: user.id,
       };
-      
-      const response = await peminjamanService.createPeminjaman(peminjamanWithUser);
-      toast.success('Peminjaman berhasil dibuat!');
+
+      const response = await peminjamanService.createPeminjaman(
+        peminjamanWithUser
+      );
+      toast.success("Peminjaman berhasil dibuat!");
+      navigate("/");
       return response;
     } catch (error) {
       setError(error);
-      toast.error(error.response?.data?.msg || 'Gagal membuat peminjaman');
+      toast.error(error.response?.data?.msg || "Gagal membuat peminjaman");
       throw error;
     } finally {
       setLoading(false);
@@ -41,7 +44,8 @@ export const usePeminjaman = () => {
       const response = await peminjamanService.getUserPeminjaman();
       return response;
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Gagal mengambil data peminjaman';
+      const errorMessage =
+        err.response?.data?.message || "Gagal mengambil data peminjaman";
       setError(errorMessage);
       throw err;
     } finally {
@@ -53,6 +57,6 @@ export const usePeminjaman = () => {
     createPeminjaman,
     getUserPeminjaman,
     loading,
-    error
+    error,
   };
 };
