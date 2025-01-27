@@ -3,8 +3,10 @@ import { toast } from 'react-hot-toast';
 import { authService } from '../services/authService';
 import { useLocation, Navigate } from 'react-router-dom';
 
+// Create AuthContext
 const AuthContext = createContext(null);
 
+// AuthProvider component
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -41,7 +43,7 @@ export const AuthProvider = ({ children }) => {
                     console.error('Token refresh failed:', error);
                 }
             }
-        }, 14 * 60 * 1000);
+        }, 14 * 60 * 1000); // Refresh every 14 minutes
 
         return () => clearInterval(refreshInterval);
     }, []);
@@ -75,7 +77,7 @@ export const AuthProvider = ({ children }) => {
             setUser(null);
             toast.success('Logout berhasil!');
         } catch (error) {
-            console.error('Logout gagl:', error);
+            console.error('Logout gagal:', error);
             throw error;
         }
     };
@@ -87,30 +89,35 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
+// Custom hook for using auth context
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+};
+
+// Protected Route component
 export const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user, loading } = useAuth();
     const location = useLocation();
 
     if (loading) return <div>Loading...</div>;
     
-    // Cek apakah route memiliki awalan /admin/
     const isAdminRoute = location.pathname.startsWith('/admin');
     
-    // Jika tidak ada user, redirect ke halaman login
     if (!user) return <Navigate to="/" state={{ from: location }} replace />;
     
-    // Jika route adalah admin route
     if (isAdminRoute) {
         const adminAllowedRoles = ['ADMIN', 'STAFF'];
         const hasPermission = adminAllowedRoles.includes(user.role);
         
         if (!hasPermission) {
-            // Redirect ke halaman 404 atau halaman tidak diizinkan
             return <Navigate to="/404" replace />;
         }
     }
     
-    // Jika ada pembatasan role yang spesifik
     if (allowedRoles) {
         const hasPermission = allowedRoles.includes(user.role);
         if (!hasPermission) {
@@ -118,14 +125,5 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
         }
     }
     
-    // Jika lolos semua pengecekan, render children
     return children;
-};
-
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
 };

@@ -10,6 +10,7 @@ export const peminjamanController = {
 
     try {
       const { 
+        id_user,
         id_buku, 
         alamat_pengiriman, 
         tgl_peminjaman_diinginkan, 
@@ -36,7 +37,7 @@ export const peminjamanController = {
 
       // Create peminjaman
       const peminjaman = await Peminjaman.create({
-        id_user: req.user.id,
+        id_user,
         id_buku,
         alamat_pengiriman,
         tgl_peminjaman_diinginkan: new Date(tgl_peminjaman_diinginkan),

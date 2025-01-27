@@ -1,187 +1,229 @@
-import React, { useState } from 'react';
-import { Minus, Plus, Truck, Clock } from 'react-feather';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Truck, Home, Calendar } from 'react-feather';
+import { usePeminjaman } from '../../hooks/usePeminjaman';
 import { API_CONFIG } from '../../config/api.config';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Checkout = () => {
-  const [quantity, setQuantity] = useState(1);
-  const [selectedDelivery, setSelectedDelivery] = useState('regular');
+  const { search } = useLocation();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { createPeminjaman, loading } = usePeminjaman();
+  const [bookData, setBookData] = useState(null);
+  const [formData, setFormData] = useState({
+    alamat_pengiriman: '',
+    metode_pengiriman: 'KURIR',
+    tgl_peminjaman_diinginkan: new Date().toISOString().split('T')[0],
+    catatan_pengiriman: ''
+  });
 
-  const product = {
-    name: "The Art of Programming",
-    author: "John Developer",
-    imageUrl: "/uploads/covers/cover_img-1737598275650-129413520.jpg",
-    description: "A comprehensive guide to modern programming paradigms and best practices.",
-    isbn: "978-3-16-148410-0"
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    const bookId = params.get('bookId');
+    
+    if (!bookId) {
+      navigate('/');
+      return;
+    }
+
+    const book = location.state?.book;
+    if (!book) {
+      navigate('/');
+      return;
+    }
+    
+    setBookData(book);
+  }, [search, navigate, location.state]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!bookData) return;
+
+    try {
+      await createPeminjaman({
+        id_buku: bookData.id,
+        ...formData
+      });
+    } catch (error) {
+      console.error('Checkout error:', error);
+    }
   };
 
-  const deliveryMethods = [
-    {
-      id: 'regular',
-      name: 'Regular Delivery',
-      description: '3-5 business days',
-      icon: Truck
-    },
-    {
-      id: 'express',
-      name: 'Express Delivery',
-      description: '1-2 business days',
-      icon: Clock
-    }
-  ];
+  if (!bookData) return null;
+
+  // Calculate min and max dates for the date picker
+  const today = new Date().toISOString().split('T')[0];
+  const maxDate = new Date();
+  maxDate.setDate(maxDate.getDate() + 30); // Allow booking up to 30 days in advance
+  const maxDateString = maxDate.toISOString().split('T')[0];
 
   return (
     <div className="min-h-screen text-gray-100 p-4 mt-28">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
-          Book Checkout
+          Konfirmasi Peminjaman
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Left Column - Product Details */}
+          {/* Left Column - Book Details */}
           <div className="lg:col-span-2">
             <div className="bg-[#1A1A2E] rounded-xl overflow-hidden shadow-lg shadow-purple-900/10">
               <div className="relative group">
                 <img
-                  src={`${API_CONFIG.baseURL}${product.imageUrl}`}
-                  alt={product.name}
+                  src={`${API_CONFIG.baseURL}${bookData.cover_img}`}
+                  alt={bookData.judul}
                   className="w-full h-[280px] object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A2E] opacity-50 group-hover:opacity-70 transition-opacity duration-300" />
               </div>
               <div className="p-5 space-y-3">
-                <h2 className="text-lg font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                  {product.name}
-                </h2>
-                <p className="text-purple-400 text-sm font-medium">By {product.author}</p>
-                <p className="text-gray-300 text-sm leading-relaxed">{product.description}</p>
-                <p className="text-xs text-gray-400 font-mono">ISBN: {product.isbn}</p>
+                <h2 className="text-lg font-bold">{bookData.judul}</h2>
+                <p className="text-purple-400 text-sm">by {bookData.penulis}</p>
+                <div className="text-sm text-gray-400">
+                  <p>Durasi Peminjaman: 7 hari</p>
+                  <p>Kategori: {bookData.kategori}</p>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Right Column - Checkout Form */}
-          <div className="lg:col-span-3 space-y-4">
-            {/* Quantity Section */}
-            <div className="bg-[#1A1A2E] rounded-xl p-5 shadow-lg shadow-purple-900/10">
-              <h3 className="text-sm font-semibold mb-4 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                Quantity
-              </h3>
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#2A2A3E] hover:bg-[#3A3A4E] transition-colors duration-200"
-                >
-                  <Minus className="h-4 w-4" />
-                </button>
-                <span className="text-lg font-bold w-8 text-center">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#2A2A3E] hover:bg-[#3A3A4E] transition-colors duration-200"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Address Section */}
-            <div className="bg-[#1A1A2E] rounded-xl p-5 shadow-lg shadow-purple-900/10">
-              <h3 className="text-sm font-semibold mb-4 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                Delivery Address
-              </h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-[#2A2A3E] border border-transparent focus:border-purple-500 focus:outline-none transition-colors duration-200"
-                    placeholder="Enter your full name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1">
-                    Street Address
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 text-sm rounded-lg bg-[#2A2A3E] border border-transparent focus:border-purple-500 focus:outline-none transition-colors duration-200"
-                    placeholder="Enter your street address"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-300 mb-1">
-                      City
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-3 py-2 text-sm rounded-lg bg-[#2A2A3E] border border-transparent focus:border-purple-500 focus:outline-none transition-colors duration-200"
-                      placeholder="City"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-300 mb-1">
-                      Postal Code
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-3 py-2 text-sm rounded-lg bg-[#2A2A3E] border border-transparent focus:border-purple-500 focus:outline-none transition-colors duration-200"
-                      placeholder="Postal Code"
-                    />
-                  </div>
+          <div className="lg:col-span-3">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* User Info Section */}
+              <div className="bg-[#1A1A2E] rounded-xl p-5">
+                <h3 className="text-sm font-semibold mb-4">Informasi Peminjam</h3>
+                <div className="space-y-2 text-sm text-gray-300">
+                  <p>Nama: {user.name}</p>
+                  <p>Email: {user.email}</p>
                 </div>
               </div>
-            </div>
 
-            {/* Delivery Method Section */}
-            <div className="bg-[#1A1A2E] rounded-xl p-5 shadow-lg shadow-purple-900/10">
-              <h3 className="text-sm font-semibold mb-4 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                Delivery Method
-              </h3>
-              <div className="space-y-3">
-                {deliveryMethods.map((method) => (
-                  <label
-                    key={method.id}
-                    className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                      selectedDelivery === method.id
-                        ? 'bg-[#3A3A4E] border border-purple-500'
-                        : 'bg-[#2A2A3E] border border-transparent hover:border-purple-500/50'
-                    }`}
-                  >
+              {/* Delivery Method */}
+              <div className="bg-[#1A1A2E] rounded-xl p-5">
+                <h3 className="text-sm font-semibold mb-4">Metode Pengiriman</h3>
+                <div className="space-y-3">
+                  <label className="flex items-center space-x-3 p-3 rounded-lg cursor-pointer hover:bg-[#2A2A3E]">
                     <input
                       type="radio"
-                      name="delivery"
-                      value={method.id}
-                      checked={selectedDelivery === method.id}
-                      onChange={(e) => setSelectedDelivery(e.target.value)}
+                      name="metode_pengiriman"
+                      value="KURIR"
+                      checked={formData.metode_pengiriman === 'KURIR'}
+                      onChange={(e) => setFormData({...formData, metode_pengiriman: e.target.value})}
                       className="hidden"
                     />
-                    <div
-                      className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                        selectedDelivery === method.id
-                          ? 'border-purple-500'
-                          : 'border-gray-400'
-                      }`}
-                    >
-                      {selectedDelivery === method.id && (
+                    <div className="w-4 h-4 rounded-full border border-purple-500 flex items-center justify-center">
+                      {formData.metode_pengiriman === 'KURIR' && (
                         <div className="w-2 h-2 rounded-full bg-purple-500" />
                       )}
                     </div>
-                    <method.icon className="h-4 w-4 text-purple-400" />
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">{method.name}</div>
-                      <div className="text-xs text-gray-400">{method.description}</div>
-                    </div>
+                    <Truck className="w-4 h-4 text-purple-400" />
+                    <span>Kurir</span>
                   </label>
-                ))}
-              </div>
-            </div>
 
-            {/* Checkout Button */}
-            <button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 transform hover:scale-[1.02] focus:scale-[0.98]">
-              Confirm Checkout
-            </button>
+                  <label className="flex items-center space-x-3 p-3 rounded-lg cursor-pointer hover:bg-[#2A2A3E]">
+                    <input
+                      type="radio"
+                      name="metode_pengiriman"
+                      value="AMBIL_DI_TEMPAT"
+                      checked={formData.metode_pengiriman === 'AMBIL_DI_TEMPAT'}
+                      onChange={(e) => setFormData({...formData, metode_pengiriman: e.target.value})}
+                      className="hidden"
+                    />
+                    <div className="w-4 h-4 rounded-full border border-purple-500 flex items-center justify-center">
+                      {formData.metode_pengiriman === 'AMBIL_DI_TEMPAT' && (
+                        <div className="w-2 h-2 rounded-full bg-purple-500" />
+                      )}
+                    </div>
+                    <Home className="w-4 h-4 text-purple-400" />
+                    <span>Ambil di Tempat</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Borrowing Date */}
+              <div className="bg-[#1A1A2E] rounded-xl p-5">
+                <h3 className="text-sm font-semibold mb-4">Tanggal Peminjaman</h3>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-purple-400" />
+                  <input
+                    type="date"
+                    value={formData.tgl_peminjaman_diinginkan}
+                    onChange={(e) => setFormData({...formData, tgl_peminjaman_diinginkan: e.target.value})}
+                    min={today}
+                    max={maxDateString}
+                    className="w-full pl-10 pr-3 py-2 rounded-lg bg-[#2A2A3E] border border-transparent focus:border-purple-500 focus:outline-none"
+                    required
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-2">
+                  * Peminjaman dapat dilakukan maksimal 30 hari ke depan
+                </p>
+              </div>
+
+              {/* Address */}
+              <div className="bg-[#1A1A2E] rounded-xl p-5">
+                <h3 className="text-sm font-semibold mb-4">
+                  {formData.metode_pengiriman === 'KURIR' ? 'Alamat Pengiriman' : 'Alamat Pengambilan'}
+                </h3>
+                <textarea
+                  value={formData.alamat_pengiriman}
+                  onChange={(e) => setFormData({...formData, alamat_pengiriman: e.target.value})}
+                  className="w-full px-3 py-2 rounded-lg bg-[#2A2A3E] border border-transparent focus:border-purple-500 focus:outline-none"
+                  rows="3"
+                  placeholder={formData.metode_pengiriman === 'KURIR' ? 
+                    "Masukkan alamat lengkap pengiriman" : 
+                    "Masukkan alamat tempat pengambilan"
+                  }
+                  required
+                />
+              </div>
+
+              {/* Notes */}
+              <div className="bg-[#1A1A2E] rounded-xl p-5">
+                <h3 className="text-sm font-semibold mb-4">Catatan Pengiriman</h3>
+                <textarea
+                  value={formData.catatan_pengiriman}
+                  onChange={(e) => setFormData({...formData, catatan_pengiriman: e.target.value})}
+                  className="w-full px-3 py-2 rounded-lg bg-[#2A2A3E] border border-transparent focus:border-purple-500 focus:outline-none"
+                  rows="2"
+                  placeholder="Catatan tambahan untuk pengiriman/pengambilan (opsional)"
+                />
+              </div>
+
+              {/* Return Date Info */}
+              <div className="bg-[#1A1A2E] rounded-xl p-5">
+                <h3 className="text-sm font-semibold mb-2">Informasi Pengembalian</h3>
+                <p className="text-sm text-gray-400">
+                  Buku harus dikembalikan dalam waktu 7 hari setelah tanggal peminjaman.
+                  {formData.tgl_peminjaman_diinginkan && (
+                    <>
+                      <br />
+                      Tanggal pengembalian: {
+                        new Date(new Date(formData.tgl_peminjaman_diinginkan).getTime() + (7 * 24 * 60 * 60 * 1000))
+                          .toLocaleDateString('id-ID', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })
+                      }
+                    </>
+                  )}
+                </p>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-3 px-4 rounded-xl font-medium transition-all duration-200 disabled:opacity-50"
+              >
+                {loading ? 'Memproses...' : 'Konfirmasi Peminjaman'}
+              </button>
+            </form>
           </div>
         </div>
       </div>

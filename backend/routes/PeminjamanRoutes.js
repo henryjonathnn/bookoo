@@ -1,6 +1,6 @@
 import express from 'express';
 import { peminjamanController } from '../controllers/PeminjamanController.js';
-import { authMiddleware, staffMiddleware } from '../middleware/AuthMiddleware.js';
+import { authMiddleware, staffMiddleware } from '../middlewares/AuthMiddleware.js';
 
 const router = express.Router();
 

@@ -12,7 +12,10 @@ const BookDetailModal = ({ book, isOpen, onClose }) => {
 
   const handleCheckout = () => {
     setLoading(true);
-    navigate(`/checkout?bookId=${book.id}`);
+    // Pass book data through navigation state
+    navigate(`/checkout?bookId=${book.id}`, {
+      state: { book: book }
+    });
   };
 
   const coverImg = book.cover_img

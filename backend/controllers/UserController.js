@@ -277,6 +277,7 @@ export const authController = {
         accessToken,
         user: {
           id: user.id,
+          name: user.name,
           email: user.email,
           username: user.username,
           profile_img: user.profile_img,
