@@ -4,11 +4,12 @@ import { useBooks } from '../../../../hooks/useBook';
 import BookCard from './BookCard';
 import Modal from '../../../ui/user/Modal';
 import { BADGE_COLORS, SORT_TYPES } from '../../../../constant/index';
+import BookDetailModal from './BookDetailModal';
 
-const BookSection = memo(({ 
-  title, 
-  subtitle, 
-  badgeText, 
+const BookSection = memo(({
+  title,
+  subtitle,
+  badgeText,
   badgeColor = 'purple',
   sortType = SORT_TYPES.NEWEST,
   showRating = false,
@@ -16,18 +17,27 @@ const BookSection = memo(({
 }) => {
   const [showModal, setShowModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const { 
-    books, 
-    loading, 
-    error, 
-    currentPage, 
-    totalPages, 
-    updateParams 
+  const [selectedBook, setSelectedBook] = useState(null)
+  const {
+    books,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    updateParams
   } = useBooks({
     page: 1,
     limit: 10, // Fetch 10 books
     sortType: sortType
   });
+
+  const handleBookClick = (book) => {
+    setSelectedBook(book);
+  };
+
+  const handleCloseDetailModal = () => {
+    setSelectedBook(null);
+  };
 
   const handlePrevPage = () => {
     if (currentPage > 1) {
@@ -78,15 +88,15 @@ const BookSection = memo(({
           <p className="text-gray-400 mt-2">{subtitle}</p>
         </div>
         <div className="flex space-x-3">
-          <button 
-            onClick={handlePrevPage} 
+          <button
+            onClick={handlePrevPage}
             disabled={currentPage === 1}
             className="p-2 md:p-3 rounded-xl bg-[#1A1A2E] hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10 disabled:opacity-50"
           >
             <ChevronLeft size={18} />
           </button>
-          <button 
-            onClick={handleNextPage} 
+          <button
+            onClick={handleNextPage}
             disabled={currentPage === totalPages}
             className="p-2 md:p-3 rounded-xl bg-[#1A1A2E] hover:bg-purple-500/10 transition-all duration-300 border border-purple-500/10 disabled:opacity-50"
           >
@@ -112,31 +122,18 @@ const BookSection = memo(({
           <BookCard
             key={book.id}
             book={book}
+            onBookClick={handleBookClick}
             showRating={showRating}
             rightLabel={rightLabel}
           />
         ))}
       </div>
 
-      {showModal && (
-        <Modal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          title={title}
-          subtitle={subtitle}
-        >
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-            {books.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                showRating={showRating}
-                rightLabel={rightLabel}
-              />
-            ))}
-          </div>
-        </Modal>
-      )}
+      <BookDetailModal
+        book={selectedBook}
+        isOpen={!!selectedBook}
+        onClose={() => setSelectedBook(null)}
+      />
     </section>
   );
 });

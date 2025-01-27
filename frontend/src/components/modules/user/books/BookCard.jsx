@@ -5,8 +5,9 @@ import { API_CONFIG } from '../../../../config/api.config';
 
 const BookCard = memo(({
   book,
+  onBookClick = () => {},
   isBookmarked = false,
-  onToggleBookmark = () => { },
+  onToggleBookmark = () => {},
   showRating = false,
   rightLabel = 'Peminjam'
 }) => {
@@ -21,8 +22,16 @@ const BookCard = memo(({
     return book.peminjam?.toLocaleString() || '0';
   };
 
+  const handleBookmarkClick = (e) => {
+    e.stopPropagation(); // Prevent the click from bubbling up to the parent
+    onToggleBookmark(book.id);
+  };
+ 
   return (
-    <div className="glass-effect rounded-2xl p-3 md:p-4 card-glow border border-purple-500/10 transition-all duration-300 hover:-translate-y-2 flex flex-col">
+    <div 
+      onClick={() => onBookClick(book)} 
+      className="glass-effect rounded-2xl p-3 md:p-4 card-glow border border-purple-500/10 transition-all duration-300 hover:-translate-y-2 flex flex-col cursor-pointer"
+    >
       <div className="relative mb-3 md:mb-4">
         <ImageLoader
           src={coverImg}
@@ -34,7 +43,7 @@ const BookCard = memo(({
         />
         <div className="absolute top-2 right-2 flex space-x-2">
           <button
-            onClick={() => onToggleBookmark(book.id)}
+            onClick={handleBookmarkClick}
             className="p-1.5 md:p-2 rounded-lg bg-black/50 hover:bg-black/70 transition-all duration-300"
           >
             <Bookmark
