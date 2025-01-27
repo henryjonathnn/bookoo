@@ -12,25 +12,39 @@ const User = db.define(
       autoIncrement: true,
     },
     name: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: [2, 100],
+      },
     },
     email: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(100),
       unique: true,
+      allowNull: false,
+      validate: {
+        isEmail: true,
+      },
     },
     username: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(50),
       unique: true,
+      allowNull: false,
+      validate: {
+        len: [3, 50],
+      },
     },
     password: {
       type: DataTypes.STRING,
+      allowNull: false,
     },
     role: {
       type: DataTypes.ENUM("USER", "STAFF", "ADMIN"),
       defaultValue: "USER",
     },
     refresh_token: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     isActive: {
@@ -38,7 +52,7 @@ const User = db.define(
       defaultValue: true,
     },
     profile_img: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(255),
       allowNull: true,
     },
   },
@@ -46,11 +60,28 @@ const User = db.define(
     freezeTableName: true,
     timestamps: true,
     indexes: [
-      {
-        fields: ["role"],
-      },
+      { fields: ["email"] },
+      { fields: ["username"] },
+      { fields: ["role"] },
+      { fields: ["isActive"] },
     ],
+    defaultScope: {
+      attributes: { exclude: ["password", "refresh_token"] },
+    },
+    scopes: {
+      withAuth: {
+        attributes: { include: ["password", "refresh_token"] },
+      },
+    },
   }
 );
+
+// Instance Methods
+User.prototype.toJSON = function () {
+  const values = { ...this.get() };
+  delete values.password;
+  delete values.refresh_token;
+  return values;
+};
 
 export default User;

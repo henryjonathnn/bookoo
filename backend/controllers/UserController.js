@@ -4,59 +4,14 @@ import jwt from "jsonwebtoken";
 import { Op } from "sequelize";
 import path from "path";
 import fs from "fs/promises";
+import { userService } from "../services/userService.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const authController = {
-  getUsers: async (req, res) => {
-    try {
-      const { page = 1, limit = 10, search = "" } = req.query;
-      const offset = (page - 1) * limit;
-
-      // Use more efficient query construction
-      const where = search
-        ? {
-            [Op.or]: [
-              { name: { [Op.like]: `%${search}%` } },
-              { email: { [Op.like]: `%${search}%` } },
-              { username: { [Op.like]: `%${search}%` } },
-            ],
-          }
-        : {};
-
-      // Parallel database operations for better performance
-      const [{ count, rows }, totalRows] = await Promise.all([
-        User.findAndCountAll({
-          where,
-          attributes: [
-            "id",
-            "name",
-            "email",
-            "username",
-            "role",
-            "createdAt",
-            "profile_img",
-          ],
-          limit: Number(limit),
-          offset: Number(offset),
-          order: [["createdAt", "DESC"]],
-        }),
-        User.count({ where }), // Separate count for more accurate pagination
-      ]);
-
-      return res.status(200).json({
-        totalItems: count,
-        users: rows,
-        currentPage: Number(page),
-        totalPages: Math.ceil(count / limit),
-      });
-    } catch (error) {
-      console.error("Server error in getUsers:", error);
-      return res.status(500).json({
-        message: "Error fetching users",
-        error: error.message,
-        ...(process.env.NODE_ENV === "development" && { stack: error.stack }),
-      });
-    }
-  },
+  getUsers: asyncHandler(async (req, res) => {
+    const result = await userService.findUsers(req.query);
+    res.json(result);
+  }),
 
   getUserById: async (req, res) => {
     try {
@@ -133,70 +88,24 @@ export const authController = {
   },
 
   // Optimize login with more secure token generation
-  login: async (req, res) => {
-    try {
-      const { email, password } = req.body;
+  login: asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+    
+    const result = await userService.login(email, password);
 
-      // Efficient user retrieval
-      const user = await User.findOne({ where: { email } });
-      if (!user) {
-        return res.status(404).json({ msg: "Email tidak ditemukan" });
-      }
+    // Set refresh token cookie
+    res.cookie("refreshToken", result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
-      // Secure password comparison
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(400).json({ msg: "Password salah" });
-      }
-
-      // More compact token generation
-      const tokenPayload = {
-        userId: user.id,
-        name: user.name,
-        email: user.email,
-        username: user.username,
-        profile_img: user.profile_img,
-        role: user.role,
-      };
-
-      const accessToken = jwt.sign(
-        tokenPayload,
-        process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "15m" }
-      );
-
-      const refreshToken = jwt.sign(
-        { userId: user.id },
-        process.env.REFRESH_TOKEN_SECRET,
-        { expiresIn: "7d" }
-      );
-
-      // Atomic update of refresh token
-      await user.update({ refresh_token: refreshToken });
-
-      // More secure cookie settings
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
-
-      res.json({
-        accessToken,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          username: user.username,
-          profile_img: user.profile_img,
-          role: user.role,
-        },
-      });
-    } catch (error) {
-      res.status(500).json({ msg: error.message });
-    }
-  },
+    res.json({
+      accessToken: result.accessToken,
+      user: result.user
+    });
+  }),
 
   logout: async (req, res) => {
     try {
@@ -290,72 +199,17 @@ export const authController = {
     }
   },
 
-  createUser: async (req, res) => {
-    try {
-      const { name, email, username, password, role } = req.body;
-
-      // Early validation
-      if (!name || !email || !username || !password) {
-        return res.status(400).json({ message: "Semua kolom harus diisi!" });
-      }
-
-      // Use transaction for atomic operation
-      const result = await User.sequelize.transaction(async (t) => {
-        // Efficient unique check
-        const existingUser = await User.findOne({
-          where: {
-            [Op.or]: [{ email }, { username }],
-          },
-          transaction: t,
-        });
-
-        if (existingUser) {
-          const errorMessage =
-            existingUser.email === email
-              ? "Email sudah digunakan"
-              : "Username sudah digunakan";
-          throw new Error(errorMessage);
-        }
-
-        // Prepare user data
-        const userData = {
-          name,
-          email,
-          username,
-          password: await bcrypt.hash(password, 10),
-          role: role || "USER",
-        };
-
-        // Efficient file handling
-        if (req.file) {
-          userData.profile_img = `/uploads/profiles/${req.file.filename}`;
-        }
-
-        // Create user
-        return await User.create(userData, { transaction: t });
-      });
-
-      // Remove sensitive data from response
-      const { password: removedPassword, ...userResponse } = result.get({
-        plain: true,
-      });
-
-      res.status(201).json({
-        message: "User berhasil ditambahkan!",
-        data: userResponse,
-      });
-    } catch (error) {
-      // Use promise-based file removal
-      if (req.file) {
-        await fs.unlink(req.file.path).catch(console.error);
-      }
-
-      res.status(500).json({
-        message: "Gagal menambahkan user",
-        error: error.message,
-      });
-    }
-  },
+  createUser: asyncHandler(async (req, res) => {
+    const profileImage = req.file 
+      ? `/uploads/profiles/${req.file.filename}` 
+      : null;
+    
+    const user = await userService.createUser(req.body, profileImage);
+    res.status(201).json({
+      message: "User berhasil ditambahkan!",
+      data: user,
+    });
+  }),
 
   updateUser: async (req, res) => {
     try {

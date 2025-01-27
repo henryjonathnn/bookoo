@@ -29,7 +29,7 @@ export const peminjamanService = {
       ...(status && { status }),
       ...(search && { search }),
     });
-    const response = await axiosInstance.get(`/peminjaman?${queryParams}`);
+    const response = await api.get(`/peminjaman?${queryParams}`);
     return response.data;
   },
 };
