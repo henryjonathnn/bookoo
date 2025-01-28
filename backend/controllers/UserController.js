@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Op } from "sequelize";
 import path from "path";
-import fs from "fs/promises";
+import { promises as fs } from 'fs';
 import { userService } from "../services/userService.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
@@ -303,24 +303,33 @@ export const authController = {
     try {
       const user = await User.findByPk(req.params.id);
       if (!user) {
-        return res.status(404).json({ msg: "User tidak ditemukan" });
+        return res.status(404).json({
+          status: false,
+          msg: "User tidak ditemukan"
+        });
       }
 
-      // Optional: Hapus file profil jika ada
+      // Hapus file profile image jika ada
       if (user.profile_img) {
         const filePath = path.join("public", user.profile_img);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
+        try {
+          await fs.unlink(filePath);
+        } catch (error) {
+          console.log('Error deleting image:', error);
+          // Lanjutkan proses meskipun gagal menghapus gambar
         }
       }
 
       await user.destroy();
-      res.status(200).json({ msg: "User berhasil dihapus" });
+      return res.status(200).json({
+        status: true,
+        msg: "User berhasil dihapus"
+      });
     } catch (error) {
-      console.error("Error deleting user:", error);
-      res.status(500).json({
-        msg: "Tidak dapat menghapus user",
-        error: error.message,
+      console.error('Error deleting user:', error);
+      return res.status(500).json({
+        status: false,
+        msg: error.message || "Terjadi kesalahan saat menghapus user"
       });
     }
   },

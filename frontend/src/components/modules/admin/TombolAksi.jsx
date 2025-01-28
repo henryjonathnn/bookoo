@@ -15,13 +15,20 @@ const TombolAksi = ({
   const handleDelete = async () => {
     try {
       if (onDelete) {
-        await onDelete();
-        setShowConfirmModal(false);
-        if (onRefresh) onRefresh();
+        const result = await onDelete();
+        
+        if (result && result.status) {
+          toast.success(result.message || 'Berhasil menghapus item!');
+          setShowConfirmModal(false);
+          if (onRefresh) onRefresh();
+        } else {
+          toast.error('Gagal menghapus item');
+        }
       }
     } catch (error) {
-      toast.error('Gagal hapus item!');
-      console.error(error);
+      const errorMessage = error?.response?.data?.message || error.message || 'Terjadi kesalahan saat menghapus';
+      toast.error('Gagal hapus item: ' + errorMessage);
+      console.error('Delete error:', error);
     }
   };
 

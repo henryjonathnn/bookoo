@@ -3,6 +3,7 @@ import { Op } from "sequelize";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import createError from "http-errors";
+import fs from "fs/promises";
 
 export const userService = {
   async findUsers({ page = 1, limit = 10, search = "" }) {
@@ -118,6 +119,30 @@ export const userService = {
     );
 
     return { accessToken, refreshToken };
+  },
+
+  async deleteUser(id) {
+    const user = await User.findByPk(id);
+    
+    if (!user) {
+      throw createError(404, "User tidak ditemukan");
+    }
+
+    // Hapus file profile image jika ada
+    if (user.profile_img) {
+      const filePath = `./public/images/${user.profile_img}`;
+      try {
+        await fs.unlink(filePath);
+      } catch (error) {
+        console.log('Error menghapus gambar:', error);
+      }
+    }
+
+    await user.destroy();
+    return {
+      status: true,
+      message: "User berhasil dihapus"
+    };
   },
 
   // ... tambahkan method lain yang diperlukan

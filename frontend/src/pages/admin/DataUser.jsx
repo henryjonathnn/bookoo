@@ -165,6 +165,16 @@ const DataUser = () => {
     setSelectedUser(null)
     setIsDetailModalOpen(false)
   }, [])
+
+  const handleDelete = async (id) => {
+    try {
+      const response = await userService.deleteUser(id);
+      return response; // Ini akan mengembalikan {status: true, message: "User berhasil dihapus"}
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const columns = [
     {
       header: <input
@@ -191,7 +201,7 @@ const DataUser = () => {
 
   const renderUserRow = useCallback((user) => (
     <tr key={user.id} className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors cursor-pointer"
-      onClick={() => {handleOpenDetailModal(user)}}>
+      onClick={() => { handleOpenDetailModal(user) }}>
       <td className="px-6 py-4">
         <input
           type="checkbox"
@@ -236,7 +246,7 @@ const DataUser = () => {
       </td>
       <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
         <TombolAksi onEdit={() => handleOpenEditModal(user)}
-          onDelete={() => userService.deleteUser(user.id)}
+          onDelete={() => handleDelete(user.id)}
           onRefresh={refresh} />
       </td>
     </tr>
