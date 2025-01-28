@@ -12,9 +12,9 @@ const PageHeader = ({ title, subtitle, buttonLabel, onButtonClick }) => {
         {buttonLabel && (
           <button
             onClick={onButtonClick}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm md:w-auto w-max"
+            className="flex items-center justify-center gap-1 px-2 py-1.5 md:px-4 md:py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-[11px] md:text-sm md:w-auto w-max whitespace-nowrap"
           >
-            <PlusCircle className="w-4 h-4" />
+            <PlusCircle className="w-2.5 h-2.5 md:w-4 md:h-4" />
             <span>{buttonLabel}</span>
           </button>
         )}
