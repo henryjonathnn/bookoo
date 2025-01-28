@@ -15,85 +15,79 @@ const FormModal = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Initialize form data with default empty strings or initial data values
+      // Initialize form data with default values
       const initialFormData = formConfig.fields.reduce((acc, field) => {
-        // Ensure a defined value, prioritizing initial data, then empty string
-        acc[field.id] = initialData && initialData[field.id] !== undefined 
-          ? initialData[field.id] 
-          : (field.type === 'password' ? '' : '');
+        acc[field.id] = initialData?.[field.id] ?? ''; // Use nullish coalescing
         return acc;
       }, {});
 
-      // Special handling for password field when editing
-      if (initialData) {
-        initialFormData.password = ''; // Always reset password field
-      }
-
       setFormData(initialFormData);
 
-      // Handle image preview with API base URL
-      if (initialData && formConfig.imageField) {
-        const imageUrl = formConfig.type === 'book' 
-          ? `${apiConfig.baseURL}${initialData.cover_img}`
-          : `${apiConfig.baseURL}${initialData.profile_img}`;
-        setPreview(imageUrl);
+      // Handle image preview
+      if (initialData?.[formConfig.imageField]) {
+        setPreview(`${apiConfig.baseURL}${initialData[formConfig.imageField]}`);
+      } else {
+        setPreview('');
       }
+    } else {
+      // Reset form when modal closes
+      setFormData({});
+      setPreview('');
+      setAlert(null);
     }
   }, [isOpen, initialData, formConfig, apiConfig]);
 
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
+  const handleChange = (fieldId, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [fieldId]: value
+    }));
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        setAlert({
-          type: 'error',
-          message: 'Ukuran gambar tidak boleh melebihi 2MB'
-        });
-        return;
-      }
-      if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
-        setAlert({
-          type: 'error',
-          message: 'Hanya file JPG, JPEG & PNG yang diizinkan'
-        });
-        return;
-      }
-      setAlert(null);
-      setPreview(URL.createObjectURL(file));
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setAlert({
+        type: 'error',
+        message: 'Ukuran gambar tidak boleh melebihi 2MB'
+      });
+      return;
     }
+
+    if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
+      setAlert({
+        type: 'error',
+        message: 'Hanya file JPG, JPEG & PNG yang diizinkan'
+      });
+      return;
+    }
+
+    setAlert(null);
+    setPreview(URL.createObjectURL(file));
+    // Update formData with the file
+    handleChange(formConfig.imageField, file);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formDataObj = new FormData();
 
+    // Append all form fields
     Object.entries(formData).forEach(([key, value]) => {
-      if (value !== '') {
+      if (value instanceof File) {
+        formDataObj.append(key, value);
+      } else if (value !== '') {
         formDataObj.append(key, value);
       }
     });
-
-    const imageFile = e.target[formConfig.imageField]?.files[0];
-    if (imageFile) {
-      formDataObj.append(formConfig.imageField, imageFile);
-    }
 
     try {
       await onSubmit(formDataObj);
       setAlert({
         type: 'success',
-        message: initialData ? `${formConfig.title} berhasil diperbarui!` : `${formConfig.title} berhasil ditambahkan!`
+        message: `${formConfig.title} berhasil ${initialData ? 'diperbarui' : 'ditambahkan'}!`
       });
       setTimeout(() => {
         onClose();
@@ -128,9 +122,7 @@ const FormModal = ({
           {alert && (
             <div
               className={`flex items-center gap-2 px-4 py-3 rounded-lg ${
-                alert.type === 'error'
-                  ? 'bg-red-500 text-white'
-                  : 'bg-green-500 text-white'
+                alert.type === 'error' ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'
               }`}
             >
               {alert.type === 'error' ? (
@@ -139,20 +131,15 @@ const FormModal = ({
                 <CheckCircle className="w-5 h-5" />
               )}
               <span>{alert.message}</span>
-              <button
-                type="button"
-                onClick={() => setAlert(null)}
-                className="ml-auto hover:bg-gray-800 p-2 rounded-full transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-400" />
-              </button>
             </div>
           )}
 
           <div className="space-y-4">
             {formConfig.imageField && (
               <div className="flex flex-col gap-2">
-                <label className="font-medium"> {formConfig.type === 'book' ? 'Foto Sampul' : 'Foto Profil'}</label>
+                <label className="font-medium">
+                  {formConfig.type === 'book' ? 'Foto Sampul' : 'Foto Profil'}
+                </label>
                 <div className="flex items-start gap-4">
                   <div className="w-32 h-40 bg-gray-800 rounded-lg overflow-hidden">
                     {preview ? (
@@ -170,11 +157,9 @@ const FormModal = ({
                   <div className="flex-1">
                     <input
                       type="file"
-                      id={formConfig.imageField}
-                      name={formConfig.imageField}
-                      accept="image/png, image/jpeg, image/jpg"
                       onChange={handleImageChange}
                       className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-purple-600 file:text-white hover:file:bg-purple-700 file:cursor-pointer"
+                      accept="image/png, image/jpeg, image/jpg"
                     />
                     <p className="mt-2 text-sm text-gray-400">
                       Format yang diizinkan: JPG, JPEG, PNG. Ukuran maksimal: 2MB
@@ -184,39 +169,30 @@ const FormModal = ({
               </div>
             )}
 
-            <div className="space-y-4">
-              {formConfig.fields.map((field) => (
-                <div key={field.id} className="flex flex-col gap-2">
-                  <label htmlFor={field.id} className="font-medium">
-                    {field.label}
-                    {field.required && <span className="text-red-500 ml-1">*</span>}
-                  </label>
-                  {field.component ? (
-                    field.component({
-                      value: formData[field.id],
-                      onChange: (e) => setFormData({ 
-                        ...formData, 
-                        [field.id]: e.target.value 
-                      }),
-                      options: field.options
-                    })
-                  ) : (
-                    <input
-                      type={field.type || 'text'}
-                      id={field.id}
-                      name={field.id}
-                      value={formData[field.id]}
-                      onChange={(e) => setFormData({ 
-                        ...formData, 
-                        [field.id]: e.target.value 
-                      })}
-                      required={field.required}
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
+            {formConfig.fields.map((field) => (
+              <div key={field.id} className="flex flex-col gap-2">
+                <label htmlFor={field.id} className="font-medium">
+                  {field.label}
+                  {field.required && <span className="text-red-500 ml-1">*</span>}
+                </label>
+                {field.component ? (
+                  field.component({
+                    value: formData[field.id] || '',
+                    onChange: (e) => handleChange(field.id, e.target.value),
+                    options: field.options
+                  })
+                ) : (
+                  <input
+                    type={field.type || 'text'}
+                    id={field.id}
+                    value={formData[field.id] || ''}
+                    onChange={(e) => handleChange(field.id, e.target.value)}
+                    required={field.required}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                )}
+              </div>
+            ))}
           </div>
 
           <div className="flex justify-end gap-3 pt-6 border-t border-gray-700">
@@ -231,7 +207,7 @@ const FormModal = ({
               type="submit"
               className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-500 transition-colors"
             >
-              {initialData ? `Perbarui ${formConfig.title}` : `Tambah ${formConfig.title}`}
+              {initialData ? 'Simpan Perubahan' : 'Tambah'}
             </button>
           </div>
         </form>

@@ -16,7 +16,6 @@ const TombolAksi = ({
     try {
       if (onDelete) {
         await onDelete();
-        toast.success('Item berhasil dihapus!');
         setShowConfirmModal(false);
         if (onRefresh) onRefresh();
       }
