@@ -122,7 +122,7 @@ const DataPeminjaman = () => {
 
     const { bg, text } = statusConfig[status] || statusConfig['PENDING'];
     return (
-      <span className={`px-3 py-1 ${bg} ${text} rounded-md text-sm`}>
+      <span className={`px-2 py-0.5 ${bg} ${text} rounded text-xs`}>
         {status}
       </span>
     );
@@ -130,27 +130,54 @@ const DataPeminjaman = () => {
 
   // Table columns
   const columns = [
-    { header: <input
-      type="checkbox"
-      className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
-      onChange={handleSelectAll}
-      checked={peminjamans?.length > 0 && selectedPeminjamans.length === peminjamans.length}
-    /> },
-    { header: 'Buku & Peminjam' },
-    { header: 'Tanggal' },
-    { header: 'Status' },
-    { header: 'Pengiriman' },
-    { header: 'Actions' }
+    { 
+      header: <input
+        type="checkbox"
+        className="w-3.5 h-3.5 rounded border-gray-600 text-purple-600 focus:ring-purple-500 focus:ring-offset-0"
+        onChange={handleSelectAll}
+        checked={peminjamans?.length > 0 && selectedPeminjamans.length === peminjamans.length}
+      />,
+      className: "w-[3%] px-2 py-2 text-center align-middle"
+    },
+    { 
+      header: 'ID', 
+      className: "w-[5%] px-2 py-2 text-center align-middle font-medium"
+    },
+    { 
+      header: 'Buku & Peminjam', 
+      className: "w-[25%] px-2 py-2 text-left align-middle font-medium"
+    },
+    { 
+      header: 'Tanggal', 
+      className: "w-[15%] px-2 py-2 text-center align-middle font-medium"
+    },
+    { 
+      header: 'Status', 
+      className: "w-[10%] px-2 py-2 text-center align-middle font-medium"
+    },
+    { 
+      header: 'Pengiriman', 
+      className: "w-[22%] px-2 py-2 text-center align-middle font-medium"
+    },
+    { 
+      header: 'Denda', 
+      className: "w-[10%] px-2 py-2 text-center align-middle font-medium"
+    },
+    { 
+      header: 'Actions', 
+      className: "w-[10%] px-2 py-2 text-center align-middle font-medium"
+    }
   ];
 
   // Row renderer
   const renderPeminjamanRow = useCallback((peminjaman) => (
-    <tr key={peminjaman.id} className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors cursor-pointer"
-      onClick={() => handleOpenDetailModal(peminjaman)}>
-      <td className="px-6 py-4">
+    <tr key={peminjaman.id} 
+        className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors cursor-pointer group"
+        onClick={() => handleOpenDetailModal(peminjaman)}>
+      <td className="px-2 py-2 text-center align-middle">
         <input
           type="checkbox"
-          className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
+          className="w-3.5 h-3.5 rounded border-gray-600 text-purple-600 focus:ring-purple-500 focus:ring-offset-0"
           checked={selectedPeminjamans.includes(peminjaman.id)}
           onChange={(e) => {
             e.stopPropagation();
@@ -158,9 +185,12 @@ const DataPeminjaman = () => {
           }}
         />
       </td>
-      <td className="px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-16 bg-gray-800 rounded overflow-hidden">
+      <td className="px-2 py-2 text-center align-middle">
+        <span className="text-xs font-mono text-gray-400">#{peminjaman.id}</span>
+      </td>
+      <td className="px-2 py-2 align-middle">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-12 bg-gray-800 rounded overflow-hidden flex-shrink-0">
             {peminjaman.buku?.cover_img ? (
               <img
                 src={`${API_CONFIG.baseURL}${peminjaman.buku.cover_img}`}
@@ -169,37 +199,72 @@ const DataPeminjaman = () => {
               />
             ) : (
               <div className="flex items-center justify-center h-full">
-                <Book className="w-6 h-6 text-gray-600" />
+                <Book className="w-4 h-4 text-gray-600" />
               </div>
             )}
           </div>
-          <div>
-            <h3 className="font-medium">{peminjaman.buku?.judul}</h3>
-            <p className="text-sm text-gray-400">{peminjaman.user?.name}</p>
+          <div className="min-w-0">
+            <h3 className="font-medium text-xs text-white group-hover:text-purple-400 transition-colors line-clamp-1">
+              {peminjaman.buku?.judul}
+            </h3>
+            <p className="text-[11px] text-gray-400 line-clamp-1">{peminjaman.user?.name}</p>
           </div>
         </div>
       </td>
-      <td className="px-6 py-4">
-        <div className="text-sm">
-          <p>Pinjam: {new Date(peminjaman.tgl_peminjaman_diinginkan).toLocaleDateString()}</p>
-          <p>Kembali: {new Date(peminjaman.tgl_kembali_rencana).toLocaleDateString()}</p>
-        </div>
-      </td>
-      <td className="px-6 py-4">
-        <StatusBadge status={peminjaman.status} />
-      </td>
-      <td className="px-6 py-4">
-        <div className="text-sm">
-          <p>{peminjaman.metode_pengiriman}</p>
-          {peminjaman.nomor_resi && (
-            <p className="text-gray-400">Resi: {peminjaman.nomor_resi}</p>
+      <td className="px-2 py-2 text-center align-middle">
+        <div className="text-[11px] space-y-1">
+          <p className="flex items-center justify-center gap-1">
+            <span className="text-gray-400">Pinjam:</span>
+            <span>{new Date(peminjaman.tgl_peminjaman_diinginkan).toLocaleDateString()}</span>
+          </p>
+          <p className="flex items-center justify-center gap-1">
+            <span className="text-gray-400">Kembali:</span>
+            <span>{new Date(peminjaman.tgl_kembali_rencana).toLocaleDateString()}</span>
+          </p>
+          {peminjaman.tgl_kembali_aktual && (
+            <p className="flex items-center justify-center gap-1">
+              <span className="text-gray-400">Aktual:</span>
+              <span>{new Date(peminjaman.tgl_kembali_aktual).toLocaleDateString()}</span>
+            </p>
           )}
         </div>
       </td>
-      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+      <td className="px-2 py-2 text-center align-middle">
+        <div className="flex flex-col items-center gap-1">
+          <StatusBadge status={peminjaman.status} />
+          {peminjaman.status === 'TERLAMBAT' && (
+            <span className="text-[10px] text-red-400">
+              {Math.ceil((new Date() - new Date(peminjaman.tgl_kembali_rencana)) / (1000 * 60 * 60 * 24))} hari
+            </span>
+          )}
+        </div>
+      </td>
+      <td className="px-2 py-2 text-center align-middle">
+        <div className="text-[11px] space-y-1">
+          <p className="font-medium">{peminjaman.metode_pengiriman}</p>
+          {peminjaman.nomor_resi && (
+            <p className="text-gray-400 flex items-center justify-center gap-1">
+              <span>Resi:</span>
+              <span className="font-mono">{peminjaman.nomor_resi}</span>
+            </p>
+          )}
+          <p className="text-[10px] text-gray-500 line-clamp-1">{peminjaman.alamat_pengiriman}</p>
+        </div>
+      </td>
+      <td className="px-2 py-2 text-center align-middle">
+        {peminjaman.total_denda > 0 ? (
+          <span className="text-xs font-medium text-red-400">
+            Rp {peminjaman.total_denda?.toLocaleString()}
+          </span>
+        ) : (
+          <span className="text-xs text-gray-400">-</span>
+        )}
+      </td>
+      <td className="px-2 py-2 text-center align-middle" onClick={(e) => e.stopPropagation()}>
         <TombolAksi 
           onEdit={() => handleOpenDetailModal(peminjaman)}
-          onRefresh={fetchData} 
+          onRefresh={fetchData}
+          className="opacity-0 group-hover:opacity-100 transition-opacity mx-auto" 
         />
       </td>
     </tr>
