@@ -137,19 +137,19 @@ const DataPeminjaman = () => {
         onChange={handleSelectAll}
         checked={peminjamans?.length > 0 && selectedPeminjamans.length === peminjamans.length}
       />,
-      className: "w-[3%] px-2 py-2 text-center align-middle"
+      className: "w-[3%] px-2 py-2 text-center align-middle hidden md:table-cell"
     },
     { 
       header: 'ID', 
-      className: "w-[5%] px-2 py-2 text-center align-middle font-medium"
+      className: "w-[5%] px-2 py-2 text-center align-middle font-medium hidden md:table-cell"
     },
     { 
       header: 'Buku & Peminjam', 
-      className: "w-[25%] px-2 py-2 text-left align-middle font-medium"
+      className: "w-[25%] md:w-[25%] px-2 py-2 text-left align-middle font-medium"
     },
     { 
       header: 'Tanggal', 
-      className: "w-[15%] px-2 py-2 text-center align-middle font-medium"
+      className: "w-[15%] px-2 py-2 text-center align-middle font-medium hidden md:table-cell"
     },
     { 
       header: 'Status', 
@@ -157,11 +157,11 @@ const DataPeminjaman = () => {
     },
     { 
       header: 'Pengiriman', 
-      className: "w-[22%] px-2 py-2 text-center align-middle font-medium"
+      className: "w-[22%] px-2 py-2 text-center align-middle font-medium hidden md:table-cell"
     },
     { 
       header: 'Denda', 
-      className: "w-[10%] px-2 py-2 text-center align-middle font-medium"
+      className: "w-[10%] px-2 py-2 text-center align-middle font-medium hidden md:table-cell"
     },
     { 
       header: 'Actions', 
@@ -174,7 +174,7 @@ const DataPeminjaman = () => {
     <tr key={peminjaman.id} 
         className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors cursor-pointer group"
         onClick={() => handleOpenDetailModal(peminjaman)}>
-      <td className="px-2 py-2 text-center align-middle">
+      <td className="px-2 py-2 text-center align-middle hidden md:table-cell">
         <input
           type="checkbox"
           className="w-3.5 h-3.5 rounded border-gray-600 text-purple-600 focus:ring-purple-500 focus:ring-offset-0"
@@ -185,7 +185,7 @@ const DataPeminjaman = () => {
           }}
         />
       </td>
-      <td className="px-2 py-2 text-center align-middle">
+      <td className="px-2 py-2 text-center align-middle hidden md:table-cell">
         <span className="text-xs font-mono text-gray-400">#{peminjaman.id}</span>
       </td>
       <td className="px-2 py-2 align-middle">
@@ -208,10 +208,14 @@ const DataPeminjaman = () => {
               {peminjaman.buku?.judul}
             </h3>
             <p className="text-[11px] text-gray-400 line-clamp-1">{peminjaman.user?.name}</p>
+            {/* Mobile-only date display */}
+            <div className="md:hidden text-[10px] text-gray-500 mt-1">
+              {new Date(peminjaman.tgl_peminjaman_diinginkan).toLocaleDateString()}
+            </div>
           </div>
         </div>
       </td>
-      <td className="px-2 py-2 text-center align-middle">
+      <td className="px-2 py-2 text-center align-middle hidden md:table-cell">
         <div className="text-[11px] space-y-1">
           <p className="flex items-center justify-center gap-1">
             <span className="text-gray-400">Pinjam:</span>
@@ -237,9 +241,15 @@ const DataPeminjaman = () => {
               {Math.ceil((new Date() - new Date(peminjaman.tgl_kembali_rencana)) / (1000 * 60 * 60 * 24))} hari
             </span>
           )}
+          {/* Mobile-only denda display */}
+          {peminjaman.total_denda > 0 && (
+            <span className="md:hidden text-[10px] text-red-400 mt-1">
+              Rp {peminjaman.total_denda?.toLocaleString()}
+            </span>
+          )}
         </div>
       </td>
-      <td className="px-2 py-2 text-center align-middle">
+      <td className="px-2 py-2 text-center align-middle hidden md:table-cell">
         <div className="text-[11px] space-y-1">
           <p className="font-medium">{peminjaman.metode_pengiriman}</p>
           {peminjaman.nomor_resi && (
@@ -251,7 +261,7 @@ const DataPeminjaman = () => {
           <p className="text-[10px] text-gray-500 line-clamp-1">{peminjaman.alamat_pengiriman}</p>
         </div>
       </td>
-      <td className="px-2 py-2 text-center align-middle">
+      <td className="px-2 py-2 text-center align-middle hidden md:table-cell">
         {peminjaman.total_denda > 0 ? (
           <span className="text-xs font-medium text-red-400">
             Rp {peminjaman.total_denda?.toLocaleString()}
