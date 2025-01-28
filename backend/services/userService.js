@@ -11,9 +11,9 @@ export const userService = {
     const whereClause = search
       ? {
           [Op.or]: [
-            { name: { [Op.iLike]: `%${search}%` } },
-            { email: { [Op.iLike]: `%${search}%` } },
-            { username: { [Op.iLike]: `%${search}%` } },
+            { name: { [Op.like]: `%${search}%` } },
+            { email: { [Op.like]: `%${search}%` } },
+            { username: { [Op.like]: `%${search}%` } },
           ],
         }
       : {};

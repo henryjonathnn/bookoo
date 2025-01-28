@@ -5,7 +5,7 @@ import debounce from 'lodash/debounce';
 const SearchFilterBar = ({ searchPlaceholder, onSearch, initialValue = '' }) => {
   const [searchValue, setSearchValue] = useState(initialValue);
 
-  // Debounce the search callback
+  // Kurangi delay debounce menjadi lebih responsif
   const debouncedSearch = useCallback(
     debounce((searchValue) => {
       onSearch(searchValue);

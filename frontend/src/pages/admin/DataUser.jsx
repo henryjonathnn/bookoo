@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { User } from 'react-feather';
+import { User, Filter, Download } from 'react-feather';
 import PageHeader from '../../components/modules/admin/PageHeader';
 import SearchFilterBar from '../../components/modules/admin/SearchFilterBar';
 import DataTable from '../../components/modules/admin/DataTable';
@@ -179,16 +179,32 @@ const DataUser = () => {
     {
       header: <input
         type="checkbox"
-        className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
+        className="rounded border-gray-600 text-purple-600 focus:ring-purple-500 hidden md:block"
         onChange={handleSelectAll}
         checked={users?.length > 0 && selectedUsers.length === users.length}
-      />
+      />,
+      className: 'hidden md:table-cell w-[5%] px-2 lg:px-6 py-3'
     },
-    { header: 'User Info' },
-    { header: 'Role' },
-    { header: 'Status' },
-    { header: 'Join Date' },
-    { header: 'Actions' }
+    { 
+      header: 'User Info',
+      className: 'text-left px-2 lg:px-6 py-3 w-[60%] sm:w-[40%]'
+    },
+    { 
+      header: 'Role', 
+      className: 'hidden sm:table-cell px-2 lg:px-6 py-3 w-[15%]'
+    },
+    { 
+      header: 'Status', 
+      className: 'hidden sm:table-cell px-2 lg:px-6 py-3 w-[15%]'
+    },
+    { 
+      header: 'Join Date', 
+      className: 'hidden md:table-cell px-2 lg:px-6 py-3 w-[15%]'
+    },
+    { 
+      header: 'Actions',
+      className: 'text-right sm:text-left px-2 lg:px-6 py-3 w-[40%] sm:w-[10%]'
+    }
   ];
 
   const formatDate = useCallback((dateString) => {
@@ -200,54 +216,62 @@ const DataUser = () => {
   }, []);
 
   const renderUserRow = useCallback((user) => (
-    <tr key={user.id} className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors cursor-pointer"
-      onClick={() => { handleOpenDetailModal(user) }}>
-      <td className="px-6 py-4">
+    <tr key={user.id} 
+        className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors cursor-pointer"
+        onClick={() => { handleOpenDetailModal(user) }}>
+      <td className="hidden md:table-cell px-2 lg:px-6 py-4">
         <input
           type="checkbox"
           className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
           checked={selectedUsers.includes(user.id)}
-          onChange={(e) => handleSelectUser(user.id, e.target.checked)}
+          onChange={(e) => {
+            e.stopPropagation();
+            handleSelectUser(user.id, e.target.checked);
+          }}
         />
       </td>
-      <td className="px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gray-800 rounded-full overflow-hidden">
+      <td className="px-2 lg:px-6 py-4">
+        <div className="flex items-center gap-2 lg:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-gray-800 rounded-full overflow-hidden flex-shrink-0">
             {user.profile_img ? (
               <img
                 src={`${API_CONFIG.baseURL}${user.profile_img}`}
                 alt={user.name}
-                className="w-full h-full object-cover rounded-full"
+                className="w-full h-full object-cover"
               />
             ) : (
               <div className="flex items-center justify-center h-full">
-                <User className="w-6 h-6 text-gray-600" />
+                <User className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-gray-600" />
               </div>
             )}
           </div>
-          <div>
-            <h3 className="font-medium">{user.name}</h3>
-            <p className="text-sm text-gray-400">{user.email}</p>
+          <div className="min-w-0">
+            <h3 className="font-medium text-xs sm:text-sm lg:text-base truncate">{user.name}</h3>
+            <p className="text-xs text-gray-400 truncate hidden sm:block">{user.email}</p>
           </div>
         </div>
       </td>
-      <td className="px-6 py-4">
-        <span className="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-md text-sm">
+      <td className="hidden sm:table-cell px-2 lg:px-6 py-4">
+        <span className="px-2 py-1 text-xs lg:text-sm bg-blue-500/10 text-blue-400 rounded">
           {user.role}
         </span>
       </td>
-      <td className="px-6 py-4">
-        <span className="px-3 py-1 bg-green-500/10 text-green-400 rounded-md text-sm">
+      <td className="hidden sm:table-cell px-2 lg:px-6 py-4">
+        <span className="px-2 py-1 text-xs lg:text-sm bg-green-500/10 text-green-400 rounded">
           Active
         </span>
       </td>
-      <td className="px-6 py-4 text-gray-400">
+      <td className="hidden md:table-cell px-2 lg:px-6 py-4 text-gray-400 text-xs">
         {formatDate(user.createdAt)}
       </td>
-      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-        <TombolAksi onEdit={() => handleOpenEditModal(user)}
-          onDelete={() => handleDelete(user.id)}
-          onRefresh={refresh} />
+      <td className="px-2 lg:px-6 py-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-end sm:justify-start">
+          <TombolAksi 
+            onEdit={() => handleOpenEditModal(user)}
+            onDelete={() => handleDelete(user.id)}
+            onRefresh={refresh} 
+          />
+        </div>
       </td>
     </tr>
   ), [selectedUsers, handleSelectUser, formatDate, refresh]);
@@ -267,25 +291,31 @@ const DataUser = () => {
         onButtonClick={handleOpenCreateModal}
       />
 
-      <SearchFilterBar
-        searchPlaceholder="Cari user..."
-        onSearch={handleSearch}
-        initialValue=""
-      />
+        <SearchFilterBar
+          searchPlaceholder="Cari user..."
+          onSearch={handleSearch}
+          initialValue=""
+          className="w-full"
+        />
 
       {loading ? (
         <LoadingSpinner />
       ) : (
-        <DataTable
-          columns={columns}
-          data={users}
-          renderRow={renderUserRow}
-          totalEntries={totalItems}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-          entriesPerPage={10}
-        />
+        <div className="w-full">
+          <div className="inline-block min-w-full align-middle">
+            <DataTable
+              columns={columns}
+              data={users}
+              renderRow={renderUserRow}
+              totalEntries={totalItems}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              entriesPerPage={10}
+              className="w-full text-sm"
+            />
+          </div>
+        </div>
       )}
 
       {isModalOpen && (

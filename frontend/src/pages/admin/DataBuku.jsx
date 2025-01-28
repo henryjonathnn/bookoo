@@ -91,22 +91,35 @@ const DataBuku = () => {
   }, []);
 
   const columns = [
-    {
-      header: <div className="flex justify-center">
-        <input
-          type="checkbox"
-          className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
-          onChange={handleSelectAll}
-          checked={buku?.length > 0 && selectedBooks.length === buku.length}
-        />
-      </div>,
-      className: "w-14"
+    { 
+      header: <input
+        type="checkbox"
+        className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
+        onChange={handleSelectAll}
+        checked={buku?.length > 0 && selectedBooks.length === buku.length}
+      />,
+      className: "hidden md:table-cell w-[5%] px-2 lg:px-6 py-3" 
     },
-    { header: 'Buku Info', className: "w-1/3" },
-    { header: 'ISBN', className: "w-1/6 text-center" },
-    { header: 'Kategori', className: "w-32 text-center" },
-    { header: 'Stok', className: "w-24 text-center" },
-    { header: 'Actions', className: "w-24 text-right" }
+    { 
+      header: 'Buku Info', 
+      className: "text-left px-2 lg:px-6 py-3 w-[60%] sm:w-[40%]"
+    },
+    { 
+      header: 'ISBN', 
+      className: "hidden md:table-cell px-2 py-3 w-[15%] text-center" 
+    },
+    { 
+      header: 'Kategori', 
+      className: "px-2 py-3 w-[30%] md:w-[15%] text-center"
+    },
+    { 
+      header: 'Stok', 
+      className: "hidden md:table-cell px-2 py-3 w-[10%] text-center" 
+    },
+    { 
+      header: 'Actions', 
+      className: "px-2 py-3 w-[20%] md:w-[10%] text-right"
+    }
   ];
 
   const bukuFormConfig = {
@@ -190,22 +203,20 @@ const DataBuku = () => {
     <tr key={book.id} 
         className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors cursor-pointer"
         onClick={() => handleOpenDetailModal(book)}>
-      <td className="px-4 py-3">
-        <div className="flex justify-center">
-          <input
-            type="checkbox"
-            className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
-            checked={selectedBooks.includes(book.id)}
-            onChange={(e) => {
-              e.stopPropagation();
-              handleSelectBook(book.id, e.target.checked);
-            }}
-          />
-        </div>
+      <td className="hidden md:table-cell px-2 lg:px-6 py-4">
+        <input
+          type="checkbox"
+          className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
+          checked={selectedBooks.includes(book.id)}
+          onChange={(e) => {
+            e.stopPropagation();
+            handleSelectBook(book.id, e.target.checked);
+          }}
+        />
       </td>
-      <td className="px-3 py-3">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-14 bg-gray-800 rounded overflow-hidden flex-shrink-0">
+      <td className="px-3 lg:px-6 py-4">
+        <div className="flex items-center gap-2 lg:gap-3">
+          <div className="w-7 h-10 md:w-10 md:h-14 bg-gray-800 rounded overflow-hidden flex-shrink-0">
             {book.cover_img ? (
               <img
                 src={`${API_CONFIG.baseURL}${book.cover_img}`}
@@ -214,36 +225,37 @@ const DataBuku = () => {
               />
             ) : (
               <div className="flex items-center justify-center h-full">
-                <BookOpen className="w-5 h-5 text-gray-600" />
+                <BookOpen className="w-3 h-3 md:w-5 md:h-5 text-gray-600" />
               </div>
             )}
           </div>
-          <div>
-            <h3 className="text-sm font-medium text-white leading-tight">{book.judul}</h3>
-            <p className="text-sm text-gray-400">{book.penulis}</p>
+          <div className="min-w-0">
+            <h3 className="font-medium text-[11px] md:text-sm text-white leading-tight truncate max-w-[100px] md:max-w-[250px]">
+              {book.judul}
+            </h3>
+            <p className="text-[10px] md:text-xs text-gray-400 truncate">{book.penulis}</p>
+            <p className="text-[10px] md:hidden text-gray-400">Stok: {book.stock}</p>
           </div>
         </div>
       </td>
-      <td className="px-4 py-3 text-sm text-gray-400 text-center">
+      <td className="hidden md:table-cell px-2 py-2 text-center text-sm">
         {book.isbn}
       </td>
-      <td className="px-4 py-3 text-center">
-        <div className="flex justify-center">
-          <span className="px-2 py-0.5 text-xs bg-purple-500/10 text-purple-400 rounded">
-            {book.kategori}
-          </span>
-        </div>
+      <td className="px-2 py-2 text-center">
+        <span className="px-1 py-0.5 text-[9px] md:text-xs bg-purple-500/10 text-purple-400 rounded">
+          {book.kategori}
+        </span>
       </td>
-      <td className="px-4 py-3 text-sm text-center text-gray-400">
+      <td className="hidden md:table-cell px-2 py-2 text-center text-sm">
         {book.stock}
       </td>
-      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-end gap-1">
+      <td className="px-2 lg:px-6 py-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-end sm:justify-start">
           <TombolAksi 
             onEdit={() => handleOpenEditModal(book)}
             onDelete={async () => {
-                await handleDelete(book.id);
-                toast.success('Buku berhasil dihapus!');
+              await handleDelete(book.id);
+              toast.success('Buku berhasil dihapus!');
             }}
             onRefresh={refresh}
           />
@@ -271,20 +283,26 @@ const DataBuku = () => {
         searchPlaceholder="Cari buku..."
         onSearch={handleSearch}
         initialValue=""
+        className="w-full"
       />
 
       {loading ? (
         <LoadingSpinner />
       ) : (
-        <DataTable
-          columns={columns}
-          data={buku}
-          renderRow={renderBookRow}
-          totalEntries={totalItems}
-          currentPage={currentPage}
-          onPageChange={handlePageChange}
-          entriesPerPage={10}
-        />
+        <div className="w-full">
+          <div className="inline-block min-w-full align-middle">
+            <DataTable
+              columns={columns}
+              data={buku}
+              renderRow={renderBookRow}
+              totalEntries={totalItems}
+              currentPage={currentPage}
+              onPageChange={handlePageChange}
+              entriesPerPage={10}
+              className="w-full text-sm"
+            />
+          </div>
+        </div>
       )}
 
       <FormModal
