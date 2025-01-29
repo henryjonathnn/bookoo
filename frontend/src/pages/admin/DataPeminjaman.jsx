@@ -5,9 +5,10 @@ import SearchFilterBar from '../../components/modules/admin/SearchFilterBar';
 import DataTable from '../../components/modules/admin/DataTable';
 import TombolAksi from '../../components/modules/admin/TombolAksi';
 import { toast } from 'react-hot-toast';
-import DetailModal from '../../components/modules/admin/DetailModal';
+import PeminjamanDetailModal from '../../components/modules/admin/PeminjamanDetailModal';
 import { peminjamanService } from '../../services/peminjamanService';
 import { API_CONFIG } from '../../config/api.config';
+import StatusBadge from '../../components/modules/admin/StatusBadge';
 
 const DataPeminjaman = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -47,31 +48,6 @@ const DataPeminjaman = () => {
     fetchData();
   }, [fetchData]);
 
-  // Detail config
-  const peminjamanDetailConfig = {
-    title: 'Detail Peminjaman',
-    imageField: 'buku.cover_img',
-    defaultIcon: Book,
-    primaryTextField: 'buku.judul',
-    secondaryFields: [
-      { key: 'user.name', label: 'Peminjam' },
-      { key: 'status', label: 'Status' }
-    ],
-    sections: [
-      {
-        title: 'Informasi Peminjaman',
-        fields: [
-          { key: 'tgl_peminjaman_diinginkan', label: 'Tanggal Pinjam', format: (date) => new Date(date).toLocaleDateString() },
-          { key: 'tgl_kembali_rencana', label: 'Tanggal Kembali', format: (date) => new Date(date).toLocaleDateString() },
-          { key: 'alamat_pengiriman', label: 'Alamat Pengiriman' },
-          { key: 'metode_pengiriman', label: 'Metode Pengiriman' },
-          { key: 'nomor_resi', label: 'Nomor Resi' },
-          { key: 'total_denda', label: 'Total Denda', format: (value) => `Rp ${value?.toLocaleString() || 0}` }
-        ]
-      }
-    ]
-  };
-
   // Search handler
   const handleSearch = useCallback((searchValue) => {
     setSearchParams(prev => ({ ...prev, search: searchValue, page: 1 }));
@@ -108,25 +84,6 @@ const DataPeminjaman = () => {
     setSelectedPeminjaman(null);
     setIsDetailModalOpen(false);
   }, []);
-
-  // Status badge component
-  const StatusBadge = ({ status }) => {
-    const statusConfig = {
-      'PENDING': { bg: 'bg-yellow-500/10', text: 'text-yellow-400' },
-      'DIKIRIM': { bg: 'bg-blue-500/10', text: 'text-blue-400' },
-      'DIPINJAM': { bg: 'bg-green-500/10', text: 'text-green-400' },
-      'TERLAMBAT': { bg: 'bg-red-500/10', text: 'text-red-400' },
-      'DIKEMBALIKAN': { bg: 'bg-purple-500/10', text: 'text-purple-400' },
-      'DITOLAK': { bg: 'bg-gray-500/10', text: 'text-gray-400' }
-    };
-
-    const { bg, text } = statusConfig[status] || statusConfig['PENDING'];
-    return (
-      <span className={`px-2 py-0.5 ${bg} ${text} rounded text-xs`}>
-        {status}
-      </span>
-    );
-  };
 
   // Table columns
   const columns = [
@@ -327,11 +284,10 @@ const DataPeminjaman = () => {
         />
       )}
 
-      <DetailModal
+      <PeminjamanDetailModal
         data={selectedPeminjaman}
         isOpen={isDetailModalOpen}
         onClose={handleCloseDetailModal}
-        config={peminjamanDetailConfig}
       />
     </div>
   );
