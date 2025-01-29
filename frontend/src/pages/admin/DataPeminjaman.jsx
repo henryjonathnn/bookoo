@@ -156,6 +156,10 @@ const DataPeminjaman = () => {
       className: "w-[10%] px-2 py-2 text-center align-middle font-medium"
     },
     { 
+      header: 'No. Resi', 
+      className: "w-[15%] px-2 py-2 text-center align-middle font-medium"
+    },
+    { 
       header: 'Pengiriman', 
       className: "w-[22%] px-2 py-2 text-center align-middle font-medium hidden md:table-cell"
     },
@@ -245,6 +249,19 @@ const DataPeminjaman = () => {
           {peminjaman.total_denda > 0 && (
             <span className="md:hidden text-[10px] text-red-400 mt-1">
               Rp {peminjaman.total_denda?.toLocaleString()}
+            </span>
+          )}
+        </div>
+      </td>
+      <td className="px-2 py-2 text-center align-middle">
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-xs font-mono text-gray-400">
+            {peminjaman.nomor_resi || '-'}
+          </span>
+          {/* Tampilkan badge "Baru" jika status masih PENDING */}
+          {peminjaman.status === 'PENDING' && (
+            <span className="text-[10px] bg-green-500/10 text-green-400 px-1.5 rounded">
+              Baru
             </span>
           )}
         </div>

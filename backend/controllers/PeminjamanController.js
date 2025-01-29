@@ -3,6 +3,14 @@ import { Op } from "sequelize";
 import path from "path";
 import fs from "fs/promises";
 
+// Tambahkan fungsi helper untuk generate resi
+const generateResiNumber = () => {
+  const prefix = "BKO"; // BooKoo
+  const timestamp = Date.now().toString().slice(-8);
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `${prefix}${timestamp}${random}`;
+};
+
 export const peminjamanController = {
   // Create a new borrowing request
   createPeminjaman: async (req, res) => {
@@ -35,6 +43,9 @@ export const peminjamanController = {
       const tgl_kembali_rencana = new Date(tgl_peminjaman_diinginkan);
       tgl_kembali_rencana.setDate(tgl_kembali_rencana.getDate() + 7);
 
+      // Generate nomor resi saat pembuatan
+      const nomor_resi = generateResiNumber();
+
       // Create peminjaman
       const peminjaman = await Peminjaman.create({
         id_user,
@@ -44,7 +55,8 @@ export const peminjamanController = {
         tgl_kembali_rencana,
         metode_pengiriman,
         catatan_pengiriman,
-        status: "PENDING"
+        status: "PENDING",
+        nomor_resi
       }, { transaction });
 
       // Reduce book stock
@@ -275,11 +287,12 @@ export const peminjamanController = {
         whereCondition.status = status;
       }
 
-      // Optional search across buku and user
+      // Tambahkan pencarian berdasarkan resi
       if (search) {
         whereCondition[Op.or] = [
           { '$buku.judul$': { [Op.like]: `%${search}%` } },
-          { '$user.name$': { [Op.like]: `%${search}%` } }
+          { '$user.name$': { [Op.like]: `%${search}%` } },
+          { nomor_resi: { [Op.like]: `%${search}%` } } // Tambahkan pencarian resi
         ];
       }
 
