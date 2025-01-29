@@ -32,4 +32,16 @@ export const peminjamanService = {
     const response = await api.get(`/peminjaman?${queryParams}`);
     return response.data;
   },
+
+  async updateStatus(id, status, alasanPenolakan = null) {
+    const data = { status };
+    if (alasanPenolakan) {
+      data.alasan_penolakan = alasanPenolakan;
+    }
+    if (status === 'DIKIRIM') {
+      data.tgl_pinjam_aktual = new Date().toISOString();
+    }
+    const response = await api.put(`/peminjaman/${id}/status`, data);
+    return response.data;
+  },
 };

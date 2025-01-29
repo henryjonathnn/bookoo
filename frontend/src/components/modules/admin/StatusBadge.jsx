@@ -3,7 +3,7 @@ import React from 'react';
 const StatusBadge = ({ status }) => {
   const statusConfig = {
     'PENDING': { bg: 'bg-yellow-500/10', text: 'text-yellow-400' },
-    'DIKIRIM': { bg: 'bg-blue-500/10', text: 'text-blue-400' },
+    'DIKIRIM': { bg: 'bg-indigo-500/10', text: 'text-indigo-400' },
     'DIPINJAM': { bg: 'bg-green-500/10', text: 'text-green-400' },
     'TERLAMBAT': { bg: 'bg-red-500/10', text: 'text-red-400' },
     'DIKEMBALIKAN': { bg: 'bg-purple-500/10', text: 'text-purple-400' },
