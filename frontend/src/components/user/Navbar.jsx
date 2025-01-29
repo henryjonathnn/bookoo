@@ -1,16 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, Search, LogOut, Menu, X, Home, Book, Clock, Heart, Grid, User, ChevronDown, ShoppingCart, Settings, Star, FileText } from 'react-feather';
 import { Link } from 'react-router-dom';
 import AuthModal from '../../pages/auth/AuthModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 import { API_CONFIG } from '../../config/api.config';
+import { notifikasiService } from '../../services/notifikasiService';
+import NotifikasiDropdown from '../modules/NotifikasiDropdown';
 
 const Navbar = () => {
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
     const { user, logout } = useAuth();
+    const [notifikasi, setNotifikasi] = useState([]);
+    const [isNotifikasiOpen, setIsNotifikasiOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        if (user) {
+            fetchNotifikasi();
+        }
+    }, [user]);
+
+    const fetchNotifikasi = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.log('No token found, skipping notification fetch');
+                return;
+            }
+
+            const data = await notifikasiService.getNotifikasi();
+            setNotifikasi(data);
+            setUnreadCount(data.filter(item => !item.isRead).length);
+        } catch (error) {
+            if (error.response?.status === 401) {
+                console.log('Token expired or invalid, redirecting to login');
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            } else {
+                console.error('Error fetching notifications:', error);
+            }
+        }
+    };
+
+    const handleNotifikasiRead = async (notif) => {
+        try {
+            await notifikasiService.markAsRead(notif.id);
+            setNotifikasi(prev => 
+                prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n)
+            );
+            setUnreadCount(prev => Math.max(0, prev - 1));
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+        }
+    };
+
+    const handleMarkAllRead = async () => {
+        try {
+            await notifikasiService.markAllAsRead();
+            setNotifikasi(prev => prev.map(n => ({ ...n, isRead: true })));
+            setUnreadCount(0);
+            setIsNotifikasiOpen(false);
+        } catch (error) {
+            console.error('Error marking all notifications as read:', error);
+        }
+    };
 
     const handleAuthAction = async () => {
         if (user) {
@@ -62,9 +118,21 @@ const Navbar = () => {
 
                     <div className="flex items-center space-x-6">
                         {/* Notification Bell */}
-                        <button className="relative p-3 rounded-xl hover:bg-purple-500/10 text-gray-400 hover:text-purple-400">
+                        <button 
+                            className="relative p-3 rounded-xl hover:bg-purple-500/10 text-gray-400 hover:text-purple-400"
+                            onClick={() => setIsNotifikasiOpen(!isNotifikasiOpen)}
+                        >
                             <Bell size={20} />
-                            <span className="absolute top-2 right-2 h-2 w-2 bg-purple-500 rounded-full"></span>
+                            {unreadCount > 0 && (
+                                <span className="absolute top-2 right-2 h-2 w-2 bg-purple-500 rounded-full"></span>
+                            )}
+                            {isNotifikasiOpen && (
+                                <NotifikasiDropdown
+                                    notifikasi={notifikasi}
+                                    onRead={handleNotifikasiRead}
+                                    onClose={handleMarkAllRead}
+                                />
+                            )}
                         </button>
 
                         {/* Order/Cart Icon */}
