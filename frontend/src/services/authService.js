@@ -9,18 +9,29 @@ export const authService = {
   async login(credentials) {
     const response = await api.post("/users/login", credentials);
     if (response.data.accessToken) {
-      localStorage.setItem('accessToken', response.data.accessToken);
+      localStorage.setItem('token', response.data.accessToken);
     }
     return response.data;
   },
 
   async logout() {
-    await api.delete("/users/logout");
-    localStorage.removeItem('accessToken');
+    try {
+      await api.delete("/users/logout");
+    } finally {
+      localStorage.removeItem('token');
+    }
   },
 
   async refreshToken() {
     const response = await api.get("/users/token");
+    if (response.data.accessToken) {
+      localStorage.setItem('token', response.data.accessToken);
+    }
+    return response.data;
+  },
+
+  async getMe() {
+    const response = await api.get("/users/me");
     return response.data;
   },
 

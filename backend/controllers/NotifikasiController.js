@@ -2,7 +2,7 @@ import { Notifikasi, Peminjaman, Buku, User } from "../models/index.js";
 import { Op } from "sequelize";
 
 export const notifikasiController = {
-  createNotifikasi: async (id_user, id_peminjaman, message, tipe) => {
+  createNotifikasi: async (id_user, id_peminjaman, message, tipe, transaction) => {
     try {
       const notifikasi = await Notifikasi.create({
         id_user,
@@ -10,7 +10,7 @@ export const notifikasiController = {
         message,
         tipe,
         isRead: false
-      });
+      }, { transaction });
       console.log('Notifikasi created:', notifikasi);
       return notifikasi;
     } catch (error) {
@@ -21,14 +21,6 @@ export const notifikasiController = {
 
   getNotifikasi: async (req, res) => {
     try {
-      console.log('User from token:', req.user); // Debug log
-
-      if (!req.user || !req.user.id) {
-        return res.status(401).json({ 
-          msg: "User ID tidak ditemukan dalam token" 
-        });
-      }
-
       const notifikasi = await Notifikasi.findAll({
         where: { id_user: req.user.id },
         include: [{
@@ -42,10 +34,8 @@ export const notifikasiController = {
         limit: 50
       });
 
-      console.log('Notifikasi found:', notifikasi.length); // Debug log
       res.json(notifikasi);
     } catch (error) {
-      console.error("Error getting notifications:", error);
       res.status(500).json({ 
         msg: "Terjadi kesalahan saat mengambil notifikasi",
         error: error.message 

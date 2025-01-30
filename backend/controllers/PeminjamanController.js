@@ -2,6 +2,7 @@ import { Peminjaman, Buku, User, Notifikasi } from "../models/index.js";
 import { Op } from "sequelize";
 import path from "path";
 import fs from "fs/promises";
+import { notifikasiController } from "./NotifikasiController.js";
 
 // Tambahkan fungsi helper untuk generate resi
 const generateResiNumber = () => {
@@ -15,75 +16,32 @@ export const peminjamanController = {
   // Create a new borrowing request
   createPeminjaman: async (req, res) => {
     const transaction = await Peminjaman.sequelize.transaction();
-
     try {
-      const { 
-        id_user,
-        id_buku, 
-        alamat_pengiriman, 
-        tgl_peminjaman_diinginkan, 
-        metode_pengiriman, 
-        catatan_pengiriman 
-      } = req.body;
-
-      // Validate input
-      if (!id_buku || !alamat_pengiriman || !tgl_peminjaman_diinginkan) {
-        return res.status(400).json({ msg: "Data peminjaman tidak lengkap" });
-      }
-
-      // Check book availability
-      const buku = await Buku.findByPk(id_buku, { transaction });
-
-      if (!buku || buku.stock <= 0) {
-        await transaction.rollback();
-        return res.status(400).json({ msg: "Buku tidak tersedia" });
-      }
-
-      // Calculate return date (default 7 days from borrow date)
-      const tgl_kembali_rencana = new Date(tgl_peminjaman_diinginkan);
-      tgl_kembali_rencana.setDate(tgl_kembali_rencana.getDate() + 7);
-
-      // Generate nomor resi saat pembuatan
-      const nomor_resi = generateResiNumber();
-
-      // Create peminjaman
+      const userId = req.user.id; // Ambil id user dari token
+      
       const peminjaman = await Peminjaman.create({
-        id_user,
-        id_buku,
-        alamat_pengiriman,
-        tgl_peminjaman_diinginkan: new Date(tgl_peminjaman_diinginkan),
-        tgl_kembali_rencana,
-        metode_pengiriman,
-        catatan_pengiriman,
-        status: "PENDING",
-        nomor_resi
+        ...req.body,
+        id_user: userId,
+        status: 'PENDING'
       }, { transaction });
 
-      // Reduce book stock
-      await buku.decrement('stock', { by: 1, transaction });
-
+      const buku = await Buku.findByPk(req.body.id_buku);
+      
       // Create notification
-      await Notifikasi.create({
-        id_user: req.user.id,
-        id_peminjaman: peminjaman.id,
-        judul: "Peminjaman Baru",
-        deskripsi: `Permintaan peminjaman buku ${buku.judul} telah dibuat`,
-        jenis: "PEMINJAMAN_BARU"
-      }, { transaction });
+      await notifikasiController.createNotifikasi(
+        userId, // Gunakan userId yang sudah diambil
+        peminjaman.id,
+        `Anda telah berhasil menambahkan permintaan data peminjaman buku "${buku.judul}", tunggu admin mensetujui permintaan anda`,
+        'PEMINJAMAN_CREATED',
+        transaction
+      );
 
       await transaction.commit();
-
-      res.status(201).json({
-        msg: "Permintaan peminjaman berhasil dibuat",
-        data: peminjaman
-      });
+      res.status(201).json(peminjaman);
     } catch (error) {
       await transaction.rollback();
-      console.error("Error creating peminjaman:", error);
-      res.status(500).json({ 
-        msg: "Gagal membuat permintaan peminjaman",
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      console.error('Error in createPeminjaman:', error);
+      res.status(500).json({ msg: error.message });
     }
   },
 
@@ -135,13 +93,37 @@ export const peminjamanController = {
       await peminjaman.update(updateData, { transaction });
 
       // Create notification for user
-      await Notifikasi.create({
-        id_user: peminjaman.id_user,
-        id_peminjaman: peminjaman.id,
-        judul: `Peminjaman ${status}`,
-        deskripsi: `Status peminjaman buku ${peminjaman.buku.judul} telah diperbarui menjadi ${status}`,
-        jenis: "STATUS_PEMINJAMAN"
-      }, { transaction });
+      let message;
+      let notifType;
+
+      switch (status) {
+        case 'DIPROSES':
+          message = `Permintaan peminjaman buku "${peminjaman.buku.judul}" telah disetujui, admin sedang memproses buku sesuai dengan permintaan peminjaman anda`;
+          notifType = 'PEMINJAMAN_DIPROSES';
+          break;
+        case 'DIKIRIM':
+          message = `Admin telah selesai memproses peminjaman buku "${peminjaman.buku.judul}", dan sedang mengirimkan buku anda`;
+          notifType = 'PEMINJAMAN_DIKIRIM';
+          break;
+        case 'DITOLAK':
+          message = `Maaf, permintaan peminjaman buku "${peminjaman.buku.judul}" ditolak. Alasan: ${alasan_penolakan}`;
+          notifType = 'PEMINJAMAN_DITOLAK';
+          break;
+        case 'DIKEMBALIKAN':
+          message = `Buku "${peminjaman.buku.judul}" telah berhasil dikembalikan. Terima kasih telah meminjam!`;
+          notifType = 'PEMINJAMAN_DIKEMBALIKAN';
+          break;
+      }
+
+      if (message && notifType) {
+        await notifikasiController.createNotifikasi(
+          peminjaman.user.id, // Gunakan ID user dari peminjaman
+          peminjaman.id,
+          message,
+          notifType,
+          transaction
+        );
+      }
 
       await transaction.commit();
 

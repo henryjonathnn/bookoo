@@ -10,7 +10,11 @@ export const authMiddleware = async (req, res, next) => {
   
   try {
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    req.user = decoded;
+    req.user = {
+      id: decoded.userId,  // Pastikan ini sesuai dengan field yang ada di token
+      email: decoded.email,
+      role: decoded.role
+    };
     next();
   } catch (error) {
     return res.status(403).json({ msg: "Token tidak valid" });

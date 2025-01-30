@@ -46,38 +46,38 @@ const Navbar = () => {
     useEffect(() => {
         if (user) {
             fetchNotifikasi();
+        } else {
+            setNotifikasi([]);
+            setUnreadCount(0);
+        }
+    }, [user]);
+
+    useEffect(() => {
+        if (user) {
+            const interval = setInterval(fetchNotifikasi, 30000);
+            return () => clearInterval(interval);
         }
     }, [user]);
 
     const fetchNotifikasi = async () => {
         try {
             const token = localStorage.getItem('token');
-            if (!token) {
-                console.log('No token found, skipping notification fetch');
-                return;
-            }
+            if (!token) return;
 
             const data = await notifikasiService.getNotifikasi();
-            setNotifikasi(data);
-            setUnreadCount(data.filter(item => !item.isRead).length);
-        } catch (error) {
-            if (error.response?.status === 401) {
-                console.log('Token expired or invalid, redirecting to login');
-                localStorage.removeItem('token');
-                window.location.href = '/login';
-            } else {
-                console.error('Error fetching notifications:', error);
+            if (Array.isArray(data)) {
+                setNotifikasi(data);
+                setUnreadCount(data.filter(item => !item.isRead).length);
             }
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
         }
     };
 
     const handleNotifikasiRead = async (notif) => {
         try {
             await notifikasiService.markAsRead(notif.id);
-            setNotifikasi(prev => 
-                prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n)
-            );
-            setUnreadCount(prev => Math.max(0, prev - 1));
+            fetchNotifikasi();
         } catch (error) {
             console.error('Error marking notification as read:', error);
         }
@@ -86,9 +86,7 @@ const Navbar = () => {
     const handleMarkAllRead = async () => {
         try {
             await notifikasiService.markAllAsRead();
-            setNotifikasi(prev => prev.map(n => ({ ...n, isRead: true })));
-            setUnreadCount(0);
-            setIsNotifikasiOpen(false);
+            fetchNotifikasi();
         } catch (error) {
             console.error('Error marking all notifications as read:', error);
         }

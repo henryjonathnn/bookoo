@@ -13,18 +13,18 @@ export const AuthProvider = ({ children }) => {
 
     const checkAuth = async () => {
         try {
-            const token = localStorage.getItem('accessToken');
+            const token = localStorage.getItem('token');
             if (!token) {
                 setLoading(false);
                 return;
             }
             const response = await authService.refreshToken();
             const { accessToken, user } = response;
-            localStorage.setItem('accessToken', accessToken);
+            localStorage.setItem('token', accessToken);
             setUser(user);
         } catch (error) {
             console.error('Auth check failed:', error);
-            localStorage.removeItem('accessToken');
+            localStorage.removeItem('token');
             setUser(null);
         } finally {
             setLoading(false);
@@ -34,11 +34,11 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         checkAuth();
         const refreshInterval = setInterval(async () => {
-            const token = localStorage.getItem('accessToken');
+            const token = localStorage.getItem('token');
             if (token) {
                 try {
                     const { accessToken } = await authService.refreshToken();
-                    localStorage.setItem('accessToken', accessToken);
+                    localStorage.setItem('token', accessToken);
                 } catch (error) {
                     console.error('Token refresh failed:', error);
                 }

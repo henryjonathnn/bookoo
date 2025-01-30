@@ -1,14 +1,14 @@
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { Bell } from 'react-feather';
 
 const NotifikasiDropdown = ({ notifikasi, onRead, onClose }) => {
   const formatTimeAgo = (date) => {
-    const distance = formatDistanceToNow(new Date(date), { 
+    return formatDistanceToNow(new Date(date), { 
       addSuffix: true,
       locale: id 
     });
-    return distance;
   };
 
   return (
@@ -18,12 +18,14 @@ const NotifikasiDropdown = ({ notifikasi, onRead, onClose }) => {
     >
       <div className="flex items-center justify-between px-4 py-2 border-b border-purple-500/10">
         <h3 className="font-semibold">Notifikasi</h3>
-        <button 
-          onClick={onClose}
-          className="text-xs text-purple-400 hover:text-purple-300"
-        >
-          Tandai semua dibaca
-        </button>
+        {notifikasi.length > 0 && (
+          <button 
+            onClick={onClose}
+            className="text-xs text-purple-400 hover:text-purple-300"
+          >
+            Tandai semua dibaca
+          </button>
+        )}
       </div>
       
       {notifikasi.length === 0 ? (
@@ -41,9 +43,14 @@ const NotifikasiDropdown = ({ notifikasi, onRead, onClose }) => {
               }`}
             >
               <p className="text-sm mb-1">{item.message}</p>
-              <span className="text-xs text-gray-400">
-                {formatTimeAgo(item.createdAt)}
-              </span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-400">
+                  {formatTimeAgo(item.createdAt)}
+                </span>
+                {!item.isRead && (
+                  <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                )}
+              </div>
             </div>
           ))}
         </div>
