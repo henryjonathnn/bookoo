@@ -12,7 +12,10 @@ const NotifikasiDropdown = ({ notifikasi, onRead, onClose }) => {
   };
 
   return (
-    <div className="absolute right-0 mt-2 w-80 bg-[#1A1A2E] rounded-xl shadow-lg border border-purple-500/10 py-2 max-h-[480px] overflow-y-auto">
+    <div 
+      className="absolute right-0 mt-2 w-80 bg-[#1A1A2E] rounded-xl shadow-lg border border-purple-500/10 py-2 max-h-[480px] overflow-y-auto z-50"
+      onClick={(e) => e.stopPropagation()}
+    >
       <div className="flex items-center justify-between px-4 py-2 border-b border-purple-500/10">
         <h3 className="font-semibold">Notifikasi</h3>
         <button 

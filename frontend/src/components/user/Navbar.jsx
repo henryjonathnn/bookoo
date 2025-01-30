@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Search, LogOut, Menu, X, Home, Book, Clock, Heart, Grid, User, ChevronDown, ShoppingCart, Settings, Star, FileText } from 'react-feather';
 import { Link } from 'react-router-dom';
 import AuthModal from '../../pages/auth/AuthModal';
@@ -12,10 +12,36 @@ const Navbar = () => {
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+    const [isNotifikasiOpen, setIsNotifikasiOpen] = useState(false);
     const { user, logout } = useAuth();
     const [notifikasi, setNotifikasi] = useState([]);
-    const [isNotifikasiOpen, setIsNotifikasiOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+
+    const profileDropdownRef = useRef(null);
+    const notifikasiDropdownRef = useRef(null);
+
+    useEffect(() => {
+        setIsProfileDropdownOpen(false);
+        setIsNotifikasiOpen(false);
+    }, [user]);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            // Handle Profile Dropdown
+            if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+                setIsProfileDropdownOpen(false);
+            }
+            // Handle Notifikasi Dropdown
+            if (notifikasiDropdownRef.current && !notifikasiDropdownRef.current.contains(event.target)) {
+                setIsNotifikasiOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     useEffect(() => {
         if (user) {
@@ -118,14 +144,16 @@ const Navbar = () => {
 
                     <div className="flex items-center space-x-6">
                         {/* Notification Bell */}
-                        <button 
-                            className="relative p-3 rounded-xl hover:bg-purple-500/10 text-gray-400 hover:text-purple-400"
-                            onClick={() => setIsNotifikasiOpen(!isNotifikasiOpen)}
-                        >
-                            <Bell size={20} />
-                            {unreadCount > 0 && (
-                                <span className="absolute top-2 right-2 h-2 w-2 bg-purple-500 rounded-full"></span>
-                            )}
+                        <div ref={notifikasiDropdownRef} className="relative">
+                            <button
+                                onClick={() => setIsNotifikasiOpen(!isNotifikasiOpen)}
+                                className="relative p-3 rounded-xl hover:bg-purple-500/10 text-gray-400 hover:text-purple-400"
+                            >
+                                <Bell size={20} />
+                                {unreadCount > 0 && (
+                                    <span className="absolute top-2 right-2 h-2 w-2 bg-purple-500 rounded-full"></span>
+                                )}
+                            </button>
                             {isNotifikasiOpen && (
                                 <NotifikasiDropdown
                                     notifikasi={notifikasi}
@@ -133,7 +161,7 @@ const Navbar = () => {
                                     onClose={handleMarkAllRead}
                                 />
                             )}
-                        </button>
+                        </div>
 
                         {/* Order/Cart Icon */}
                         <Link
@@ -146,7 +174,7 @@ const Navbar = () => {
                         </Link>
 
                         {user ? (
-                            <div className="relative">
+                            <div ref={profileDropdownRef} className="relative">
                                 <button
                                     onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                                     className="flex items-center space-x-2 p-2 rounded-xl hover:bg-purple-500/10"
