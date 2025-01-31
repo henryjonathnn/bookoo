@@ -3,6 +3,7 @@ import { X, Clock, Users, Star, Book, User, ShoppingCart } from 'react-feather';
 import { useNavigate } from 'react-router-dom';
 import ImageLoader from '../../../user/ImageLoader';
 import { API_CONFIG } from '../../../../config/api.config';
+import { generateOrderId } from '../../../../utils/orderUtils';
 
 const BookDetailModal = ({ book, isOpen, onClose }) => {
   const navigate = useNavigate();
@@ -12,9 +13,10 @@ const BookDetailModal = ({ book, isOpen, onClose }) => {
 
   const handleCheckout = () => {
     setLoading(true);
-    // Pass book data through navigation state
-    navigate(`/checkout?bookId=${book.id}`, {
-      state: { book: book }
+    const orderId = generateOrderId();
+    navigate(`/checkout/${orderId}?bookId=${book.id}`, {
+      state: { book: book },
+      replace: true
     });
   };
 

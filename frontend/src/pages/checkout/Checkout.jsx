@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Truck, Home, Calendar } from 'react-feather';
 import { usePeminjaman } from '../../hooks/usePeminjaman';
 import { API_CONFIG } from '../../config/api.config';
 import { useAuth } from '../../contexts/AuthContext';
+import { bookService } from '../../services/bookService';
+import { toast } from 'react-hot-toast';
 
 const Checkout = () => {
-  const { search } = useLocation();
+  const { orderId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { createPeminjaman, loading } = usePeminjaman();
-  const [bookData, setBookData] = useState(null);
+  const [book, setBook] = useState(location.state?.book || null);
   const [formData, setFormData] = useState({
     alamat_pengiriman: '',
     metode_pengiriman: 'KURIR',
@@ -19,32 +21,44 @@ const Checkout = () => {
     catatan_pengiriman: ''
   });
 
-  useEffect(() => {
-    const params = new URLSearchParams(search);
-    const bookId = params.get('bookId');
-    
-    if (!bookId) {
-      navigate('/');
-      return;
-    }
+  const queryParams = new URLSearchParams(location.search);
+  const bookId = queryParams.get('bookId');
 
-    const book = location.state?.book;
-    if (!book) {
-      navigate('/');
-      return;
-    }
-    
-    setBookData(book);
-  }, [search, navigate, location.state]);
+  useEffect(() => {
+    const fetchBookData = async () => {
+      if (!orderId || !bookId) {
+        console.error('Missing required parameters');
+        navigate('/');
+        return;
+      }
+
+      try {
+        // Jika tidak ada data buku dari state, ambil dari API
+        if (!book) {
+          setLoading(true);
+          const bookData = await bookService.getBookById(bookId);
+          setBook(bookData);
+        }
+      } catch (error) {
+        console.error('Error fetching book:', error);
+        toast.error('Gagal memuat data buku');
+        navigate('/');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookData();
+  }, [orderId, bookId, book, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!bookData) return;
+    if (!book) return;
 
     try {
       await createPeminjaman({
-        id_buku: bookData.id,
+        id_buku: book.id,
         ...formData
       });
     } catch (error) {
@@ -52,7 +66,17 @@ const Checkout = () => {
     }
   };
 
-  if (!bookData) return null;
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 mt-20">
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!book) return null;
 
   // Calculate min and max dates for the date picker
   const today = new Date().toISOString().split('T')[0];
@@ -73,17 +97,17 @@ const Checkout = () => {
             <div className="bg-[#1A1A2E] rounded-xl overflow-hidden shadow-lg shadow-purple-900/10">
               <div className="relative group">
                 <img
-                  src={`${API_CONFIG.baseURL}${bookData.cover_img}`}
-                  alt={bookData.judul}
+                  src={`${API_CONFIG.baseURL}${book.cover_img}`}
+                  alt={book.judul}
                   className="w-full h-[280px] object-cover"
                 />
               </div>
               <div className="p-5 space-y-3">
-                <h2 className="text-lg font-bold">{bookData.judul}</h2>
-                <p className="text-purple-400 text-sm">by {bookData.penulis}</p>
+                <h2 className="text-lg font-bold">{book.judul}</h2>
+                <p className="text-purple-400 text-sm">by {book.penulis}</p>
                 <div className="text-sm text-gray-400">
                   <p>Durasi Peminjaman: 7 hari</p>
-                  <p>Kategori: {bookData.kategori}</p>
+                  <p>Kategori: {book.kategori}</p>
                 </div>
               </div>
             </div>

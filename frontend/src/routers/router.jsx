@@ -8,19 +8,19 @@ import Home from "../pages/user/home/Home"
 import Book from "../pages/user/books/Book"
 import History from "../pages/user/history/History"
 import Bookmark from "../pages/user/bookmark/Bookmark"
+import Checkout from "../pages/checkout/Checkout"
+import Profile from "../pages/profile/Profile"
 
 // Admin pages
 import Dashboard from "../pages/admin/Dashboard"
+import DataBuku from "../pages/admin/DataBuku"
+import DataUser from "../pages/admin/DataUser"
+import DataPeminjaman from "../pages/admin/DataPeminjaman"
 
 // Error pages
 import Page403 from "../pages/error/Page403"
 import Page404 from "../pages/error/Page404"
-import DataBuku from "../pages/admin/DataBuku"
 import { ProtectedRoute } from "../contexts/AuthContext"
-import DataUser from "../pages/admin/DataUser"
-import DataPeminjaman from "../pages/admin/DataPeminjaman"
-import Profile from "../pages/profile/Profile"
-import Checkout from "../pages/checkout/Checkout"
 
 const ErrorBoundary = () => {
     const error = useRouteError()
@@ -57,23 +57,31 @@ const router = createBrowserRouter([
                         element: <History />
                     },
                     {
-                        path: '/Bookmark',
+                        path: '/bookmark',
                         element: <Bookmark />
                     },
                     {
-                        path: '/checkout',
-                        element: <Checkout />
+                        path: '/checkout/:orderId',
+                        element: (
+                            <ProtectedRoute>
+                                <Checkout />
+                            </ProtectedRoute>
+                        )
                     },
                     {
                         path:'/profile',
-                        element: <Profile />
+                        element: (
+                            <ProtectedRoute>
+                                <Profile />
+                            </ProtectedRoute>
+                        )
                     }
                 ]
             },
             {
                 path: "admin",
                 element: (
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}>
                         <AdminLayout />
                     </ProtectedRoute>
                 ),
@@ -93,6 +101,10 @@ const router = createBrowserRouter([
                     {
                         path: "peminjaman",
                         element: <DataPeminjaman />
+                    },
+                    {
+                        path: "profile",
+                        element: <Profile />
                     }
                 ]
             }
