@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { authService } from '../services/authService';
-import { useLocation, Navigate } from 'react-router-dom';
+import { useLocation, Navigate, useNavigate } from 'react-router-dom';
 
 // Create AuthContext
 const AuthContext = createContext(null);
@@ -10,6 +10,7 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     const checkAuth = async () => {
         try {
@@ -52,6 +53,14 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await authService.login(credentials);
             setUser(response.user);
+            
+            // Redirect berdasarkan role
+            if (response.user.role === 'ADMIN' || response.user.role === 'STAFF') {
+                navigate('/admin');
+            } else {
+                navigate('/');
+            }
+            
             toast.success('Login berhasil!');
             return response;
         } catch (error) {
@@ -75,6 +84,8 @@ export const AuthProvider = ({ children }) => {
         try {
             await authService.logout();
             setUser(null);
+            // Redirect ke home setelah logout
+            navigate('/');
             toast.success('Logout berhasil!');
         } catch (error) {
             console.error('Logout gagal:', error);
@@ -82,8 +93,16 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const value = {
+        user,
+        login,
+        register,
+        logout,
+        loading
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
@@ -102,26 +121,34 @@ export const useAuth = () => {
 export const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user, loading } = useAuth();
     const location = useLocation();
+    const navigate = useNavigate();
 
     if (loading) return <div>Loading...</div>;
     
-    const isAdminRoute = location.pathname.startsWith('/admin');
+    if (!user) {
+        // Redirect ke login dengan menyimpan intended location
+        return <Navigate to="/" state={{ from: location }} replace />;
+    }
     
-    if (!user) return <Navigate to="/" state={{ from: location }} replace />;
+    const isAdminRoute = location.pathname.startsWith('/admin');
     
     if (isAdminRoute) {
         const adminAllowedRoles = ['ADMIN', 'STAFF'];
         const hasPermission = adminAllowedRoles.includes(user.role);
         
         if (!hasPermission) {
-            return <Navigate to="/404" replace />;
+            // Redirect user biasa yang mencoba akses admin route
+            navigate('/');
+            return null;
         }
     }
     
     if (allowedRoles) {
         const hasPermission = allowedRoles.includes(user.role);
         if (!hasPermission) {
-            return <Navigate to="/404" replace />;
+            // Redirect jika role tidak sesuai
+            navigate('/404');
+            return null;
         }
     }
     
