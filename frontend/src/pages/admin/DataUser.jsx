@@ -10,6 +10,7 @@ import FormModal from '../../components/modules/admin/FormModal';
 import { userService } from '../../services/userService';
 import { API_CONFIG } from '../../config/api.config';
 import DetailModal from '../../components/modules/admin/DetailModal';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
 const DataUser = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -275,12 +276,6 @@ const DataUser = () => {
       </td>
     </tr>
   ), [selectedUsers, handleSelectUser, formatDate, refresh]);
-
-  const LoadingSpinner = () => (
-    <div className="flex items-center justify-center min-h-[400px]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-    </div>
-  );
 
   return (
     <div className="pt-16">

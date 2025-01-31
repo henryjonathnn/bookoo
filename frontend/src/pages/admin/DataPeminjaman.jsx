@@ -10,6 +10,7 @@ import { peminjamanService } from '../../services/peminjamanService';
 import { API_CONFIG } from '../../config/api.config';
 import StatusBadge from '../../components/modules/admin/StatusBadge';
 import PenolakanModal from '../../components/modules/admin/PenolakanModal';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
 const DataPeminjaman = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -287,20 +288,20 @@ const DataPeminjaman = () => {
       />
 
       {loading ? (
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-        </div>
+        <LoadingSpinner />
       ) : (
-        <DataTable
-          columns={columns}
-          data={peminjamans}
-          renderRow={renderPeminjamanRow}
-          totalEntries={totalItems}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-          entriesPerPage={10}
-        />
+        <div className="w-full">
+          <DataTable
+            columns={columns}
+            data={peminjamans}
+            renderRow={renderPeminjamanRow}
+            totalEntries={totalItems}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            entriesPerPage={10}
+          />
+        </div>
       )}
 
       <PeminjamanDetailModal

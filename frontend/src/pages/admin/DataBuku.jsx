@@ -6,9 +6,11 @@ import DataTable from '../../components/modules/admin/DataTable';
 import TombolAksi from '../../components/modules/admin/TombolAksi';
 import FormModal from '../../components/modules/admin/FormModal';
 import DetailModal from '../../components/modules/admin/DetailModal';
-import { useBuku } from '../../hooks/useBuku';
+import { useBooks } from '../../hooks/useBook';
+import { bookService } from '../../services/bookService';
 import { API_CONFIG } from '../../config/api.config';
 import { toast } from 'react-hot-toast';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
 const DataBuku = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,27 +19,66 @@ const DataBuku = () => {
   const [selectedBooks, setSelectedBooks] = useState([]);
 
   const {
-    buku,
+    books,
     loading,
     totalItems,
     totalPages,
     currentPage,
-    handleSearch,
-    handlePageChange,
-    handleCreate,
-    handleUpdate,
-    handleDelete,
+    updateParams,
     refresh
-  } = useBuku();
+  } = useBooks();
+
+  // Handle search
+  const handleSearch = useCallback((search) => {
+    updateParams({ search, page: 1 });
+  }, [updateParams]);
+
+  // Handle page change
+  const handlePageChange = useCallback((page) => {
+    updateParams({ page });
+  }, [updateParams]);
+
+  // Handle create
+  const handleCreate = async (formData) => {
+    try {
+      await bookService.createBuku(formData);
+      refresh();
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  // Handle update
+  const handleUpdate = async (id, formData) => {
+    try {
+      await bookService.updateBuku(id, formData);
+      refresh();
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  // Handle delete
+  const handleDelete = async (id) => {
+    try {
+      await bookService.deleteBuku(id);
+      refresh();
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  };
 
   // Handle select all
   const handleSelectAll = useCallback((e) => {
-    if (e.target.checked && buku?.length > 0) {
-      setSelectedBooks(buku.map(book => book.id));
+    if (e.target.checked && books?.length > 0) {
+      setSelectedBooks(books.map(book => book.id));
     } else {
       setSelectedBooks([]);
     }
-  }, [buku]);
+  }, [books]);
 
   // Handle individual select
   const handleSelectBook = useCallback((bookId, checked) => {
@@ -96,7 +137,7 @@ const DataBuku = () => {
         type="checkbox"
         className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
         onChange={handleSelectAll}
-        checked={buku?.length > 0 && selectedBooks.length === buku.length}
+        checked={books?.length > 0 && selectedBooks.length === books.length}
       />,
       className: "hidden md:table-cell w-[5%] px-2 lg:px-6 py-3" 
     },
@@ -264,12 +305,6 @@ const DataBuku = () => {
     </tr>
   ), [selectedBooks, handleSelectBook, handleDelete, handleOpenDetailModal, handleOpenEditModal, refresh]);
 
-  const LoadingSpinner = () => (
-    <div className="flex items-center justify-center min-h-[400px]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-    </div>
-  );
-
   return (
     <div className="pt-16">
       <PageHeader
@@ -293,7 +328,7 @@ const DataBuku = () => {
           <div className="inline-block min-w-full align-middle">
             <DataTable
               columns={columns}
-              data={buku}
+              data={books}
               renderRow={renderBookRow}
               totalEntries={totalItems}
               currentPage={currentPage}

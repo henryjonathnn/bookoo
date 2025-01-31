@@ -3,6 +3,7 @@ import { memo } from 'react';
 import Typewriter from 'typewriter-effect/dist/core';
 import '../../../App.css'
 import { SORT_TYPES } from '../../../constant';
+import LoadingSpinner from '../../../components/ui/LoadingSpinner';
 
 // Lazy load components
 const Hero = lazy(() => import('../home/Hero'));

@@ -6,6 +6,7 @@ import { API_CONFIG } from '../../config/api.config';
 import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
 const Profile = () => {
   const { user, loading } = useAuth();
@@ -135,7 +136,9 @@ const Profile = () => {
           </div>
 
           <div className="p-6">
-            {activeTab === 'profile' ? (
+            {loading ? (
+              <LoadingSpinner size="small" />
+            ) : activeTab === 'profile' ? (
               <div className="space-y-6">
                 {/* Profile Fields */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

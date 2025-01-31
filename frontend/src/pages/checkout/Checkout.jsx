@@ -6,6 +6,7 @@ import { API_CONFIG } from '../../config/api.config';
 import { useAuth } from '../../contexts/AuthContext';
 import { bookService } from '../../services/bookService';
 import { toast } from 'react-hot-toast';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
 const Checkout = () => {
   const { orderId } = useParams();
@@ -66,15 +67,7 @@ const Checkout = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8 mt-20">
-        <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <LoadingSpinner />;
 
   if (!book) return null;
 

@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { authService } from '../services/authService';
 import { useLocation, Navigate, useNavigate } from 'react-router-dom';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 // Create AuthContext
 const AuthContext = createContext(null);
@@ -123,7 +124,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <LoadingSpinner />;
     
     if (!user) {
         // Redirect ke login dengan menyimpan intended location
