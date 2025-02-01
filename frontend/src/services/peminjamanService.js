@@ -12,7 +12,7 @@ export const peminjamanService = {
   },
 
   async getUserPeminjaman() {
-    const response = await api.get("/peminjaman/user");
+    const response = await api.get("/peminjaman/history");
     return response.data;
   },
 
