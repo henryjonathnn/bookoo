@@ -125,9 +125,9 @@ const Navbar = () => {
                         {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                     </button>
 
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
+                    <a href="/" className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
                         BooKoo
-                    </h1>
+                    </a>
 
                     <div className="hidden md:flex flex-1 max-w-2xl mx-12">
                         <div className="relative w-full">
@@ -222,15 +222,7 @@ const Navbar = () => {
                                             onClick={() => setIsProfileDropdownOpen(false)}
                                         >
                                             <User size={16} className="text-gray-400" />
-                                            <span>Profil Saya</span>
-                                        </Link>
-                                        <Link
-                                            to="/pesanan"
-                                            className="flex items-center space-x-3 px-4 py-2 hover:bg-purple-500/10 text-sm"
-                                            onClick={() => setIsProfileDropdownOpen(false)}
-                                        >
-                                            <FileText size={16} className="text-gray-400" />
-                                            <span>Pesanan Saya</span>
+                                            <span>Profil & Riwayat</span>
                                         </Link>
                                         <Link
                                             to="/favorit"

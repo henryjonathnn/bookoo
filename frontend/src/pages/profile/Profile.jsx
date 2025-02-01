@@ -9,6 +9,7 @@ import { id } from 'date-fns/locale';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { usePeminjaman } from '../../hooks/usePeminjaman';
 import StatusBadge from '../../components/modules/admin/StatusBadge';
+import HistoryContent from './HistoryContent';
 
 const Profile = () => {
   const { user, loading } = useAuth();
@@ -42,67 +43,6 @@ const Profile = () => {
   useEffect(() => {
     fetchHistoryPeminjaman()
   }, [activeTab])
-
-  
-  const renderHistoryContent = () => {
-    if (historyLoading) {
-      return <LoadingSpinner />
-    }
-
-    if (historyPeminjaman.length === 0) {
-      return (
-        <div className="text-center py-8 text-gray-400">
-          <BookOpen className='w-12 h-12 mx-auto mb-4 opacity-50' />
-          <p>Belum ada riwayat peminjaman</p>
-        </div>
-      )
-    }
-
-    return (
-      <div className="space-y-4">
-        {historyPeminjaman.map((peminjaman) => (
-          <div key={peminjaman.id} className="bg-purple-500/5 rounded-xl p-4 border border-purple-500/10">
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <h3 className="font-medium text-white">{peminjaman.buku.judul}</h3>
-                <p className="text-sm text-gray-400">{peminjaman.buku.penulis}</p>
-              </div>
-              <StatusBadge status={peminjaman.status} />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-gray-400">Tanggal Peminjaman:</p>
-                <p className="text-white">
-                  {peminjaman.tgl_pinjam_aktual ?
-                    format(new Date(peminjaman.tgl_pinjam_aktual), 'dd MMMM yyyy', { locale: id }) :
-                    'Belum dipinjam'
-                  }
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-400">Rencana Pengembalian:</p>
-                <p className="text-white">
-                  {peminjaman.tgl_kembali_rencana ?
-                    format(new Date(peminjaman.tgl_kembali_rencana), 'dd MMMM yyyy', { locale: id }) :
-                    '-'
-                  }
-                </p>
-              </div>
-              {peminjaman.total_denda > 0 && (
-                <div className="col-span-2">
-                  <p className="text-gray-400">Total Denda:</p>
-                  <p className="text-red-400">
-                    Rp {parseFloat(peminjaman.total_denda).toLocaleString('id-ID')}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
 
 
   useEffect(() => {
@@ -334,7 +274,10 @@ const Profile = () => {
                 </div>
               </div>
             ) : (
-              renderHistoryContent()
+              <HistoryContent
+                historyPeminjaman={historyPeminjaman}
+                historyLoading={historyLoading}
+              />
             )}
           </div>
         </div>

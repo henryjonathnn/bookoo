@@ -1,6 +1,6 @@
 import React from 'react';
 
-const StatusBadge = ({ status }) => {
+const StatusBadge = ({ status, icon }) => {
   const statusConfig = {
     'PENDING': { bg: 'bg-yellow-500/10', text: 'text-yellow-400' },
     'DIKIRIM': { bg: 'bg-indigo-500/10', text: 'text-indigo-400' },
@@ -12,7 +12,8 @@ const StatusBadge = ({ status }) => {
 
   const { bg, text } = statusConfig[status] || statusConfig['PENDING'];
   return (
-    <span className={`px-2 py-0.5 ${bg} ${text} rounded text-xs`}>
+    <span className={`flex gap-2 px-2 py-0.5 ${bg} ${text} rounded text-xs`}>
+      {icon}
       {status}
     </span>
   );
