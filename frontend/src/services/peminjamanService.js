@@ -38,10 +38,22 @@ export const peminjamanService = {
     if (alasanPenolakan) {
       data.alasan_penolakan = alasanPenolakan;
     }
-    if (status === 'DIKIRIM') {
+    if (status === "DIKIRIM") {
       data.tgl_pinjam_aktual = new Date().toISOString();
     }
     const response = await api.put(`/peminjaman/${id}/status`, data);
     return response.data;
   },
+
+  async getEarliestPeminjamanDate() {
+    const response = await api.get("/peminjaman/earliest-date");
+    return response.data.earliestDate;
+  },
+
+    async getPeminjamanByDate(startDate, endDate) {
+      const response = await api.get('/peminjaman/by-date', {
+        params: { startDate, endDate }
+      });
+      return response.data;
+    }
 };

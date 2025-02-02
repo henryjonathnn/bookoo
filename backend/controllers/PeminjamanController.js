@@ -309,6 +309,48 @@ export const peminjamanController = {
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
+  },
+
+  getEarliestPeminjamanDate: async (req, res) => {
+    try {
+      const earliestPeminjaman = await Peminjaman.findOne({
+        order: [['createdAt', 'ASC']], // Urutkan dari yang terlama
+        attributes: ['createdAt'] // Ambil hanya kolom createdAt
+      });
+
+      if (!earliestPeminjaman) {
+        return res.status(404).json({ msg: "Tidak ada data peminjaman" });
+      }
+
+      res.status(200).json({ earliestDate: earliestPeminjaman.createdAt });
+    } catch (error) {
+      console.error("Error fetching earliest peminjaman:", error);
+      res.status(500).json({ msg: "Gagal mengambil data peminjaman terlama" });
+    }
+  },
+
+  getPeminjamanByDate: async (req, res) => {
+    try {
+      const { startDate, endDate } = req.query;
+      const whereCondition = {
+        createdAt: {
+          [Op.between]: [new Date(startDate), new Date(endDate)]
+        }
+      };
+      
+      const data = await Peminjaman.findAll({
+        where: whereCondition,
+        include: [
+          { model: Buku, attributes: ['judul', 'cover_img', 'penulis'] },
+          { model: User, as: 'user', attributes: ['name', 'email'] }
+        ],
+      });
+      
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching peminjaman by date:", error);
+      res.status(500).json({ msg: "Failed to fetch peminjaman data" });
+    }
   }
 };
 

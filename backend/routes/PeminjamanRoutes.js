@@ -12,5 +12,7 @@ router.get('/history', authMiddleware, peminjamanController.getPeminjamanByUser)
 // Staff routes
 router.put('/:id/status', authMiddleware, staffMiddleware, peminjamanController.updatePeminjamanStatus);
 router.get('/', authMiddleware, staffMiddleware, peminjamanController.getAllPeminjaman);
+router.get('/earliest-date', peminjamanController.getEarliestPeminjamanDate);
+router.get('/by-date', authMiddleware, staffMiddleware, peminjamanController.getPeminjamanByDate);
 
 export default router;
