@@ -104,6 +104,14 @@ export const peminjamanController = {
           message = `Admin telah selesai memproses peminjaman buku "${peminjaman.buku.judul}", dan sedang mengirimkan buku anda`;
           notifType = "PEMINJAMAN_DIKIRIM";
           break;
+        case "DIPINJAM": // Add notification for DIPINJAM status
+          message = `Buku "${peminjaman.buku.judul}" telah dikirim dan bukti pengiriman telah dikonfirmasi. Selamat membaca!`;
+          notifType = "PEMINJAMAN_DITERIMA";
+          break;
+        case "DITERIMA":
+          message = `Admin telah mengirimkan buku "${peminjaman.buku.judul}", selamat membaca!, dan jangan lupa kembalikan tepat waktu.`;
+          notifType = "PEMINJAMAN_DITERIMA";
+          break;
         case "DITOLAK":
           message = `Maaf, permintaan peminjaman buku "${peminjaman.buku.judul}" ditolak. Alasan: ${alasan_penolakan}`;
           notifType = "PEMINJAMAN_DITOLAK";
@@ -116,7 +124,7 @@ export const peminjamanController = {
 
       if (message && notifType) {
         await notifikasiController.createNotifikasi(
-          peminjaman.user.id, // Gunakan ID user dari peminjaman
+          peminjaman.user.id,
           peminjaman.id,
           message,
           notifType,
@@ -358,83 +366,90 @@ export const peminjamanController = {
 
   konfirmasiPengiriman: async (req, res) => {
     const transaction = await Peminjaman.sequelize.transaction();
-  
+
     try {
       const { id } = req.params;
       let buktiPengiriman = null;
-  
-      // Jika ada file yang diupload
+
       if (req.file) {
-        // Gunakan path sesuai format yang diminta
         buktiPengiriman = `/public/uploads/bukti-pengiriman/${req.file.filename}`;
       }
-  
-      // Find the peminjaman record
-      const peminjaman = await Peminjaman.findByPk(id, { 
+
+      const peminjaman = await Peminjaman.findByPk(id, {
         include: [
-          { model: Buku, as: 'buku' },
-          { model: User, as: 'user' }
+          { model: Buku, as: "buku" },
+          { model: User, as: "user" },
         ],
-        transaction 
+        transaction,
       });
-  
+
       if (!peminjaman) {
-        // Hapus file jika peminjaman tidak ditemukan
         if (req.file) {
-          await fs.promises.unlink(req.file.path);
+          await fs.unlink(req.file.path);
         }
         await transaction.rollback();
         return res.status(404).json({ msg: "Peminjaman tidak ditemukan" });
       }
-  
-      // Validate current status
-      if (peminjaman.status !== 'DIKIRIM') {
-        // Hapus file jika status tidak sesuai
+
+      if (peminjaman.status !== "DIKIRIM") {
         if (req.file) {
-          await fs.promises.unlink(req.file.path);
+          await fs.unlink(req.file.path);
         }
         await transaction.rollback();
         return res.status(400).json({ msg: "Status peminjaman harus DIKIRIM" });
       }
-  
-      // Update peminjaman status dan bukti pengiriman
-      await peminjaman.update({
-        status: 'DIPINJAM',
-        bukti_pengiriman: buktiPengiriman,
-        tgl_pinjam_aktual: new Date()
-      }, { transaction });
-  
-      // Create notification for user
-      await notifikasiController.createNotifikasi(
-        peminjaman.user.id,
-        peminjaman.id,
-        `Buku "${peminjaman.buku.judul}" telah dikirim. Silahkan cek bukti pengiriman.`,
-        'PEMINJAMAN_DIPINJAM',
-        transaction
+
+      // Update peminjaman with bukti_pengiriman and change status to DIPINJAM
+      await peminjaman.update(
+        {
+          status: "DIPINJAM",
+          bukti_pengiriman: buktiPengiriman,
+        },
+        { transaction }
       );
-  
+
+      // Create notification within the same transaction
+      await Notifikasi.create(
+        {
+          id_user: peminjaman.user.id,
+          id_peminjaman: peminjaman.id,
+          message: `Buku "${peminjaman.buku.judul}" telah dikirim dan bukti pengiriman telah dikonfirmasi. Selamat membaca!`,
+          tipe: "PEMINJAMAN_DITERIMA",
+          isRead: false,
+        },
+        { transaction }
+      );
+
       await transaction.commit();
-  
+
       res.status(200).json({
         msg: "Status peminjaman berhasil diperbarui",
-        data: { 
-          ...peminjaman.toJSON(), 
-          bukti_pengiriman: buktiPengiriman 
-        }
+        data: {
+          ...peminjaman.toJSON(),
+          bukti_pengiriman: buktiPengiriman,
+        },
       });
     } catch (error) {
-      await transaction.rollback();
-      // Hapus file jika terjadi error
-      if (req.file) {
-        await fs.promises.unlink(req.file.path);
+      // Only attempt rollback if transaction hasn't been committed
+      if (!transaction.finished) {
+        await transaction.rollback();
       }
+      
+      if (req.file) {
+        try {
+          await fs.unlink(req.file.path);
+        } catch (unlinkError) {
+          console.error("Error deleting file:", unlinkError);
+        }
+      }
+      
       console.error("Error konfirmasi pengiriman:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         msg: "Gagal mengonfirmasi pengiriman",
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
-  },
+  }
 };
 
 export default peminjamanController;

@@ -34,6 +34,12 @@ const NotifikasiDropdown = ({ notifikasi, onRead, onClose }) => {
           color: 'bg-green-500/10 text-green-500',
           badge: 'Dikirim'
         };
+      case 'PEMINJAMAN_DITERIMA':
+        return {
+          icon: <CheckCircle className="w-5 h-5" />,
+          color: 'bg-lime-500/10 text-lime-500',
+          badge: 'Diterima'
+        };
       case 'PEMINJAMAN_DITOLAK':
         return {
           icon: <XCircle className="w-5 h-5" />,
