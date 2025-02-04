@@ -55,5 +55,21 @@ export const peminjamanService = {
         params: { startDate, endDate }
       });
       return response.data;
-    }
+    },
+
+    async konfirmasiPengiriman(id, buktiPengiriman) {
+      const formData = new FormData();
+      formData.append('bukti_pengiriman', buktiPengiriman);
+    
+      const response = await api.put(
+        `/peminjaman/${id}/konfirmasi-pengiriman`, 
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+      return response.data;
+    },
 };

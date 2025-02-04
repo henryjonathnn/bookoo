@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs/promises";
 import { notifikasiController } from "./NotifikasiController.js";
 
-// Tambahkan fungsi helper untuk generate resi
+// Fungsi helper untuk generate resi
 const generateResiNumber = () => {
   const prefix = "BKO"; // BooKoo
   const timestamp = Date.now().toString().slice(-8);
@@ -18,21 +18,24 @@ export const peminjamanController = {
     const transaction = await Peminjaman.sequelize.transaction();
     try {
       const userId = req.user.id; // Ambil id user dari token
-      
-      const peminjaman = await Peminjaman.create({
-        ...req.body,
-        id_user: userId,
-        status: 'PENDING'
-      }, { transaction });
+
+      const peminjaman = await Peminjaman.create(
+        {
+          ...req.body,
+          id_user: userId,
+          status: "PENDING",
+        },
+        { transaction }
+      );
 
       const buku = await Buku.findByPk(req.body.id_buku);
-      
+
       // Create notification
       await notifikasiController.createNotifikasi(
         userId, // Gunakan userId yang sudah diambil
         peminjaman.id,
         `Anda telah berhasil menambahkan permintaan data peminjaman buku "${buku.judul}", tunggu admin mensetujui permintaan anda`,
-        'PEMINJAMAN_CREATED',
+        "PEMINJAMAN_CREATED",
         transaction
       );
 
@@ -40,7 +43,7 @@ export const peminjamanController = {
       res.status(201).json(peminjaman);
     } catch (error) {
       await transaction.rollback();
-      console.error('Error in createPeminjaman:', error);
+      console.error("Error in createPeminjaman:", error);
       res.status(500).json({ msg: error.message });
     }
   },
@@ -51,18 +54,14 @@ export const peminjamanController = {
 
     try {
       const { id } = req.params;
-      const { 
-        status, 
-        alasan_penolakan, 
-        nomor_resi 
-      } = req.body;
+      const { status, alasan_penolakan, nomor_resi } = req.body;
 
-      const peminjaman = await Peminjaman.findByPk(id, { 
+      const peminjaman = await Peminjaman.findByPk(id, {
         include: [
-          { model: Buku, as: 'buku' },
-          { model: User, as: 'user' }
+          { model: Buku, as: "buku" },
+          { model: User, as: "user" },
         ],
-        transaction 
+        transaction,
       });
 
       if (!peminjaman) {
@@ -72,13 +71,13 @@ export const peminjamanController = {
 
       const updateData = {
         status,
-        id_staff: req.user.id
+        id_staff: req.user.id,
       };
 
       if (status === "DITOLAK") {
         updateData.alasan_penolakan = alasan_penolakan;
         // Restore book stock
-        await peminjaman.buku.increment('stock', { by: 1, transaction });
+        await peminjaman.buku.increment("stock", { by: 1, transaction });
       }
 
       if (status === "DIKIRIM") {
@@ -97,21 +96,21 @@ export const peminjamanController = {
       let notifType;
 
       switch (status) {
-        case 'DIPROSES':
+        case "DIPROSES":
           message = `Permintaan peminjaman buku "${peminjaman.buku.judul}" telah disetujui, admin sedang memproses buku sesuai dengan permintaan peminjaman anda`;
-          notifType = 'PEMINJAMAN_DIPROSES';
+          notifType = "PEMINJAMAN_DIPROSES";
           break;
-        case 'DIKIRIM':
+        case "DIKIRIM":
           message = `Admin telah selesai memproses peminjaman buku "${peminjaman.buku.judul}", dan sedang mengirimkan buku anda`;
-          notifType = 'PEMINJAMAN_DIKIRIM';
+          notifType = "PEMINJAMAN_DIKIRIM";
           break;
-        case 'DITOLAK':
+        case "DITOLAK":
           message = `Maaf, permintaan peminjaman buku "${peminjaman.buku.judul}" ditolak. Alasan: ${alasan_penolakan}`;
-          notifType = 'PEMINJAMAN_DITOLAK';
+          notifType = "PEMINJAMAN_DITOLAK";
           break;
-        case 'DIKEMBALIKAN':
+        case "DIKEMBALIKAN":
           message = `Buku "${peminjaman.buku.judul}" telah berhasil dikembalikan. Terima kasih telah meminjam!`;
-          notifType = 'PEMINJAMAN_DIKEMBALIKAN';
+          notifType = "PEMINJAMAN_DIKEMBALIKAN";
           break;
       }
 
@@ -129,14 +128,15 @@ export const peminjamanController = {
 
       res.status(200).json({
         msg: "Status peminjaman berhasil diperbarui",
-        data: peminjaman
+        data: peminjaman,
       });
     } catch (error) {
       await transaction.rollback();
       console.error("Error updating peminjaman status:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         msg: "Gagal memperbarui status peminjaman",
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -149,12 +149,12 @@ export const peminjamanController = {
       const { id } = req.params;
       const { bukti_pembayaran_denda } = req.body;
 
-      const peminjaman = await Peminjaman.findByPk(id, { 
+      const peminjaman = await Peminjaman.findByPk(id, {
         include: [
-          { model: Buku, as: 'buku' },
-          { model: User, as: 'user' }
+          { model: Buku, as: "buku" },
+          { model: User, as: "user" },
         ],
-        transaction 
+        transaction,
       });
 
       if (!peminjaman) {
@@ -165,17 +165,19 @@ export const peminjamanController = {
       // Calculate late fees
       const today = new Date();
       const planReturnDate = new Date(peminjaman.tgl_kembali_rencana);
-      
+
       let totalDenda = 0;
       if (today > planReturnDate) {
-        const daysLate = Math.ceil((today - planReturnDate) / (1000 * 60 * 60 * 24));
+        const daysLate = Math.ceil(
+          (today - planReturnDate) / (1000 * 60 * 60 * 24)
+        );
         totalDenda = peminjaman.buku.denda_harian * daysLate;
       }
 
       const updateData = {
         status: totalDenda > 0 ? "TERLAMBAT" : "DIKEMBALIKAN",
         tgl_kembali_aktual: today,
-        total_denda: totalDenda
+        total_denda: totalDenda,
       };
 
       if (bukti_pembayaran_denda) {
@@ -185,30 +187,34 @@ export const peminjamanController = {
       await peminjaman.update(updateData, { transaction });
 
       // Restore book stock
-      await peminjaman.buku.increment('stock', { by: 1, transaction });
+      await peminjaman.buku.increment("stock", { by: 1, transaction });
 
       // Create notification
-      await Notifikasi.create({
-        id_user: peminjaman.id_user,
-        id_peminjaman: peminjaman.id,
-        judul: "Buku Dikembalikan",
-        deskripsi: `Buku ${peminjaman.buku.judul} telah dikembalikan. Total denda: Rp ${totalDenda}`,
-        jenis: "PENGEMBALIAN_BUKU"
-      }, { transaction });
+      await Notifikasi.create(
+        {
+          id_user: peminjaman.id_user,
+          id_peminjaman: peminjaman.id,
+          judul: "Buku Dikembalikan",
+          deskripsi: `Buku ${peminjaman.buku.judul} telah dikembalikan. Total denda: Rp ${totalDenda}`,
+          jenis: "PENGEMBALIAN_BUKU",
+        },
+        { transaction }
+      );
 
       await transaction.commit();
 
       res.status(200).json({
         msg: "Buku berhasil dikembalikan",
         data: peminjaman,
-        totalDenda
+        totalDenda,
       });
     } catch (error) {
       await transaction.rollback();
       console.error("Error returning buku:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         msg: "Gagal mengembalikan buku",
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -227,27 +233,28 @@ export const peminjamanController = {
       const { count, rows } = await Peminjaman.findAndCountAll({
         where: whereCondition,
         include: [
-          { 
+          {
             model: Buku,
-            attributes: ['judul', 'cover_img', 'penulis'] 
-          }
+            attributes: ["judul", "cover_img", "penulis"],
+          },
         ],
-        order: [['createdAt', 'DESC']],
+        order: [["createdAt", "DESC"]],
         limit: Number(limit),
-        offset: Number(offset)
+        offset: Number(offset),
       });
 
       res.json({
         totalItems: count,
         peminjaman: rows,
         currentPage: Number(page),
-        totalPages: Math.ceil(count / limit)
+        totalPages: Math.ceil(count / limit),
       });
     } catch (error) {
       console.error("Error fetching user peminjaman:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         msg: "Gagal mendapatkan riwayat peminjaman",
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -255,12 +262,7 @@ export const peminjamanController = {
   // Staff gets all peminjaman with filtering
   getAllPeminjaman: async (req, res) => {
     try {
-      const { 
-        page = 1, 
-        limit = 10, 
-        status, 
-        search 
-      } = req.query;
+      const { page = 1, limit = 10, status, search } = req.query;
 
       const offset = (page - 1) * limit;
 
@@ -272,41 +274,42 @@ export const peminjamanController = {
       // Tambahkan pencarian berdasarkan resi
       if (search) {
         whereCondition[Op.or] = [
-          { '$buku.judul$': { [Op.like]: `%${search}%` } },
-          { '$user.name$': { [Op.like]: `%${search}%` } },
-          { nomor_resi: { [Op.like]: `%${search}%` } } // Tambahkan pencarian resi
+          { "$buku.judul$": { [Op.like]: `%${search}%` } },
+          { "$user.name$": { [Op.like]: `%${search}%` } },
+          { nomor_resi: { [Op.like]: `%${search}%` } }, // Tambahkan pencarian resi
         ];
       }
 
       const { count, rows } = await Peminjaman.findAndCountAll({
         where: whereCondition,
         include: [
-          { 
+          {
             model: Buku,
-            attributes: ['judul', 'cover_img', 'penulis'] 
+            attributes: ["judul", "cover_img", "penulis"],
           },
           {
             model: User,
-            as: 'user',
-            attributes: ['name', 'email']
-          }
+            as: "user",
+            attributes: ["name", "email"],
+          },
         ],
-        order: [['createdAt', 'DESC']],
+        order: [["createdAt", "DESC"]],
         limit: Number(limit),
-        offset: Number(offset)
+        offset: Number(offset),
       });
 
       res.json({
         totalItems: count,
         peminjaman: rows,
         currentPage: Number(page),
-        totalPages: Math.ceil(count / limit)
+        totalPages: Math.ceil(count / limit),
       });
     } catch (error) {
       console.error("Error fetching all peminjaman:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         msg: "Gagal mendapatkan daftar peminjaman",
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -314,8 +317,8 @@ export const peminjamanController = {
   getEarliestPeminjamanDate: async (req, res) => {
     try {
       const earliestPeminjaman = await Peminjaman.findOne({
-        order: [['createdAt', 'ASC']], // Urutkan dari yang terlama
-        attributes: ['createdAt'] // Ambil hanya kolom createdAt
+        order: [["createdAt", "ASC"]], // Urutkan dari yang terlama
+        attributes: ["createdAt"], // Ambil hanya kolom createdAt
       });
 
       if (!earliestPeminjaman) {
@@ -334,24 +337,104 @@ export const peminjamanController = {
       const { startDate, endDate } = req.query;
       const whereCondition = {
         createdAt: {
-          [Op.between]: [new Date(startDate), new Date(endDate)]
-        }
+          [Op.between]: [new Date(startDate), new Date(endDate)],
+        },
       };
-      
+
       const data = await Peminjaman.findAll({
         where: whereCondition,
         include: [
-          { model: Buku, attributes: ['judul', 'cover_img', 'penulis'] },
-          { model: User, as: 'user', attributes: ['name', 'email'] }
+          { model: Buku, attributes: ["judul", "cover_img", "penulis"] },
+          { model: User, as: "user", attributes: ["name", "email"] },
         ],
       });
-      
+
       res.json(data);
     } catch (error) {
       console.error("Error fetching peminjaman by date:", error);
       res.status(500).json({ msg: "Failed to fetch peminjaman data" });
     }
-  }
+  },
+
+  konfirmasiPengiriman: async (req, res) => {
+    const transaction = await Peminjaman.sequelize.transaction();
+  
+    try {
+      const { id } = req.params;
+      let buktiPengiriman = null;
+  
+      // Jika ada file yang diupload
+      if (req.file) {
+        // Gunakan path sesuai format yang diminta
+        buktiPengiriman = `/public/uploads/bukti-pengiriman/${req.file.filename}`;
+      }
+  
+      // Find the peminjaman record
+      const peminjaman = await Peminjaman.findByPk(id, { 
+        include: [
+          { model: Buku, as: 'buku' },
+          { model: User, as: 'user' }
+        ],
+        transaction 
+      });
+  
+      if (!peminjaman) {
+        // Hapus file jika peminjaman tidak ditemukan
+        if (req.file) {
+          await fs.promises.unlink(req.file.path);
+        }
+        await transaction.rollback();
+        return res.status(404).json({ msg: "Peminjaman tidak ditemukan" });
+      }
+  
+      // Validate current status
+      if (peminjaman.status !== 'DIKIRIM') {
+        // Hapus file jika status tidak sesuai
+        if (req.file) {
+          await fs.promises.unlink(req.file.path);
+        }
+        await transaction.rollback();
+        return res.status(400).json({ msg: "Status peminjaman harus DIKIRIM" });
+      }
+  
+      // Update peminjaman status dan bukti pengiriman
+      await peminjaman.update({
+        status: 'DIPINJAM',
+        bukti_pengiriman: buktiPengiriman,
+        tgl_pinjam_aktual: new Date()
+      }, { transaction });
+  
+      // Create notification for user
+      await notifikasiController.createNotifikasi(
+        peminjaman.user.id,
+        peminjaman.id,
+        `Buku "${peminjaman.buku.judul}" telah dikirim. Silahkan cek bukti pengiriman.`,
+        'PEMINJAMAN_DIPINJAM',
+        transaction
+      );
+  
+      await transaction.commit();
+  
+      res.status(200).json({
+        msg: "Status peminjaman berhasil diperbarui",
+        data: { 
+          ...peminjaman.toJSON(), 
+          bukti_pengiriman: buktiPengiriman 
+        }
+      });
+    } catch (error) {
+      await transaction.rollback();
+      // Hapus file jika terjadi error
+      if (req.file) {
+        await fs.promises.unlink(req.file.path);
+      }
+      console.error("Error konfirmasi pengiriman:", error);
+      res.status(500).json({ 
+        msg: "Gagal mengonfirmasi pengiriman",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  },
 };
 
 export default peminjamanController;

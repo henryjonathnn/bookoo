@@ -75,6 +75,25 @@ const PeminjamanDetailModal = ({ data, isOpen, onClose }) => {
             </div>
           </div>
 
+          {/* Bukti Pengiriman */}
+          {data.bukti_pengiriman && (
+            <div>
+              <h3 className="text-sm font-medium text-gray-400 mb-3 uppercase tracking-wider">
+                Bukti Pengiriman
+              </h3>
+              <div className="bg-[#1a1225] rounded-lg p-4">
+                <div className="flex flex-col items-center gap-2">
+                {/* {console.log("Bukti Pengiriman:", `${API_CONFIG.baseURL}/uploads/bukti-pengiriman/${data.bukti_pengiriman.split('/').pop()}`)} */}
+                  <img
+                    src={`${API_CONFIG.baseURL}/uploads/bukti-pengiriman/${data.bukti_pengiriman.split('/').pop()}`}
+                    alt="Bukti Pengiriman"
+                    className="w-32 h-32 object-cover rounded-lg shadow-md"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Timeline Peminjaman */}
           <div>
             <h3 className="text-sm font-medium text-gray-400 mb-3 uppercase tracking-wider">
@@ -159,4 +178,4 @@ const PeminjamanDetailModal = ({ data, isOpen, onClose }) => {
   );
 };
 
-export default PeminjamanDetailModal; 
+export default PeminjamanDetailModal;

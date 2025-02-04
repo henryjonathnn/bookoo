@@ -34,6 +34,10 @@ const Peminjaman = db.define(
       type: DataTypes.DATE,
       allowNull: false,
     },
+    bukti_pengiriman : {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     tgl_pinjam_aktual: {
       type: DataTypes.DATE,
       allowNull: true,
