@@ -13,28 +13,29 @@ const generateResiNumber = () => {
 };
 
 export const peminjamanController = {
-  // Create a new borrowing request
   createPeminjaman: async (req, res) => {
     const transaction = await Peminjaman.sequelize.transaction();
     try {
       const userId = req.user.id; // Ambil id user dari token
+      const nomor_resi = generateResiNumber(); // Generate resi number for new peminjaman
 
       const peminjaman = await Peminjaman.create(
         {
           ...req.body,
           id_user: userId,
           status: "PENDING",
+          nomor_resi, // Add receipt number during creation
         },
         { transaction }
       );
 
       const buku = await Buku.findByPk(req.body.id_buku);
 
-      // Create notification
+      // Create notification with receipt number
       await notifikasiController.createNotifikasi(
-        userId, // Gunakan userId yang sudah diambil
+        userId,
         peminjaman.id,
-        `Anda telah berhasil menambahkan permintaan data peminjaman buku "${buku.judul}", tunggu admin mensetujui permintaan anda`,
+        `Anda telah berhasil menambahkan permintaan data peminjaman buku "${buku.judul}" dengan nomor resi ${nomor_resi}, tunggu admin mensetujui permintaan anda`,
         "PEMINJAMAN_CREATED",
         transaction
       );
@@ -48,13 +49,12 @@ export const peminjamanController = {
     }
   },
 
-  // Staff approves or rejects borrowing request
   updatePeminjamanStatus: async (req, res) => {
     const transaction = await Peminjaman.sequelize.transaction();
 
     try {
       const { id } = req.params;
-      const { status, alasan_penolakan, nomor_resi } = req.body;
+      const { status, alasan_penolakan } = req.body;
 
       const peminjaman = await Peminjaman.findByPk(id, {
         include: [
@@ -81,7 +81,6 @@ export const peminjamanController = {
       }
 
       if (status === "DIKIRIM") {
-        updateData.nomor_resi = nomor_resi;
         updateData.tgl_pinjam_aktual = new Date();
       }
 
@@ -97,27 +96,27 @@ export const peminjamanController = {
 
       switch (status) {
         case "DIPROSES":
-          message = `Permintaan peminjaman buku "${peminjaman.buku.judul}" telah disetujui, admin sedang memproses buku sesuai dengan permintaan peminjaman anda`;
+          message = `Permintaan peminjaman buku "${peminjaman.buku.judul}" (Resi: ${peminjaman.nomor_resi}) telah disetujui, admin sedang memproses buku sesuai dengan permintaan peminjaman anda`;
           notifType = "PEMINJAMAN_DIPROSES";
           break;
         case "DIKIRIM":
-          message = `Admin telah selesai memproses peminjaman buku "${peminjaman.buku.judul}", dan sedang mengirimkan buku anda`;
+          message = `Admin telah selesai memproses peminjaman buku "${peminjaman.buku.judul}" (Resi: ${peminjaman.nomor_resi}), dan sedang mengirimkan buku anda`;
           notifType = "PEMINJAMAN_DIKIRIM";
           break;
-        case "DIPINJAM": // Add notification for DIPINJAM status
-          message = `Buku "${peminjaman.buku.judul}" telah dikirim dan bukti pengiriman telah dikonfirmasi. Selamat membaca!`;
+        case "DIPINJAM":
+          message = `Buku "${peminjaman.buku.judul}" (Resi: ${peminjaman.nomor_resi}) telah dikirim dan bukti pengiriman telah dikonfirmasi. Selamat membaca!`;
           notifType = "PEMINJAMAN_DITERIMA";
           break;
         case "DITERIMA":
-          message = `Admin telah mengirimkan buku "${peminjaman.buku.judul}", selamat membaca!, dan jangan lupa kembalikan tepat waktu.`;
+          message = `Admin telah mengirimkan buku "${peminjaman.buku.judul}" (Resi: ${peminjaman.nomor_resi}), selamat membaca!, dan jangan lupa kembalikan tepat waktu.`;
           notifType = "PEMINJAMAN_DITERIMA";
           break;
         case "DITOLAK":
-          message = `Maaf, permintaan peminjaman buku "${peminjaman.buku.judul}" ditolak. Alasan: ${alasan_penolakan}`;
+          message = `Maaf, permintaan peminjaman buku "${peminjaman.buku.judul}" (Resi: ${peminjaman.nomor_resi}) ditolak. Alasan: ${alasan_penolakan}`;
           notifType = "PEMINJAMAN_DITOLAK";
           break;
         case "DIKEMBALIKAN":
-          message = `Buku "${peminjaman.buku.judul}" telah berhasil dikembalikan. Terima kasih telah meminjam!`;
+          message = `Buku "${peminjaman.buku.judul}" (Resi: ${peminjaman.nomor_resi}) telah berhasil dikembalikan. Terima kasih telah meminjam!`;
           notifType = "PEMINJAMAN_DIKEMBALIKAN";
           break;
       }
@@ -148,6 +147,7 @@ export const peminjamanController = {
       });
     }
   },
+
 
   // User or staff returns books
   returnBuku: async (req, res) => {
