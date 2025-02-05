@@ -17,14 +17,22 @@ export const peminjamanController = {
     const transaction = await Peminjaman.sequelize.transaction();
     try {
       const userId = req.user.id; // Ambil id user dari token
-      const nomor_resi = generateResiNumber(); // Generate resi number for new peminjaman
+      const nomor_resi = generateResiNumber(); // Generate nomor resi
+
+      // Kalkulasi tgl_kembali_rencana berdasarkan 7 hari setelah tgl_peminjaman_diinginkan
+      const tgl_peminjaman_diinginkan = new Date(
+        req.body.tgl_peminjaman_diinginkan
+      );
+      const tgl_kembali_rencana = new Date(tgl_peminjaman_diinginkan);
+      tgl_kembali_rencana.setDate(tgl_kembali_rencana.getDate() + 7);
 
       const peminjaman = await Peminjaman.create(
         {
           ...req.body,
           id_user: userId,
           status: "PENDING",
-          nomor_resi, // Add receipt number during creation
+          nomor_resi,
+          tgl_kembali_rencana,
         },
         { transaction }
       );
@@ -147,7 +155,6 @@ export const peminjamanController = {
       });
     }
   },
-
 
   // User or staff returns books
   returnBuku: async (req, res) => {
@@ -434,7 +441,7 @@ export const peminjamanController = {
       if (!transaction.finished) {
         await transaction.rollback();
       }
-      
+
       if (req.file) {
         try {
           await fs.unlink(req.file.path);
@@ -442,14 +449,15 @@ export const peminjamanController = {
           console.error("Error deleting file:", unlinkError);
         }
       }
-      
+
       console.error("Error konfirmasi pengiriman:", error);
       res.status(500).json({
         msg: "Gagal mengonfirmasi pengiriman",
-        error: process.env.NODE_ENV === "development" ? error.message : undefined,
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
-  }
+  },
 };
 
 export default peminjamanController;

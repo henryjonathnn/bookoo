@@ -38,7 +38,7 @@ const Peminjaman = db.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    tgl_pinjam_aktual: {
+    tgl_dikirim: {
       type: DataTypes.DATE,
       allowNull: true,
     },
