@@ -89,11 +89,11 @@ export const peminjamanController = {
       }
 
       if (status === "DIKIRIM") {
-        updateData.tgl_pinjam_aktual = new Date();
+        updateData.tgl_dikirim = new Date();
       }
 
       if (status === "DIPINJAM") {
-        updateData.tgl_pinjam_aktual = new Date();
+        updateData.tgl_dikirim = new Date();
       }
 
       await peminjaman.update(updateData, { transaction });

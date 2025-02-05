@@ -110,8 +110,8 @@ const HistoryContent = ({ historyPeminjaman, historyLoading }) => {
                   Tanggal Peminjaman
                 </p>
                 <p className="text-white">
-                  {peminjaman.tgl_pinjam_aktual
-                    ? format(new Date(peminjaman.tgl_pinjam_aktual), 'dd MMMM yyyy', { locale: id })
+                  {peminjaman.tgl_dikirim
+                    ? format(new Date(peminjaman.tgl_dikirim), 'dd MMMM yyyy', { locale: id })
                     : 'Belum dipinjam'
                   }
                 </p>
