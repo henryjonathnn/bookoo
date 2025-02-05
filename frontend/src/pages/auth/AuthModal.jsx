@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { X, Mail, Lock, Eye, EyeOff, User, ArrowRight, ArrowLeft } from 'react-feather';
 import { Card, CardContent } from '../../components/ui/user/Card';
 import { FormInput } from '../../components/ui/user/FormInput';
@@ -28,7 +28,7 @@ const AuthModal = ({ isOpen, onClose }) => {
     if (error) setError('');
   }, [formData]);
 
-  const validate = async (field, value, validationFn) => {
+  const validate = useCallback(async (field, value, validationFn) => {
     if (!value?.trim()) {
       setValidationState(prev => ({ ...prev, [field]: { isValid: true, message: '' } }));
       return;
@@ -55,12 +55,12 @@ const AuthModal = ({ isOpen, onClose }) => {
     } finally {
       setIsValidating(prev => ({ ...prev, [field]: false }));
     }
-  };
+  }, []);
 
   const debouncedValidate = useMemo(() => ({
     email: debounce(value => validate('email', value, authService.checkEmailAvailability), 500),
     username: debounce(value => validate('username', value, authService.checkUsernameAvailability), 500)
-  }), []);
+  }), [validate]);
 
   const isFormValid = useMemo(() => {
     if (isLogin) {
@@ -76,14 +76,14 @@ const AuthModal = ({ isOpen, onClose }) => {
     return formData.username && (!validationState.username || validationState.username.isValid);
   }, [formData, validationState, registerStep, isLogin]);
 
-  const handleInputChange = ({ target: { name, value } }) => {
+  const handleInputChange = useCallback(({ target: { name, value } }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
     if (name === 'email' || name === 'username') {
       debouncedValidate[name](value);
     }
-  };
+  }, [debouncedValidate]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     if (!isFormValid || isSubmitting) return;
 
@@ -121,20 +121,20 @@ const AuthModal = ({ isOpen, onClose }) => {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [isFormValid, isSubmitting, isLogin, registerStep, formData, login, register, onClose]);
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setFormData({ email: '', password: '', name: '', username: '', confirmPassword: '' });
     setRegisterStep(1);
     setError('');
     setValidationState({});
     setIsSubmitting(false);
-  };
+  }, []);
 
-  const handleModeSwitch = () => {
+  const handleModeSwitch = useCallback(() => {
     setIsLogin(prev => !prev);
     resetForm();
-  };
+  }, [resetForm]);
 
   const PasswordToggle = ({ field }) => (
     <button
@@ -150,7 +150,6 @@ const AuthModal = ({ isOpen, onClose }) => {
 
   const buttonStyle = `px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 
   ${isFormValid && !isSubmitting ? GRADIENT_BUTTON : 'bg-gray-600 opacity-50 cursor-not-allowed'}`;
-
 
   const renderProgressBar = () => (
     <div className="mb-8">
@@ -250,8 +249,8 @@ const AuthModal = ({ isOpen, onClose }) => {
                       onChange={handleInputChange}
                       placeholder="Masukkan email kamu"
                       icon={Mail}
-                      error={!validationState.email?.isValid}
-                      helperText={validationState.email?.message}
+                      error={formData.email && !validationState.email?.isValid}
+                      helperText={formData.email && validationState.email?.message}
                       rightElement={isValidating.email && (
                         <span className="loading loading-spinner loading-sm" />
                       )}
@@ -289,8 +288,8 @@ const AuthModal = ({ isOpen, onClose }) => {
                     onChange={handleInputChange}
                     placeholder="Masukkan username kamu"
                     icon={User}
-                    error={!validationState.username?.isValid}
-                    helperText={validationState.username?.message}
+                    error={formData.username && !validationState.username?.isValid}
+                    helperText={formData.username && validationState.username?.message}
                     rightElement={isValidating.username && (
                       <span className="loading loading-spinner loading-sm" />
                     )}
