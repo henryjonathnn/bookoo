@@ -3,6 +3,36 @@ import { Op } from "sequelize";
 import path from "path";
 import fs from "fs/promises";
 import { notifikasiController } from "./NotifikasiController.js";
+import schedule from "node-schedule";
+
+// Menjadwalkan pembaruan total denda yang diakumulasikan dari denda harian
+schedule.scheduleJob("0 0 * * *", async () => {
+  try {
+    const overduePeminjaman = await Peminjaman.findAll({
+      where: {
+        status: "TERLAMBAT",
+        tgl_kembali_aktual: null,
+      },
+      include: [{ model: Buku, as: "buku" }],
+    });
+
+    for (const peminjaman of overduePeminjaman) {
+      const denda_harian = peminjaman.buku.denda_harian;
+      await peminjaman.increment("total_denda", { by: denda_harian });
+    }
+    console.log(`Memperbarui denda ${overduePeminjaman.length} buku yang terlambat dikembalikan`)
+  } catch (error) {
+    console.error('Error memperbarui denda harian:', error);
+  }
+});
+
+
+// Fungsi helper untuk mengecek apakah masih dalam masa tenggang
+const isDalamMasaTenggang = (tgl_dikembalikan, tgl_rencana) => {
+  const jamMasaTenggang = 24
+  const selisihJam = (tgl_dikembalikan - tgl_rencana) / (1000 * 60 * 60)
+  return selisihJam <= jamMasaTenggang
+}
 
 // Fungsi helper untuk generate resi
 const generateResiNumber = () => {
@@ -181,12 +211,15 @@ export const peminjamanController = {
       const today = new Date();
       const planReturnDate = new Date(peminjaman.tgl_kembali_rencana);
 
+      let newStatus;
       let totalDenda = 0;
-      if (today > planReturnDate) {
-        const daysLate = Math.ceil(
-          (today - planReturnDate) / (1000 * 60 * 60 * 24)
-        );
-        totalDenda = peminjaman.buku.denda_harian * daysLate;
+
+      if (isDalamMasaTenggang(today, planReturnDate)) {
+        newStatus === "DIKEMBALIKAN"
+      } else {
+        newStatus === "TERLAMBAT"
+        const daysLate = Math.ceil((today, planReturnDate) / (1000 * 60 * 60 * 24))
+        totalDenda = peminjaman.buku.denda_harian * daysLate
       }
 
       const updateData = {
