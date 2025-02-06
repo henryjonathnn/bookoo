@@ -3,7 +3,7 @@ import { BookOpen, Calendar, Clock, AlertCircle, CheckCircle, ArrowRight } from 
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import StatusBadge from '../../components/modules/admin/StatusBadge';
-import { calculateBorrowingStats } from './calculateBorrowingStats';
+import { calculateBorrowingStats } from '../../utils/calculateBorrowingStats';
 
 const HistoryContent = ({ historyPeminjaman, historyLoading }) => {
   if (historyLoading) {

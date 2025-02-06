@@ -1,9 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import { Search, Filter, Download } from 'react-feather';
 import debounce from 'lodash/debounce';
+import FilterModal from './FilterModal';
 
-const SearchFilterBar = ({ searchPlaceholder, onSearch, initialValue = '' }) => {
+const SearchFilterBar = ({ searchPlaceholder, onSearch, onFilter, initialValue = '', filterType }) => {
   const [searchValue, setSearchValue] = useState(initialValue);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   // Kurangi delay debounce menjadi lebih responsif
   const debouncedSearch = useCallback(
@@ -18,6 +20,10 @@ const SearchFilterBar = ({ searchPlaceholder, onSearch, initialValue = '' }) => 
     setSearchValue(value);
     debouncedSearch(value);
   };
+
+  const handleApplyFilter = (filters) => {
+    onFilter(filters);
+  }
 
   // Cleanup
   React.useEffect(() => {
@@ -45,6 +51,7 @@ const SearchFilterBar = ({ searchPlaceholder, onSearch, initialValue = '' }) => 
         
         <div className="flex gap-2">
           <button 
+          onClick={() => setIsFilterModalOpen(true)}
             className="px-4 py-2.5 bg-[#0f0a19] rounded-lg flex items-center justify-center gap-2 text-sm hover:bg-[#2a2435] transition-colors"
             type="button"
           >
@@ -60,6 +67,12 @@ const SearchFilterBar = ({ searchPlaceholder, onSearch, initialValue = '' }) => 
           </button>
         </div>
       </div>
+      <FilterModal
+      isOpen={isFilterModalOpen}
+      onClose={() => setIsFilterModalOpen(false)}
+      onApply={handleApplyFilter}
+      type={filterType}
+       />
     </div>
   );
 };

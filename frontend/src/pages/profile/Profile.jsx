@@ -10,7 +10,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { usePeminjaman } from '../../hooks/usePeminjaman';
 import StatusBadge from '../../components/modules/admin/StatusBadge';
 import HistoryContent from './HistoryContent';
-import { calculateBorrowingStats } from './calculateBorrowingStats';
+import { calculateBorrowingStats } from '../../utils/calculateBorrowingStats';
 
 const Profile = () => {
   const { user, loading } = useAuth();

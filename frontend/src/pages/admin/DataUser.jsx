@@ -17,6 +17,10 @@ const DataUser = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [filters, setFilters] = useState({
+    role: 'USER',
+    active: 'ACTIVE'
+  })
 
   const {
     users,
@@ -30,8 +34,17 @@ const DataUser = () => {
   } = useUsers({
     page: 1,
     limit: 10,
-    search: ''
+    search: '',
+    ...filters
   });
+
+  const handleFilter = (newFilters) => {
+    setFilters(newFilters);
+    updateParams({
+      ...newFilters,
+      page: 1
+    })
+  }
 
   // INI FORM
   const userFormConfig = {
@@ -186,23 +199,23 @@ const DataUser = () => {
       />,
       className: 'hidden md:table-cell w-[5%] px-2 lg:px-6 py-3'
     },
-    { 
+    {
       header: 'User Info',
       className: 'text-left px-2 lg:px-6 py-3 w-[60%] sm:w-[40%]'
     },
-    { 
-      header: 'Role', 
+    {
+      header: 'Role',
       className: 'hidden sm:table-cell px-2 lg:px-6 py-3 w-[15%]'
     },
-    { 
-      header: 'Status', 
+    {
+      header: 'Status',
       className: 'hidden sm:table-cell px-2 lg:px-6 py-3 w-[15%]'
     },
-    { 
-      header: 'Join Date', 
+    {
+      header: 'Join Date',
       className: 'hidden md:table-cell px-2 lg:px-6 py-3 w-[15%]'
     },
-    { 
+    {
       header: 'Actions',
       className: 'text-right sm:text-left px-2 lg:px-6 py-3 w-[40%] sm:w-[10%]'
     }
@@ -217,9 +230,9 @@ const DataUser = () => {
   }, []);
 
   const renderUserRow = useCallback((user) => (
-    <tr key={user.id} 
-        className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors cursor-pointer"
-        onClick={() => { handleOpenDetailModal(user) }}>
+    <tr key={user.id}
+      className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors cursor-pointer"
+      onClick={() => { handleOpenDetailModal(user) }}>
       <td className="hidden md:table-cell px-2 lg:px-6 py-4">
         <input
           type="checkbox"
@@ -267,10 +280,10 @@ const DataUser = () => {
       </td>
       <td className="px-2 lg:px-6 py-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-end sm:justify-start">
-          <TombolAksi 
+          <TombolAksi
             onEdit={() => handleOpenEditModal(user)}
             onDelete={() => handleDelete(user.id)}
-            onRefresh={refresh} 
+            onRefresh={refresh}
           />
         </div>
       </td>
@@ -286,12 +299,14 @@ const DataUser = () => {
         onButtonClick={handleOpenCreateModal}
       />
 
-        <SearchFilterBar
-          searchPlaceholder="Cari user..."
-          onSearch={handleSearch}
-          initialValue=""
-          className="w-full"
-        />
+      <SearchFilterBar
+        searchPlaceholder="Cari user..."
+        onSearch={handleSearch}
+        onFilter={handleFilter}
+        filterType="user"
+        initialValue=""
+        className="w-full"
+      />
 
       {loading ? (
         <LoadingSpinner />
