@@ -237,13 +237,20 @@ export const peminjamanController = {
       // Restore book stock
       await peminjaman.buku.increment("stock", { by: 1, transaction });
 
+      let notificationMessage;
+      if (newStatus === "DIKEMBALIKAN") {
+        notificationMessage = `Buku ${peminjaman.buku.judul} telah berhasil dikembalikan tepat waktu!`
+      } else {
+        notificationMessage = `Buku ${peminjaman.buku.judul} telah dikembalikan terlambat. Total denda yang harus dibayarkan: Rp ${totalDenda.toLocaleString()}`
+      }
+
       // Create notification
       await Notifikasi.create(
         {
           id_user: peminjaman.id_user,
           id_peminjaman: peminjaman.id,
           judul: "Buku Dikembalikan",
-          deskripsi: `Buku ${peminjaman.buku.judul} telah dikembalikan. Total denda: Rp ${totalDenda}`,
+          deskripsi: notificationMessage,
           jenis: "PENGEMBALIAN_BUKU",
         },
         { transaction }
