@@ -22,11 +22,14 @@ const DataPeminjaman = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState({
+    status: ''
+  })
   const [searchParams, setSearchParams] = useState({
     page: 1,
     limit: 10,
     search: '',
-    status: ''
+    ...filters
   });
   const [isPenolakanModalOpen, setIsPenolakanModalOpen] = useState(false);
   const [selectedPeminjamanId, setSelectedPeminjamanId] = useState(null);
@@ -51,6 +54,21 @@ const DataPeminjaman = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const updateParams = useCallback((newParams) => {
+    setSearchParams(prev => ({
+      ...prev,
+      ...newParams
+    }));
+  }, []);
+  
+  const handleFilter = (newFilters) => {
+    setFilters(newFilters);
+    updateParams({
+      ...newFilters,
+      page: 1
+    });
+  };
 
   // Search handler
   const handleSearch = useCallback((searchValue) => {
@@ -357,6 +375,8 @@ const DataPeminjaman = () => {
       <SearchFilterBar
         searchPlaceholder="Cari peminjaman..."
         onSearch={handleSearch}
+        onFilter={handleFilter}
+        filterType="peminjaman"
         initialValue=""
       />
 

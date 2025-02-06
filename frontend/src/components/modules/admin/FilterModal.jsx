@@ -52,7 +52,7 @@ const FilterModal = ({
           key: 'status',
           label: 'Status',
           type: 'select',
-          choices: ['PENDING', 'DIPROSES', 'DIKIRIM', 'DIKEMBALIKAN']
+          choices: ['PENDING', 'DIPROSES', 'DIKIRIM', 'DIPINJAM', 'DIKEMBALIKAN', 'DITOLAK', 'TERLAMBAT']
         }
       ]
     }

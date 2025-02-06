@@ -17,16 +17,34 @@ const DataBuku = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedBuku, setSelectedBuku] = useState(null);
   const [selectedBooks, setSelectedBooks] = useState([]);
+  const [filters, setFilters] = useState({
+    kategori: '',
+  })
 
   const {
     books,
     loading,
-    totalItems,
-    totalPages,
-    currentPage,
     updateParams,
-    refresh
-  } = useBooks();
+    refresh,
+    totalItems,
+    currentPage,
+  } = useBooks({
+    page: 1,
+    limit: 10,
+    search: '',
+    ...filters
+  });
+
+
+
+  const handleFilter = (newFilters) => {
+    setFilters(newFilters);
+    updateParams({
+      ...newFilters,
+      page: 1
+    });
+  };
+
 
   // Handle search
   const handleSearch = useCallback((search) => {
@@ -132,33 +150,33 @@ const DataBuku = () => {
   }, []);
 
   const columns = [
-    { 
+    {
       header: <input
         type="checkbox"
         className="rounded border-gray-600 text-purple-600 focus:ring-purple-500"
         onChange={handleSelectAll}
         checked={books?.length > 0 && selectedBooks.length === books.length}
       />,
-      className: "hidden md:table-cell w-[5%] px-2 lg:px-6 py-3" 
+      className: "hidden md:table-cell w-[5%] px-2 lg:px-6 py-3"
     },
-    { 
-      header: 'Buku Info', 
+    {
+      header: 'Buku Info',
       className: "text-left px-2 lg:px-6 py-3 w-[60%] sm:w-[40%]"
     },
-    { 
-      header: 'ISBN', 
-      className: "hidden md:table-cell px-2 py-3 w-[15%] text-center" 
+    {
+      header: 'ISBN',
+      className: "hidden md:table-cell px-2 py-3 w-[15%] text-center"
     },
-    { 
-      header: 'Kategori', 
+    {
+      header: 'Kategori',
       className: "px-2 py-3 w-[30%] md:w-[15%] text-center"
     },
-    { 
-      header: 'Stok', 
-      className: "hidden md:table-cell px-2 py-3 w-[10%] text-center" 
+    {
+      header: 'Stok',
+      className: "hidden md:table-cell px-2 py-3 w-[10%] text-center"
     },
-    { 
-      header: 'Actions', 
+    {
+      header: 'Actions',
       className: "px-2 py-3 w-[20%] md:w-[10%] text-right"
     }
   ];
@@ -241,9 +259,9 @@ const DataBuku = () => {
   };
 
   const renderBookRow = useCallback((book) => (
-    <tr key={book.id} 
-        className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors cursor-pointer"
-        onClick={() => handleOpenDetailModal(book)}>
+    <tr key={book.id}
+      className="border-b border-gray-800 hover:bg-[#2a2435] transition-colors cursor-pointer"
+      onClick={() => handleOpenDetailModal(book)}>
       <td className="hidden md:table-cell px-2 lg:px-6 py-4">
         <input
           type="checkbox"
@@ -292,7 +310,7 @@ const DataBuku = () => {
       </td>
       <td className="px-2 lg:px-6 py-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-end sm:justify-start">
-          <TombolAksi 
+          <TombolAksi
             onEdit={() => handleOpenEditModal(book)}
             onDelete={async () => {
               await handleDelete(book.id);
@@ -317,6 +335,8 @@ const DataBuku = () => {
       <SearchFilterBar
         searchPlaceholder="Cari buku..."
         onSearch={handleSearch}
+        onFilter={handleFilter}
+        filterType="book"
         initialValue=""
         className="w-full"
       />
