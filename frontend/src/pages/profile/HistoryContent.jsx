@@ -3,6 +3,7 @@ import { BookOpen, Calendar, Clock, AlertCircle, CheckCircle, ArrowRight } from 
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import StatusBadge from '../../components/modules/admin/StatusBadge';
+import { calculateBorrowingStats } from './calculateBorrowingStats';
 
 const HistoryContent = ({ historyPeminjaman, historyLoading }) => {
   if (historyLoading) {
@@ -23,26 +24,17 @@ const HistoryContent = ({ historyPeminjaman, historyLoading }) => {
     );
   }
 
-//   const getStatusColor = (status) => {
-//     const statusColors = {
-//       'PENDING': 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-//       'APPROVED': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-//       'ACTIVE': 'bg-green-500/10 text-green-400 border-green-500/20',
-//       'OVERDUE': 'bg-red-500/10 text-red-400 border-red-500/20',
-//       'RETURNED': 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-//       'REJECTED': 'bg-gray-500/10 text-gray-400 border-gray-500/20'
-//     };
-//     return statusColors[status] || 'bg-gray-500/10 text-gray-400 border-gray-500/20';
-//   };
+  const { totalPeminjaman, dikembalikan, sedangBerjalan } = calculateBorrowingStats(historyPeminjaman);
 
   const getStatusIcon = (status) => {
     const icons = {
       'PENDING': <Clock className="w-4 h-4" />,
-      'APPROVED': <CheckCircle className="w-4 h-4" />,
-      'ACTIVE': <BookOpen className="w-4 h-4" />,
-      'OVERDUE': <AlertCircle className="w-4 h-4" />,
-      'RETURNED': <CheckCircle className="w-4 h-4" />,
-      'REJECTED': <AlertCircle className="w-4 h-4" />
+      'DIPROSES': <Clock className="w-4 h-4" />,
+      'DIKIRIM': <Clock className="w-4 h-4" />,
+      'DIPINJAM': <BookOpen className="w-4 h-4" />,
+      'TERLAMBAT': <AlertCircle className="w-4 h-4" />,
+      'DIKEMBALIKAN': <CheckCircle className="w-4 h-4" />,
+      'DITOLAK': <AlertCircle className="w-4 h-4" />
     };
     return icons[status] || <Clock className="w-4 h-4" />;
   };
@@ -58,7 +50,7 @@ const HistoryContent = ({ historyPeminjaman, historyLoading }) => {
             </div>
             <h3 className="font-medium text-white">Total Peminjaman</h3>
           </div>
-          <p className="text-2xl font-bold text-purple-400">{historyPeminjaman.length}</p>
+          <p className="text-2xl font-bold text-purple-400">{totalPeminjaman}</p>
         </div>
         <div className="bg-green-500/5 rounded-xl p-4 border border-green-500/10">
           <div className="flex items-center gap-3 mb-2">
@@ -68,7 +60,7 @@ const HistoryContent = ({ historyPeminjaman, historyLoading }) => {
             <h3 className="font-medium text-white">Dikembalikan</h3>
           </div>
           <p className="text-2xl font-bold text-green-400">
-            {historyPeminjaman.filter(p => p.status === 'RETURNED').length}
+            {dikembalikan}
           </p>
         </div>
         <div className="bg-yellow-500/5 rounded-xl p-4 border border-yellow-500/10">
@@ -79,7 +71,7 @@ const HistoryContent = ({ historyPeminjaman, historyLoading }) => {
             <h3 className="font-medium text-white">Sedang Berjalan</h3>
           </div>
           <p className="text-2xl font-bold text-yellow-400">
-            {historyPeminjaman.filter(p => ['ACTIVE', 'OVERDUE'].includes(p.status)).length}
+            {sedangBerjalan}
           </p>
         </div>
       </div>

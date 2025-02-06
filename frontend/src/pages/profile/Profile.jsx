@@ -10,6 +10,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { usePeminjaman } from '../../hooks/usePeminjaman';
 import StatusBadge from '../../components/modules/admin/StatusBadge';
 import HistoryContent from './HistoryContent';
+import { calculateBorrowingStats } from './calculateBorrowingStats';
 
 const Profile = () => {
   const { user, loading } = useAuth();
@@ -82,10 +83,24 @@ const Profile = () => {
     }
   };
 
-  const stats = [
-    { icon: <BookOpen className="w-5 h-5" />, label: 'Buku Dipinjam', value: '12' },
-    { icon: <Clock className="w-5 h-5" />, label: 'Sedang Dipinjam', value: '3' },
-    { icon: <Calendar className="w-5 h-5" />, label: 'Bergabung', value: format(new Date(user?.createdAt || new Date()), 'MMMM yyyy', { locale: id }) }
+   const { totalPeminjaman, sedangBerjalan } = calculateBorrowingStats(historyPeminjaman);
+
+   const stats = [
+    { 
+      icon: <BookOpen className="w-5 h-5" />, 
+      label: 'Total Peminjaman', 
+      value: totalPeminjaman
+    },
+    { 
+      icon: <Clock className="w-5 h-5" />, 
+      label: 'Sedang Berjalan', 
+      value: sedangBerjalan
+    },
+    { 
+      icon: <Calendar className="w-5 h-5" />, 
+      label: 'Bergabung', 
+      value: format(new Date(user?.createdAt || new Date()), 'MMMM yyyy', { locale: id }) 
+    }
   ];
 
   return (
