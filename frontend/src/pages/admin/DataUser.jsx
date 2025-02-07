@@ -18,7 +18,7 @@ const DataUser = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [filters, setFilters] = useState({
-    role: 'USER',
+    role: '',
     active: 'ACTIVE'
   })
 
@@ -271,8 +271,11 @@ const DataUser = () => {
         </span>
       </td>
       <td className="hidden sm:table-cell px-2 lg:px-6 py-4">
-        <span className="px-2 py-1 text-xs lg:text-sm bg-green-500/10 text-green-400 rounded">
-          Active
+        <span className={`px-2 py-1 text-xs lg:text-sm rounded ${user.is_active
+            ? 'bg-green-500/10 text-green-400'
+            : 'bg-red-500/10 text-red-400'
+          }`}>
+          {user.is_active ? 'Active' : 'Inactive'}
         </span>
       </td>
       <td className="hidden md:table-cell px-2 lg:px-6 py-4 text-gray-400 text-xs">
@@ -305,6 +308,7 @@ const DataUser = () => {
         onFilter={handleFilter}
         filterType="user"
         initialValue=""
+        initialFilters={filters}
         className="w-full"
       />
 

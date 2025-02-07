@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { userService } from "../services/userService";
 import { useDebounce } from "./useDebounce";
 
+
 export const useUsers = (initialParams = {}) => {
   const [data, setData] = useState({
     users: [],
@@ -11,7 +12,14 @@ export const useUsers = (initialParams = {}) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [params, setParams] = useState(initialParams);
+  const [params, setParams] = useState({
+    page: 1,
+    limit: 10,
+    search: '',
+    role: '',
+    active: '',
+    ...initialParams
+  });
 
   const debouncedSearch = useDebounce(params.search, 500);
 

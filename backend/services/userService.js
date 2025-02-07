@@ -6,17 +6,28 @@ import createError from "http-errors";
 import fs from "fs/promises";
 
 export const userService = {
-  async findUsers({ page = 1, limit = 10, search = "" }) {
+  async findUsers({ page = 1, limit = 10, search = "", role = "", active = "" }) {
     const offset = (page - 1) * limit;
-    const whereClause = search
-      ? {
-          [Op.or]: [
-            { name: { [Op.like]: `%${search}%` } },
-            { email: { [Op.like]: `%${search}%` } },
-            { username: { [Op.like]: `%${search}%` } },
-          ],
-        }
-      : {};
+
+    const whereClause = {};
+
+    if (search) {
+      whereClause[Op.or] = [
+        { name: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } },
+        { username: { [Op.like]: `%${search}%` } },
+      ];
+    }
+
+    if (role && role !== "ALL") {
+      whereClause.role = role
+    } 
+
+    if (active === "ACTIVE") {
+      whereClause.is_active = true;
+    } else if (active === "INACTIVE") {
+      whereClause.is_active = false;
+    }
 
     const { count, rows } = await User.findAndCountAll({
       where: whereClause,
@@ -41,15 +52,16 @@ export const userService = {
     });
 
     if (existingUser) {
-      throw createError(400, 
-        existingUser.email === email 
-          ? "Email sudah digunakan" 
+      throw createError(
+        400,
+        existingUser.email === email
+          ? "Email sudah digunakan"
           : "Username sudah digunakan"
       );
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
-    
+
     return User.create({
       name,
       email,
@@ -66,8 +78,8 @@ export const userService = {
     }
 
     // Gunakan scope withAuth untuk mengambil password
-    const user = await User.scope('withAuth').findOne({ 
-      where: { email }
+    const user = await User.scope("withAuth").findOne({
+      where: { email },
     });
 
     if (!user) {
@@ -94,7 +106,7 @@ export const userService = {
         username: user.username,
         profile_img: user.profile_img,
         role: user.role,
-      }
+      },
     };
   },
 
@@ -123,7 +135,7 @@ export const userService = {
 
   async deleteUser(id) {
     const user = await User.findByPk(id);
-    
+
     if (!user) {
       throw createError(404, "User tidak ditemukan");
     }
@@ -134,16 +146,14 @@ export const userService = {
       try {
         await fs.unlink(filePath);
       } catch (error) {
-        console.log('Error menghapus gambar:', error);
+        console.log("Error menghapus gambar:", error);
       }
     }
 
     await user.destroy();
     return {
       status: true,
-      message: "User berhasil dihapus"
+      message: "User berhasil dihapus",
     };
   },
-
-  // ... tambahkan method lain yang diperlukan
-}; 
+};

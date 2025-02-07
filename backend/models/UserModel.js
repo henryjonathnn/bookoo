@@ -47,7 +47,7 @@ const User = db.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    isActive: {
+    is_active: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
@@ -63,7 +63,7 @@ const User = db.define(
       { fields: ["email"] },
       { fields: ["username"] },
       { fields: ["role"] },
-      { fields: ["isActive"] },
+      { fields: ["is_active"] },
     ],
     defaultScope: {
       attributes: { exclude: ["password", "refresh_token"] },
