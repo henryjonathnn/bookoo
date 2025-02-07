@@ -39,9 +39,15 @@ const DataUser = () => {
   });
 
   const handleFilter = (newFilters) => {
-    setFilters(newFilters);
-    updateParams({
+
+    const processedFilters = {
       ...newFilters,
+      role: newFilters.role === 'ALL' ? '' : newFilters.role
+    }
+
+    setFilters(processedFilters);
+    updateParams({
+      ...processedFilters,
       page: 1
     })
   }

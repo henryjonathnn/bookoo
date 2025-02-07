@@ -26,10 +26,12 @@ export const useUsers = (initialParams = {}) => {
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const result = await userService.getUsers({
+      const queryParams = {
         ...params,
         search: debouncedSearch,
-      });
+        role: params.role === "ALL" ? "" : params.role,
+      }
+      const result = await userService.getUsers(queryParams)
       setData(result);
       setError(null);
     } catch (err) {

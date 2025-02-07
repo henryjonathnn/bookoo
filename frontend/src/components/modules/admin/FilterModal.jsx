@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check } from 'react-feather';
 
-const FilterModal = ({ 
-  isOpen, 
-  onClose, 
-  onApply, 
+const FilterModal = ({
+  isOpen,
+  onClose,
+  onApply,
   type,
-  initialFilters 
+  initialFilters
 }) => {
   const [localFilters, setLocalFilters] = useState({});
 
@@ -24,13 +24,19 @@ const FilterModal = ({
           key: 'role',
           label: 'Role',
           type: 'select',
-          choices: ['USER', 'STAFF', 'ADMIN']
+          choices: ['USER', 'STAFF', 'ADMIN'],
+          defaultLabel: 'Semua Role'
         },
         {
           key: 'active',
           label: 'Status',
           type: 'select',
-          choices: ['ACTIVE', 'INACTIVE']
+          choices: ['ACTIVE', 'INACTIVE'],
+          defaultLabel: 'Semua Status',
+          valueLabels: {
+            'ACTIVE': 'Aktif',
+            'INACTIVE': 'Tidak Aktif',
+          }
         }
       ]
     },
@@ -71,8 +77,12 @@ const FilterModal = ({
   };
 
   const handleReset = () => {
-    setLocalFilters({});
-    onApply({});
+    const emptyFilters = {
+      role: '',
+      active: ''
+    }
+    setLocalFilters(emptyFilters);
+    onApply(emptyFilters);
     onClose();
   };
 
@@ -85,8 +95,8 @@ const FilterModal = ({
       <div className="bg-[#1a1625] rounded-xl w-full max-w-md mx-4 shadow-2xl">
         <div className="flex justify-between items-center p-4 border-b border-gray-800">
           <h2 className="text-lg font-bold">{config.title}</h2>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="text-gray-400 hover:text-white transition-colors"
           >
             <X size={24} />
@@ -104,10 +114,10 @@ const FilterModal = ({
                 onChange={(e) => handleFilterChange(option.key, e.target.value)}
                 className="w-full px-3 py-2 bg-[#0f0a19] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
-                <option value="">Semua {option.label}</option>
+                <option value="">{option.defaultLabel}</option>
                 {option.choices.map(choice => (
                   <option key={choice} value={choice}>
-                    {choice}
+                    {option.valueLabels ? option.valueLabels[choice] || choice : choice}
                   </option>
                 ))}
               </select>
