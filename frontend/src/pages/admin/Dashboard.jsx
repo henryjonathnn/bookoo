@@ -18,6 +18,8 @@ import Button from "../../components/ui/admin/Button";
 import { peminjamanService } from '../../services/peminjamanService';
 import { useBooks } from '../../hooks/useBook';
 import { useUsers } from '../../hooks/useUsers';
+import FilterPanel from '../../components/ui/admin/FilterPanel';
+import CurrentDateTime from '../../components/ui/admin/CurrentDateTime';
 
 
 // Expanded Mock Data
@@ -298,6 +300,27 @@ const Dashboard = () => {
     console.log('Memperbarui data...');
   };
 
+  const fetchFilteredData = async (filters) => {
+    try {
+      setIsLoading(true);
+      // Example API call with filters
+      const response = await peminjamanService.getPeminjamanWithFilters({
+        startDate: filters.dateRange.startDate,
+        endDate: filters.dateRange.endDate,
+        category: filters.category,
+        status: filters.status,
+        userType: filters.userType,
+        activity: filters.activity,
+        sortBy: filters.sortBy
+      });
+      setPeminjamanData(response);
+    } catch (error) {
+      console.error("Failed to fetch filtered data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const renderTrendIcon = (trend) => {
     return trend === 'up' ?
       <ArrowUp className="text-green-500 inline ml-1" size={16} /> :
@@ -335,13 +358,18 @@ const Dashboard = () => {
           </button>
         </div>
         <div className="flex gap-4">
-          <button className="px-4 py-2 bg-[#2a2438] text-white rounded-lg hover:bg-[#362f47] transition-colors">
-            <Filter size={16} className="inline mr-2" /> Filter
-          </button>
+          <FilterPanel onFilterChange={(filters) => {
+            console.log('Filters changed:', filters);
+            fetchFilteredData(filters);
+          }} />
           <button className="px-4 py-2 bg-[#2a2438] text-white rounded-lg hover:bg-[#362f47] transition-colors">
             <Download size={16} className="inline mr-2" /> Export
           </button>
         </div>
+      </div>
+
+      <div className="mb-8">
+        <CurrentDateTime />
       </div>
 
       {/* Tabs Navigation - Responsive */}
