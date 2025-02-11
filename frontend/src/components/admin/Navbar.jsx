@@ -29,7 +29,7 @@ const Navbar = ({ toggleSidebar }) => {
 
   return (
     <header className="bg-[#1a1625]/50 backdrop-blur-sm border-b border-purple-500/10 fixed right-0 left-0 md:left-64 top-0 z-20">
-      <div className="flex justify-between items-center px-4 py-3">
+      <div className="flex justify-between items-center px-4 py-2">
         <div className="flex items-center space-x-4">
           <button 
             onClick={toggleSidebar}

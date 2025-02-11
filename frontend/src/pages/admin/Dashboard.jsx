@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   BookOpen, Users, Bookmark, Award, ChevronDown, Search, Bell,
   ArrowUp, ArrowDown, PieChart, BarChart, TrendingUp, Calendar,
-  Download, Filter, RefreshCw
+  Download, Filter, RefreshCw, Menu
 } from 'react-feather';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -19,20 +19,21 @@ import { peminjamanService } from '../../services/peminjamanService';
 
 // Expanded Mock Data
 const borrowingData = [
-  { month: 'Jan', buku: 350, returned: 300 },
-  { month: 'Feb', buku: 400, returned: 350 },
-  { month: 'Mar', buku: 380, returned: 330 },
-  { month: 'Apr', buku: 450, returned: 400 },
-  { month: 'Mei', buku: 420, returned: 370 },
-  { month: 'Jun', buku: 480, returned: 430 }
+  { month: 'Jan', borrowed: 350, returned: 300, active: 50 },
+  { month: 'Feb', borrowed: 400, returned: 350, active: 50 },
+  { month: 'Mar', borrowed: 380, returned: 330, active: 50 },
+  { month: 'Apr', borrowed: 450, returned: 400, active: 50 },
+  { month: 'May', borrowed: 420, returned: 370, active: 50 },
+  { month: 'Jun', borrowed: 480, returned: 430, active: 50 }
 ];
 
 const categoryData = [
-  { name: 'Fiction', value: 400 },
-  { name: 'Non-Fiction', value: 300 },
-  { name: '科学', value: 200 },
-  { name: 'History', value: 150 }
+  { name: 'Fiction', value: 400, description: 'Novels, Short Stories, Poetry' },
+  { name: 'Non-Fiction', value: 300, description: 'Biographies, Self-Help' },
+  { name: 'Academic', value: 200, description: 'Textbooks, Research Papers' },
+  { name: 'Children', value: 150, description: 'Picture Books, Young Adult' }
 ];
+
 
 const COLORS = ['#8B5CF6', '#EC4899', '#10B981', '#3B82F6'];
 
@@ -42,11 +43,23 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [viewMode, setViewMode] = useState('chart');
   const [isLoading, setIsLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isMobileView, setIsMobileView] = useState(false)
   const [dateRange, setDateRange] = useState({
     minDate: new Date(),
     maxDate: new Date()
   });
   const [peminjamanData, setPeminjamanData] = useState([]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 768);
+    };
+
+    handleResize(); // Initial check
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const initializeDateRange = async () => {
@@ -143,60 +156,75 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#1a1625] p-6 mt-20 mb-1">
-      {/* Top Controls */}
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-[#1a1625] p-3 sm:p-6 mt-16 sm:mt-20 mb-1">
+      {/* Mobile Menu Button */}
+      <div className="block md:hidden mb-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="w-full flex justify-between items-center"
+        >
+          <span>Menu</span>
+          <Menu size={20} />
+        </Button>
+      </div>
+
+      {/* Top Controls - Responsive */}
+      <div className={`flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 mb-8 ${isMobileMenuOpen ? '' : 'hidden md:flex'}`}>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
           <DatePicker
             onDateChange={handleDateChange}
             minDate={dateRange.minDate}
             maxDate={dateRange.maxDate}
+            className="w-full sm:w-auto"
           />
           <Button
             variant="outline"
             size="sm"
             onClick={() => fetchBorrowingData(selectedDate)}
             disabled={isLoading}
+            className="w-full sm:w-auto"
           >
             <RefreshCw size={16} className="mr-2" /> Refresh Data
           </Button>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          <div className="relative flex-grow sm:flex-grow-0">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
               placeholder="Cari aktivitas..."
-              className="pl-10 pr-4 py-2 bg-[#2a2438] border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full pl-10 pr-4 py-2 bg-[#2a2438] border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button onClick={handleExport}>
+          <Button onClick={handleExport} className="w-full sm:w-auto">
             <Download size={16} className="mr-2" /> Export
           </Button>
         </div>
       </div>
 
-      {/* Tabs Navigation */}
+      {/* Tabs Navigation - Responsive */}
       <Tabs
         defaultValue="overview"
         onValueChange={setActiveTab}
         className="mb-6"
       >
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="details">Detailed Stats</TabsTrigger>
-          <TabsTrigger value="management">Library Management</TabsTrigger>
+        <TabsList className="w-full flex-wrap">
+          <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
+          <TabsTrigger value="details" className="flex-1">Detailed Stats</TabsTrigger>
+          <TabsTrigger value="management" className="flex-1">Library Management</TabsTrigger>
         </TabsList>
       </Tabs>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Stats Grid - Responsive */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-3 mb-8">
         {stats.map((stat, index) => (
           <Card key={index}>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex justify-between items-start mb-4">
                 <div className={`p-2 rounded-lg ${stat.bgColor}`}>
                   {stat.icon}
@@ -206,7 +234,7 @@ const Dashboard = () => {
                 </span>
               </div>
               <h3 className="text-gray-400 text-sm mb-1">{stat.title}</h3>
-              <p className="text-2xl font-bold">{stat.value}</p>
+              <p className="text-xl sm:text-2xl font-bold">{stat.value}</p>
             </CardContent>
           </Card>
         ))}
@@ -214,7 +242,7 @@ const Dashboard = () => {
 
       {/* Charts & Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Enhanced Borrowing Trends Chart with Gradient Fill */}
+        {/* Chart Data Peminjaman */}
         <Card>
           <CardHeader className="flex justify-between items-center">
             <CardTitle>Grafik Peminjaman Tahun Ini</CardTitle>
@@ -282,7 +310,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Enhanced Book Category Distribution */}
+       {/* Chart Kategori Buku */}
         <Card>
           <CardHeader>
             <CardTitle>Distribusi Kategori Buku</CardTitle>
