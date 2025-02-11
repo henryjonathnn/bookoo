@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   BookOpen, Users, Bookmark, Award, ChevronDown, Search, Bell,
   ArrowUp, ArrowDown, PieChart, BarChart, TrendingUp, Calendar,
-  Download, Filter, RefreshCw, Menu
+  Download, Filter, RefreshCw, Menu, Clock, UserPlus, Star, Activity
 } from 'react-feather';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -165,7 +165,7 @@ const Dashboard = () => {
     {
       title: "Total Buku",
       value: bookStats.totalBooks || 0,
-      change: "+12.5%", // You might want to calculate this based on historical data
+      change: "+12.5%",
       icon: <BookOpen className="text-purple-500" />,
       bgColor: "bg-purple-500/10",
       trend: 'up'
@@ -193,8 +193,83 @@ const Dashboard = () => {
       icon: <Award className="text-blue-500" />,
       bgColor: "bg-blue-500/10",
       trend: 'up'
+    },
+    {
+      title: "Keterlambatan",
+      value: 12,
+      change: "+2.4%",
+      icon: <Clock className="text-red-500" />,
+      bgColor: "bg-red-500/10",
+      trend: 'up'
+    },
+    {
+      title: "Member Baru",
+      value: 28,
+      change: "+5.6%",
+      icon: <UserPlus className="text-green-500" />,
+      bgColor: "bg-green-500/10",
+      trend: 'up'
+    },
+    {
+      title: "Rating Rata-rata",
+      value: "4.5",
+      change: "+0.3",
+      icon: <Star className="text-yellow-500" />,
+      bgColor: "bg-yellow-500/10",
+      trend: 'up'
+    },
+    {
+      title: "Aktivitas Harian",
+      value: 156,
+      change: "+12.3%",
+      icon: <Activity className="text-cyan-500" />,
+      bgColor: "bg-cyan-500/10",
+      trend: 'up'
     }
   ], [bookStats, userStats]);
+
+  const detailedStats = [
+    {
+      title: "Statistik Peminjaman",
+      items: [
+        {
+          label: "Peminjaman Hari Ini",
+          value: "24",
+          change: "+4",
+          trend: "up"
+        },
+        {
+          label: "Pengembalian Hari Ini",
+          value: "18",
+          change: "-2",
+          trend: "down"
+        },
+        {
+          label: "Rata-rata Durasi",
+          value: "7 hari",
+          change: "0",
+          trend: "neutral"
+        }
+      ]
+    },
+    {
+      title: "Performa Kategori",
+      items: [
+        {
+          label: "Kategori Terpopuler",
+          value: "Fiksi",
+          change: "+15%",
+          trend: "up"
+        },
+        {
+          label: "Kategori Terendah",
+          value: "Referensi",
+          change: "-8%",
+          trend: "down"
+        }
+      ]
+    }
+  ];
 
 
   const handleExport = () => {
@@ -230,7 +305,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#1a1625] p-3 sm:p-6 mt-16 sm:mt-20 mb-1">
+    <div className="min-h-screen bg-[#1a1625] p-3 sm:p-6 mt-16 sm:mt-20 mb-1 rounded-lg">
       {/* Mobile Menu Button */}
       <div className="block md:hidden mb-4">
         <Button
@@ -245,38 +320,27 @@ const Dashboard = () => {
       </div>
 
       {/* Top Controls */}
-      <div className={`flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 mb-8 ${isMobileMenuOpen ? '' : 'hidden md:flex'}`}>
+      <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 mb-8">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-          <DatePicker
-            selected={selectedDate}
-            onChange={setSelectedDate}
-            className="w-full sm:w-auto"
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={booksLoading || usersLoading}
-            className="w-full sm:w-auto"
-          >
-            <RefreshCw size={16} className="mr-2" /> Refresh Data
-          </Button>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-          <div className="relative flex-grow sm:flex-grow-0">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
               placeholder="Cari aktivitas..."
               className="w-full pl-10 pr-4 py-2 bg-[#2a2438] border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button onClick={handleExport} className="w-full sm:w-auto">
-            <Download size={16} className="mr-2" /> Export
-          </Button>
+          <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+            <RefreshCw size={16} className="inline mr-2" /> Refresh
+          </button>
+        </div>
+        <div className="flex gap-4">
+          <button className="px-4 py-2 bg-[#2a2438] text-white rounded-lg hover:bg-[#362f47] transition-colors">
+            <Filter size={16} className="inline mr-2" /> Filter
+          </button>
+          <button className="px-4 py-2 bg-[#2a2438] text-white rounded-lg hover:bg-[#362f47] transition-colors">
+            <Download size={16} className="inline mr-2" /> Export
+          </button>
         </div>
       </div>
 
@@ -293,11 +357,11 @@ const Dashboard = () => {
         </TabsList>
       </Tabs>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-3 mb-8">
+      {/* Main Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-5 mb-6">
         {stats.map((stat, index) => (
-          <Card key={index}>
-            <CardContent className="p-4 sm:p-6">
+          <Card key={index} className="bg-[#2a2438] border-0">
+            <CardContent className="p-4">
               <div className="flex justify-between items-start mb-4">
                 <div className={`p-2 rounded-lg ${stat.bgColor}`}>
                   {stat.icon}
@@ -307,7 +371,33 @@ const Dashboard = () => {
                 </span>
               </div>
               <h3 className="text-gray-400 text-sm mb-1">{stat.title}</h3>
-              <p className="text-xl sm:text-2xl font-bold">{stat.value}</p>
+              <p className="text-2xl font-bold text-white">{stat.value}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Detailed Stats Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {detailedStats.map((section, index) => (
+          <Card key={index} className="bg-[#2a2438] border-0">
+            <CardHeader>
+              <CardTitle className="text-lg text-white">{section.title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {section.items.map((item, idx) => (
+                  <div key={idx} className="flex justify-between items-center p-3 bg-[#362f47] rounded-lg">
+                    <span className="text-gray-300">{item.label}</span>
+                    <div className="flex items-center">
+                      <span className="text-white font-medium mr-2">{item.value}</span>
+                      <span className={`text-sm ${item.trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>
+                        {item.change} {renderTrendIcon(item.trend)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         ))}
