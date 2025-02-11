@@ -16,6 +16,9 @@ import DatePicker from '../../components/ui/admin/DatePicker';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/admin/Tabs";
 import Button from "../../components/ui/admin/Button";
 import { peminjamanService } from '../../services/peminjamanService';
+import { useBooks } from '../../hooks/useBook';
+import { useUsers } from '../../hooks/useUsers';
+
 
 // Expanded Mock Data
 const borrowingData = [
@@ -102,20 +105,74 @@ const Dashboard = () => {
     }
   };
 
+  const {
+    books,
+    loading: booksLoading,
+    totalItems: totalBooks,
+    refresh: refreshBooks
+  } = useBooks({ limit: 1000 }); // Get all books for statistics
 
-  // Enhanced Stats with More Detailed Information
+  const {
+    users,
+    loading: usersLoading,
+    totalItems: totalUsers,
+    refresh: refreshUsers
+  } = useUsers({ limit: 1000 }); // Get all users for statistics
+
+  // Calculate book statistics
+  const bookStats = useMemo(() => {
+    if (!books) return {};
+
+    const activeBooks = books.filter(book => book.status === 'DIPINJAM').length;
+    const totalReviews = books.reduce((acc, book) => acc + (book.reviews?.length || 0), 0);
+
+    return {
+      totalBooks,
+      activeBooks,
+      totalReviews
+    };
+  }, [books, totalBooks]);
+
+  // Calculate user statistics
+  const userStats = useMemo(() => {
+    if (!users) return {};
+
+    const activeUsers = users.filter(user => user.is_active === true && user.role === 'USER').length;
+
+    return {
+      totalUsers,
+      activeUsers
+    };
+  }, [users, totalUsers]);
+
+  const categoryData = useMemo(() => {
+    if (!books) return [];
+
+    const categories = books.reduce((acc, book) => {
+      const category = book.category || 'Uncategorized';
+      acc[category] = (acc[category] || 0) + 1;
+      return acc;
+    }, {});
+
+    return Object.entries(categories).map(([name, value]) => ({
+      name,
+      value
+    }));
+  }, [books]);
+
+  // Enhanced Stats with Real Data
   const stats = useMemo(() => [
     {
       title: "Total Buku",
-      value: "2,846",
-      change: "+12.5%",
+      value: bookStats.totalBooks || 0,
+      change: "+12.5%", // You might want to calculate this based on historical data
       icon: <BookOpen className="text-purple-500" />,
       bgColor: "bg-purple-500/10",
       trend: 'up'
     },
     {
       title: "Pengunjung Aktif",
-      value: "1,453",
+      value: userStats.activeUsers || 0,
       change: "+8.2%",
       icon: <Users className="text-indigo-500" />,
       bgColor: "bg-indigo-500/10",
@@ -123,7 +180,7 @@ const Dashboard = () => {
     },
     {
       title: "Buku Dipinjam",
-      value: "846",
+      value: bookStats.activeBooks || 0,
       change: "-3.1%",
       icon: <Bookmark className="text-pink-500" />,
       bgColor: "bg-pink-500/10",
@@ -131,18 +188,35 @@ const Dashboard = () => {
     },
     {
       title: "Total Reviews",
-      value: "4,721",
+      value: bookStats.totalReviews || 0,
       change: "+15.8%",
       icon: <Award className="text-blue-500" />,
       bgColor: "bg-blue-500/10",
       trend: 'up'
     }
-  ], []);
+  ], [bookStats, userStats]);
+
 
   const handleExport = () => {
-    // Placeholder for export functionality
-    alert('Mengekspor data...');
+    // Implement export functionality
+    const data = {
+      books: books,
+      users: users,
+      stats: {
+        books: bookStats,
+        users: userStats
+      }
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'dashboard-data.json';
+    a.click();
+    URL.revokeObjectURL(url);
   };
+
 
   const handleRefresh = () => {
     // Placeholder for data refresh
@@ -170,20 +244,19 @@ const Dashboard = () => {
         </Button>
       </div>
 
-      {/* Top Controls - Responsive */}
+      {/* Top Controls */}
       <div className={`flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 mb-8 ${isMobileMenuOpen ? '' : 'hidden md:flex'}`}>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
           <DatePicker
-            onDateChange={handleDateChange}
-            minDate={dateRange.minDate}
-            maxDate={dateRange.maxDate}
+            selected={selectedDate}
+            onChange={setSelectedDate}
             className="w-full sm:w-auto"
           />
           <Button
             variant="outline"
             size="sm"
-            onClick={() => fetchBorrowingData(selectedDate)}
-            disabled={isLoading}
+            onClick={handleRefresh}
+            disabled={booksLoading || usersLoading}
             className="w-full sm:w-auto"
           >
             <RefreshCw size={16} className="mr-2" /> Refresh Data
@@ -220,7 +293,7 @@ const Dashboard = () => {
         </TabsList>
       </Tabs>
 
-      {/* Stats Grid - Responsive */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-3 mb-8">
         {stats.map((stat, index) => (
           <Card key={index}>
@@ -310,7 +383,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-       {/* Chart Kategori Buku */}
+        {/* Chart Kategori Buku */}
         <Card>
           <CardHeader>
             <CardTitle>Distribusi Kategori Buku</CardTitle>
