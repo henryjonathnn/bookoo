@@ -35,23 +35,18 @@ const DataBuku = () => {
     page: 1,
     limit: 10,
     search: '',
-    ...filters
+    kategori: filters.kategori 
   });
 
 
 
-  const handleFilter = (newFilters) => {
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      ...newFilters
-    }));
-  
-    updateParams((prevParams) => ({
-      ...prevParams,
+  const handleFilter = useCallback((newFilters) => {
+    setFilters(newFilters);
+    updateParams({ 
       ...newFilters,
-      page: 1
-    }));
-  };
+      page: 1 
+    });
+  }, [updateParams]);
 
 
   // Handle search
@@ -208,7 +203,7 @@ const DataBuku = () => {
             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
             <option value="" disabled>Pilih Kategori</option>
-            {categories.filter(category => category !== "Pilih Kategori").map(category => (
+            {categories.map(category => (
               <option key={category} value={category}>{category}</option>
             ))}
           </select>
@@ -346,6 +341,7 @@ const DataBuku = () => {
         onFilter={handleFilter}
         filterType="book"
         initialValue=""
+        initialFilters={filters} 
         className="w-full"
       />
 

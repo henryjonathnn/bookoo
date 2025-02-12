@@ -50,7 +50,7 @@ const FilterModal = ({
           key: 'kategori',
           label: 'Kategori',
           type: 'select',
-          defaultLabel: 'Semua Kategori',
+          defaultLabel: 'Pilih Kategori',
           choices: LoadingCategories ? [] : categories,
         }
       ]
@@ -81,10 +81,13 @@ const FilterModal = ({
   };
 
   const handleReset = () => {
-    const emptyFilters = {
-      role: '',
-      active: ''
-    }
+    // Sesuaikan empty filters berdasarkan type
+    const emptyFilters = type === 'book' 
+      ? { kategori: '' }
+      : type === 'user'
+      ? { role: '', active: '' }
+      : { status: '' };
+      
     setLocalFilters(emptyFilters);
     onApply(emptyFilters);
     onClose();
@@ -118,7 +121,7 @@ const FilterModal = ({
                 onChange={(e) => handleFilterChange(option.key, e.target.value)}
                 className="w-full px-3 py-2 bg-[#0f0a19] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
-                <option value="">{option.defaultLabel}</option>
+                <option value="" disabled>{option.defaultLabel}</option>
                 {LoadingCategories ? (
                   <option disabled>Memuat kategori...</option>
                 ) : (

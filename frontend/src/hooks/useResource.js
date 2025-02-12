@@ -16,10 +16,15 @@ export const useResource = (fetchFunction, initialParams = {}) => {
       setLoading(true);
       setError(null);
 
-      // Fetch data using the provided service method
-      const result = await fetchFunction(params);
+      const queryParams = {
+        ...params,
+        page: currentPage
+      };
 
-      // Update states with fetched data
+      // Fetch data using the provided service method
+      const result = await fetchFunction(queryParams);
+
+      
       setData(result.data || []);
       setTotalItems(result.count || 0);
       setTotalPages(result.totalPages || 0);
@@ -39,10 +44,17 @@ export const useResource = (fetchFunction, initialParams = {}) => {
 
   // Method to update parameters
   const updateParams = useCallback((newParams) => {
-    setParams(prev => ({
-      ...prev,
-      ...newParams
-    }));
+    if (typeof newParams === 'function') {
+      setParams(prev => ({
+        ...prev,
+        ...newParams(prev)
+      }));
+    } else {
+      setParams(prev => ({
+        ...prev,
+        ...newParams
+      }));
+    }
   }, []);
 
   // Refresh method to re-fetch current data

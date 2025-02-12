@@ -7,20 +7,29 @@ export const bukuController = {
   // Optimized get method with more efficient querying
   getBuku: async (req, res) => {
     try {
-      const { page = 1, limit = 10, search = "" } = req.query;
+      const { page = 1, limit = 10, search = "", kategori = "" } = req.query;
 
       const offset = (page - 1) * limit;
 
+      let condition = {};
+
       // More efficient search condition
-      const condition = search
-        ? {
-            [Op.or]: [
-              { judul: { [Op.like]: `%${search}%` } },
-              { penulis: { [Op.like]: `%${search}%` } },
-              { isbn: { [Op.like]: `%${search}%` } },
-            ],
-          }
-        : {};
+      if (search) {
+        condition = {
+          [Op.or]: [
+            { judul: { [Op.like]: `%${search}%` } },
+            { penulis: { [Op.like]: `%${search}%` } },
+            { isbn: { [Op.like]: `%${search}%` } },
+          ],
+        };
+      }
+
+      if (kategori) {
+        condition = {
+          ...condition,
+          kategori: kategori
+        };
+      }
 
       // Use Promise.all for parallel operations
       const [{ count, rows }, totalCount] = await Promise.all([
@@ -30,7 +39,7 @@ export const bukuController = {
           offset: Number(offset),
           order: [["createdAt", "DESC"]],
           attributes: {
-            exclude: ["content"], // Exclude large text fields if not needed
+            exclude: ["content"], 
           },
         }),
         Buku.count({ where: condition }),
@@ -55,11 +64,11 @@ export const bukuController = {
     try {
       const { id } = req.params;
       const buku = await Buku.findByPk(id);
-  
+
       if (!buku) {
         return res.status(404).json({ msg: "Buku tidak ditemukan" });
       }
-  
+
       res.json(buku);
     } catch (error) {
       console.error("Error fetching book by ID:", error);
@@ -233,18 +242,18 @@ export const bukuController = {
       });
     }
   },
-  
+
   getKategori: async (req, res) => {
     try {
       // Dapatkan model Buku
       const tableDefinition = Buku.rawAttributes.kategori;
-      
+
       // Ambil values dari ENUM
       const enumValues = tableDefinition.values;
 
       res.json({
         totalCategories: enumValues.length,
-        categories: enumValues
+        categories: enumValues,
       });
     } catch (error) {
       console.error("Error fetching categories:", error);

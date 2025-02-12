@@ -1,19 +1,25 @@
-import api from './axios.instance';
-import { handleApiError } from '../utils/api.utils';
+import api from "./axios.instance";
+import { handleApiError } from "../utils/api.utils";
 
-const createApiMethod = (apiCall) => async (...args) => {
-  try {
-    const response = await apiCall(...args);
-    return response.data;
-  } catch (error) {
-    throw new Error(handleApiError(error));
-  }
-};
+const createApiMethod =
+  (apiCall) =>
+  async (...args) => {
+    try {
+      const response = await apiCall(...args);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  };
 
 export const bookService = {
   getBuku: async (params = {}) => {
     try {
-      const response = await api.get("/buku", { params });
+      const response = await api.get("/buku", { params: {
+        ...params,
+        kategori: params.kategori || undefined, 
+      } 
+    });
       return {
         data: response.data.books,
         count: response.data.totalItems,
@@ -27,7 +33,9 @@ export const bookService = {
 
   getBukuById: createApiMethod(async (id) => api.get(`/buku/${id}`)),
   createBuku: createApiMethod((bookData) => api.post("/buku", bookData)),
-  updateBuku: createApiMethod((id, bookData) => api.patch(`/buku/${id}`, bookData)),
+  updateBuku: createApiMethod((id, bookData) =>
+    api.patch(`/buku/${id}`, bookData)
+  ),
   deleteBuku: createApiMethod((id) => api.delete(`/buku/${id}`)),
   getKategori: createApiMethod(() => api.get("/buku/kategori")),
 };
