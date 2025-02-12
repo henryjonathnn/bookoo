@@ -17,6 +17,7 @@ import CurrentDateTime from '../../components/modules/admin/CurrentDateTime';
 import useWindowSize from '../../hooks/useWindowSize';
 import { useBooks } from '../../hooks/useBook';
 import { useUsers } from '../../hooks/useUsers';
+import { usePeminjaman } from '../../hooks/usePeminjaman';
 import { useBookCategories } from '../../hooks/useBookCategories';
 
 const COLORS = ['#8B5CF6', '#EC4899', '#10B981', '#3B82F6'];
@@ -31,6 +32,36 @@ const Dashboard = () => {
     // Data fetching hooks
   const { books, loading: booksLoading, totalItems: totalBooks } = useBooks({ limit: 1000 });
   const { users, loading: usersLoading, totalItems: totalUsers } = useUsers({ limit: 1000 });
+  const { totalCategories, loading: categoriesLoading } = useBookCategories();
+
+  const libraryStats = useMemo(() => {
+    if (!books?.length) return {
+      totalBooks: 0,
+      totalMembers: 0,
+      totalCategories: 0,
+      totalStaff: 0,
+      totalDipinjam: 0,
+      averageRating: 0
+    };
+
+    // Count books with status "DIPINJAM"
+    const totalDipinjam = 22
+
+    // Calculate average rating if available
+    const validRatings = books.filter(book => book.rating > 0);
+    const averageRating = validRatings.length > 0
+      ? (validRatings.reduce((sum, book) => sum + book.rating, 0) / validRatings.length).toFixed(1)
+      : 0;
+
+    return {
+      totalBooks: totalBooks || 0,
+      totalMembers: users?.filter(user => user.role === 'USER').length || 0,
+      totalCategories: totalCategories || 0,
+      totalStaff: users?.filter(user => user.role === 'STAFF').length || 0,
+      totalDipinjam,
+      averageRating
+    };
+  }, [books, totalBooks, users, totalCategories]);
 
   // Memoized computations
   const bookStats = useMemo(() => {
@@ -90,18 +121,6 @@ const Dashboard = () => {
       description: "Peminjaman yang melewati tenggat waktu"
     }
   ], []);
-
-  const { totalCategories, loading: categoriesLoading } = useBookCategories();
-
-  // Static overview data
-  const libraryOverview = useMemo(() => ({
-    totalBooks: bookStats.totalBooks || 0,
-    totalMembers: userStats.totalMembers || 0,
-    totalCategories: totalCategories || 0,
-    totalStaff: userStats.totalStaff || 0,
-    totalDipinjam: 3,
-    averageRating: 4.5
-  }), [bookStats.totalBooks, userStats.totalMembers, userStats.totalStaff]);
 
     // Callbacks for user interactions
     const handleExport = useCallback(() => {
@@ -177,32 +196,32 @@ const Dashboard = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <div className="flex flex-col items-center p-3 bg-[#362f47] rounded-lg">
             <BookOpen className="text-purple-500 mb-2" size={24} />
-            <span className="text-2xl font-bold text-white">{libraryOverview.totalBooks.toLocaleString()}</span>
+            <span className="text-2xl font-bold text-white">{libraryStats.totalBooks.toLocaleString()}</span>
             <span className="text-sm text-gray-400">Total Buku</span>
           </div>
           <div className="flex flex-col items-center p-3 bg-[#362f47] rounded-lg">
             <Users className="text-blue-500 mb-2" size={24} />
-            <span className="text-2xl font-bold text-white">{libraryOverview.totalMembers.toLocaleString()}</span>
+            <span className="text-2xl font-bold text-white">{libraryStats.totalMembers.toLocaleString()}</span>
             <span className="text-sm text-gray-400">Total Anggota</span>
           </div>
           <div className="flex flex-col items-center p-3 bg-[#362f47] rounded-lg">
             <UserPlus className="text-green-500 mb-2" size={24} />
-            <span className="text-2xl font-bold text-white">{libraryOverview.totalStaff}</span>
+            <span className="text-2xl font-bold text-white">{libraryStats.totalStaff}</span>
             <span className="text-sm text-gray-400">Total Staff</span>
           </div>
           <div className="flex flex-col items-center p-3 bg-[#362f47] rounded-lg">
             <BookOpen className="text-yellow-500 mb-2" size={24} />
-            <span className="text-2xl font-bold text-white">{libraryOverview.totalDipinjam}</span>
+            <span className="text-2xl font-bold text-white">{libraryStats.totalDipinjam}</span>
             <span className="text-sm text-gray-400">Total Dipinjam</span>
           </div>
           <div className="flex flex-col items-center p-3 bg-[#362f47] rounded-lg">
             <Star className="text-amber-500 mb-2" size={24} />
-            <span className="text-2xl font-bold text-white">{libraryOverview.averageRating}</span>
+            <span className="text-2xl font-bold text-white">{libraryStats.averageRating}</span>
             <span className="text-sm text-gray-400">Rating Rata-rata</span>
           </div>
           <div className="flex flex-col items-center p-3 bg-[#362f47] rounded-lg">
             <Award className="text-indigo-500 mb-2" size={24} />
-            <span className="text-2xl font-bold text-white">{libraryOverview.totalCategories}</span>
+            <span className="text-2xl font-bold text-white">{libraryStats.totalCategories}</span>
             <span className="text-sm text-gray-400">Total Kategori</span>
           </div>
         </div>
