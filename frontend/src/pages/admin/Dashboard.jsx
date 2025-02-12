@@ -42,11 +42,13 @@ const Dashboard = () => {
   }, [books, totalBooks]);
 
   const userStats = useMemo(() => {
-    if (!users?.length) return { totalUsers: 0, activeUsers: 0 };
+    if (!users?.length) return { totalMembers: 0, totalStaff: 0 };
 
-    const activeUsers = users.filter(user => user.is_active && user.role === 'USER').length;
-    return { totalUsers, activeUsers };
-  }, [users, totalUsers]);
+    const members = users.filter(user => user.is_active && user.role === 'USER').length;
+    const staff = users.filter(user => user.is_active && user.role === 'STAFF').length;
+
+    return { totalMembers: members, totalStaff: staff };
+  }, [users]);
 
   // Filterable statistics (main stats)
   const filterableStats = useMemo(() => [
@@ -91,12 +93,12 @@ const Dashboard = () => {
   // Static overview data
   const libraryOverview = useMemo(() => ({
     totalBooks: bookStats.totalBooks || 0,
-    totalMembers: userStats.totalUsers || 0,
+    totalMembers: userStats.totalMembers || 0,
     totalCategories: 48,
-    totalStaff: 24,
-    totalBranches: 3,
+    totalStaff: userStats.totalStaff || 0,
+    totalDipinjam: 3,
     averageRating: 4.5
-  }), [bookStats.totalBooks, userStats.totalUsers]);
+  }), [bookStats.totalBooks, userStats.totalMembers, userStats.totalStaff]);
 
     // Callbacks for user interactions
     const handleExport = useCallback(() => {
@@ -181,14 +183,14 @@ const Dashboard = () => {
             <span className="text-sm text-gray-400">Total Anggota</span>
           </div>
           <div className="flex flex-col items-center p-3 bg-[#362f47] rounded-lg">
-            <Grid className="text-green-500 mb-2" size={24} />
+            <UserPlus className="text-green-500 mb-2" size={24} />
             <span className="text-2xl font-bold text-white">{libraryOverview.totalStaff}</span>
             <span className="text-sm text-gray-400">Total Staff</span>
           </div>
           <div className="flex flex-col items-center p-3 bg-[#362f47] rounded-lg">
-            <Box className="text-yellow-500 mb-2" size={24} />
-            <span className="text-2xl font-bold text-white">{libraryOverview.totalBranches}</span>
-            <span className="text-sm text-gray-400">Total Cabang</span>
+            <BookOpen className="text-yellow-500 mb-2" size={24} />
+            <span className="text-2xl font-bold text-white">{libraryOverview.totalDipinjam}</span>
+            <span className="text-sm text-gray-400">Total Dipinjam</span>
           </div>
           <div className="flex flex-col items-center p-3 bg-[#362f47] rounded-lg">
             <Star className="text-amber-500 mb-2" size={24} />
@@ -230,16 +232,6 @@ const Dashboard = () => {
               Bulan Ini
             </Button>
           </div>
-        </div>
-        <div className="relative w-full md:w-auto">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari aktivitas..."
-            className="w-full md:w-64 pl-10 pr-4 py-2 bg-[#2a2438] border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
         </div>
       </div>
 
