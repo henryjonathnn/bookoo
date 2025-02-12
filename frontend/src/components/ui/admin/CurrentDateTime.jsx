@@ -53,7 +53,7 @@ const CurrentDateTime = () => {
         </div>
         <div>
           <p className="text-sm text-gray-400">Waktu</p>
-          <p className="text-lg font-semibold text-white">{formatTime(dateTime)}</p>
+          <p className="text-lg font-semibold text-white">{formatTime(dateTime)} WIB</p>
         </div>
       </div>
     </div>

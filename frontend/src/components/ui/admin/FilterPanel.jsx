@@ -1,20 +1,55 @@
 import React, { useState } from 'react';
-import { Filter, X, ChevronDown } from 'react-feather';
+import { Filter, X, ChevronDown, Calendar } from 'react-feather';
 import DatePicker from './DatePicker';
+
+const months = [
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+];
 
 const FilterPanel = ({ onFilterChange }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isCustomPeriod, setIsCustomPeriod] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [filters, setFilters] = useState({
     dateRange: {
-      startDate: new Date(),
-      endDate: new Date()
+      startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
     },
-    category: 'all',
-    status: 'all',
-    sortBy: 'newest',
-    userType: 'all',
-    activity: 'all'
   });
+
+  // Generate year options (last 5 years until current year)
+  const generateYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = currentYear - 4; year <= currentYear; year++) {
+      years.push(year);
+    }
+    return years;
+  };
+
+  const handleMonthYearChange = (month, year) => {
+    const startDate = new Date(year, month, 1);
+    const endDate = new Date(year, month + 1, 0);
+    
+    const newFilters = {
+      ...filters,
+      dateRange: { startDate, endDate }
+    };
+    
+    setSelectedMonth(month);
+    setSelectedYear(year);
+    setFilters(newFilters);
+    onFilterChange(newFilters);
+  };
+
+  const handleDateRangeChange = (type, date) => {
+    const newDateRange = { ...filters.dateRange, [type]: date };
+    const newFilters = { ...filters, dateRange: newDateRange };
+    setFilters(newFilters);
+    onFilterChange(newFilters);
+  };
 
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };
@@ -22,23 +57,18 @@ const FilterPanel = ({ onFilterChange }) => {
     onFilterChange(newFilters);
   };
 
-  const handleDateChange = (type, date) => {
-    const newDateRange = { ...filters.dateRange, [type]: date };
-    handleFilterChange('dateRange', newDateRange);
-  };
-
   const resetFilters = () => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
     const defaultFilters = {
       dateRange: {
-        startDate: new Date(),
-        endDate: new Date()
+        startDate: new Date(currentYear, currentMonth, 1),
+        endDate: new Date(currentYear, currentMonth + 1, 0)
       },
-      category: 'all',
-      status: 'all',
-      sortBy: 'newest',
-      userType: 'all',
-      activity: 'all'
     };
+    setSelectedMonth(currentMonth);
+    setSelectedYear(currentYear);
+    setIsCustomPeriod(false);
     setFilters(defaultFilters);
     onFilterChange(defaultFilters);
   };
@@ -67,98 +97,71 @@ const FilterPanel = ({ onFilterChange }) => {
           </div>
 
           <div className="space-y-4">
-            {/* Date Range Filter */}
-            <div className="space-y-2">
-              <label className="block text-sm text-gray-400">Date Range</label>
-              <div className="flex gap-2">
-                <DatePicker
-                  onDateChange={(date) => handleDateChange('startDate', date)}
-                  minDate={new Date(2020, 0, 1)}
-                  maxDate={new Date()}
-                />
-                <DatePicker
-                  onDateChange={(date) => handleDateChange('endDate', date)}
-                  minDate={filters.dateRange.startDate}
-                  maxDate={new Date()}
-                />
-              </div>
+            {/* Period Selection Type */}
+            <div className="flex items-center gap-2 mb-4">
+              <button
+                onClick={() => setIsCustomPeriod(false)}
+                className={`flex-1 px-3 py-2 rounded-lg transition-colors ${
+                  !isCustomPeriod 
+                    ? 'bg-purple-600 text-white' 
+                    : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                }`}
+              >
+                Bulanan
+              </button>
+              <button
+                onClick={() => setIsCustomPeriod(true)}
+                className={`flex-1 px-3 py-2 rounded-lg transition-colors ${
+                  isCustomPeriod 
+                    ? 'bg-purple-600 text-white' 
+                    : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                }`}
+              >
+                Kustom
+              </button>
             </div>
 
-            {/* Category Filter */}
+            {/* Date Selection */}
             <div className="space-y-2">
-              <label className="block text-sm text-gray-400">Category</label>
-              <select
-                value={filters.category}
-                onChange={(e) => handleFilterChange('category', e.target.value)}
-                className="w-full px-3 py-2 bg-[#362f47] border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="all">All Categories</option>
-                <option value="fiction">Fiction</option>
-                <option value="non-fiction">Non-Fiction</option>
-                <option value="academic">Academic</option>
-                <option value="children">Children</option>
-              </select>
-            </div>
-
-            {/* Status Filter */}
-            <div className="space-y-2">
-              <label className="block text-sm text-gray-400">Status</label>
-              <select
-                value={filters.status}
-                onChange={(e) => handleFilterChange('status', e.target.value)}
-                className="w-full px-3 py-2 bg-[#362f47] border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="all">All Status</option>
-                <option value="borrowed">Borrowed</option>
-                <option value="returned">Returned</option>
-                <option value="overdue">Overdue</option>
-              </select>
-            </div>
-
-            {/* User Type Filter */}
-            <div className="space-y-2">
-              <label className="block text-sm text-gray-400">User Type</label>
-              <select
-                value={filters.userType}
-                onChange={(e) => handleFilterChange('userType', e.target.value)}
-                className="w-full px-3 py-2 bg-[#362f47] border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="all">All Users</option>
-                <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
-                <option value="staff">Staff</option>
-              </select>
-            </div>
-
-            {/* Activity Type Filter */}
-            <div className="space-y-2">
-              <label className="block text-sm text-gray-400">Activity</label>
-              <select
-                value={filters.activity}
-                onChange={(e) => handleFilterChange('activity', e.target.value)}
-                className="w-full px-3 py-2 bg-[#362f47] border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="all">All Activities</option>
-                <option value="borrowing">Borrowing</option>
-                <option value="returning">Returning</option>
-                <option value="reviews">Reviews</option>
-                <option value="visits">Visits</option>
-              </select>
-            </div>
-
-            {/* Sort By Filter */}
-            <div className="space-y-2">
-              <label className="block text-sm text-gray-400">Sort By</label>
-              <select
-                value={filters.sortBy}
-                onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-                className="w-full px-3 py-2 bg-[#362f47] border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="most-active">Most Active</option>
-                <option value="least-active">Least Active</option>
-              </select>
+              <label className="block text-sm text-gray-400">
+                {isCustomPeriod ? 'Periode' : 'Bulan dan Tahun'}
+              </label>
+              
+              {isCustomPeriod ? (
+                <div className="flex gap-2">
+                  <DatePicker
+                    onDateChange={(date) => handleDateRangeChange('startDate', date)}
+                    minDate={new Date(2020, 0, 1)}
+                    maxDate={new Date()}
+                  />
+                  <DatePicker
+                    onDateChange={(date) => handleDateRangeChange('endDate', date)}
+                    minDate={filters.dateRange.startDate}
+                    maxDate={new Date()}
+                  />
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <select
+                    value={selectedMonth}
+                    onChange={(e) => handleMonthYearChange(parseInt(e.target.value), selectedYear)}
+                    className="flex-1 px-3 py-2 bg-[#362f47] border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    {months.map((month, index) => (
+                      <option key={month} value={index}>{month}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => handleMonthYearChange(selectedMonth, parseInt(e.target.value))}
+                    className="w-28 px-3 py-2 bg-[#362f47] border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    {generateYearOptions().map((year) => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
 
             {/* Action Buttons */}
@@ -173,7 +176,7 @@ const FilterPanel = ({ onFilterChange }) => {
                 onClick={() => setIsOpen(false)}
                 className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
               >
-                Apply
+                Terapkan
               </button>
             </div>
           </div>
