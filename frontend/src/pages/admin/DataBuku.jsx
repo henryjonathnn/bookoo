@@ -11,6 +11,7 @@ import { bookService } from '../../services/bookService';
 import { API_CONFIG } from '../../config/api.config';
 import { toast } from 'react-hot-toast';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { useBookCategories } from '../../hooks/useBookCategories';
 
 const DataBuku = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -20,6 +21,8 @@ const DataBuku = () => {
   const [filters, setFilters] = useState({
     kategori: '',
   })
+
+  const { categories, loading: categoriesLoading } = useBookCategories();
 
   const {
     books,
@@ -38,11 +41,16 @@ const DataBuku = () => {
 
 
   const handleFilter = (newFilters) => {
-    setFilters(newFilters);
-    updateParams({
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      ...newFilters
+    }));
+  
+    updateParams((prevParams) => ({
+      ...prevParams,
       ...newFilters,
       page: 1
-    });
+    }));
   };
 
 
@@ -199,8 +207,8 @@ const DataBuku = () => {
             onChange={onChange}
             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
-            <option value="">Pilih Kategori</option>
-            {['FIKSI', 'NON-FIKSI', 'SAINS', 'TEKNOLOGI', 'SEJARAH', 'SASTRA', 'KOMIK', 'LAINNYA'].map(category => (
+            <option value="" disabled>Pilih Kategori</option>
+            {categories.filter(category => category !== "Pilih Kategori").map(category => (
               <option key={category} value={category}>{category}</option>
             ))}
           </select>

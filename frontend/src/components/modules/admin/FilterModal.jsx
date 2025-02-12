@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check } from 'react-feather';
+import { useBookCategories } from '../../../hooks/useBookCategories';
 
 const FilterModal = ({
   isOpen,
@@ -15,6 +16,8 @@ const FilterModal = ({
       setLocalFilters(initialFilters || {});
     }
   }, [isOpen, initialFilters]);
+
+  const { categories, loading: LoadingCategories } = useBookCategories();
 
   const filterConfigs = {
     user: {
@@ -47,7 +50,8 @@ const FilterModal = ({
           key: 'kategori',
           label: 'Kategori',
           type: 'select',
-          choices: ['FIKSI', 'NON-FIKSI', 'SAINS', 'TEKNOLOGI', 'SEJARAH', 'SASTRA', 'KOMIK', 'LAINNYA']
+          defaultLabel: 'Semua Kategori',
+          choices: LoadingCategories ? [] : categories,
         }
       ]
     },
@@ -115,11 +119,19 @@ const FilterModal = ({
                 className="w-full px-3 py-2 bg-[#0f0a19] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="">{option.defaultLabel}</option>
-                {option.choices.map(choice => (
-                  <option key={choice} value={choice}>
-                    {option.valueLabels ? option.valueLabels[choice] || choice : choice}
-                  </option>
-                ))}
+                {LoadingCategories ? (
+                  <option disabled>Memuat kategori...</option>
+                ) : (
+                  option.choices.length > 0 ? (
+                    option.choices.map(choice => (
+                      <option key={choice} value={choice}>
+                        {choice}
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>Kategori tidak tersedia</option>
+                  )
+                )}
               </select>
             </div>
           ))}
