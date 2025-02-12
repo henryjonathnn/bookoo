@@ -1,168 +1,52 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
-  BookOpen, Users, Bookmark, Award, ChevronDown, Search, Bell,
-  ArrowUp, ArrowDown, PieChart, BarChart, TrendingUp, Calendar,
-  Download, Filter, RefreshCw, Menu, Clock, UserPlus, Star, Activity
+  BookOpen, Users, Bookmark, Award, Search, Bell,
+  ArrowUp, ArrowDown, Download, RefreshCw, Menu, Clock,
+  UserPlus, Star, Activity
 } from 'react-feather';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell,
-  ComposedChart,
-  Area,
-  Legend
+  ResponsiveContainer, PieChart as RechartsPieChart, Pie
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/admin/Card";
-import DatePicker from '../../components/ui/admin/DatePicker';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/admin/Tabs";
 import Button from "../../components/ui/admin/Button";
-import { peminjamanService } from '../../services/peminjamanService';
+import FilterPanel from '../../components/modules/admin/FilterPanel';
+import CurrentDateTime from '../../components/modules/admin/CurrentDateTime';
+import useWindowSize from '../../hooks/useWindowSize';
 import { useBooks } from '../../hooks/useBook';
 import { useUsers } from '../../hooks/useUsers';
-import FilterPanel from '../../components/ui/admin/FilterPanel';
-import CurrentDateTime from '../../components/ui/admin/CurrentDateTime';
-
-
-// Expanded Mock Data
-const borrowingData = [
-  { month: 'Jan', borrowed: 350, returned: 300, active: 50 },
-  { month: 'Feb', borrowed: 400, returned: 350, active: 50 },
-  { month: 'Mar', borrowed: 380, returned: 330, active: 50 },
-  { month: 'Apr', borrowed: 450, returned: 400, active: 50 },
-  { month: 'May', borrowed: 420, returned: 370, active: 50 },
-  { month: 'Jun', borrowed: 480, returned: 430, active: 50 }
-];
-
-const categoryData = [
-  { name: 'Fiction', value: 400, description: 'Novels, Short Stories, Poetry' },
-  { name: 'Non-Fiction', value: 300, description: 'Biographies, Self-Help' },
-  { name: 'Academic', value: 200, description: 'Textbooks, Research Papers' },
-  { name: 'Children', value: 150, description: 'Picture Books, Young Adult' }
-];
-
 
 const COLORS = ['#8B5CF6', '#EC4899', '#10B981', '#3B82F6'];
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [activeTab, setActiveTab] = useState('overview');
-  const [viewMode, setViewMode] = useState('chart');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isMobileView, setIsMobileView] = useState(false)
-  const [dateRange, setDateRange] = useState({
-    minDate: new Date(),
-    maxDate: new Date()
-  });
-  const [peminjamanData, setPeminjamanData] = useState([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { width } = useWindowSize();
+  const isMobileView = width < 768;
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobileView(window.innerWidth < 768);
-    };
+  // Data fetching hooks
+  const { books, loading: booksLoading, totalItems: totalBooks } = useBooks({ limit: 1000 });
+  const { users, loading: usersLoading, totalItems: totalUsers } = useUsers({ limit: 1000 });
 
-    handleResize(); // Initial check
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    const initializeDateRange = async () => {
-      try {
-        setIsLoading(true);
-        const response = await peminjamanService.getEarliestPeminjamanDate();
-        if (response) {
-          const earliestDate = new Date(response);
-          const currentDate = new Date();
-          setDateRange({
-            minDate: earliestDate,
-            maxDate: currentDate
-          });
-          setSelectedDate(currentDate);
-        }
-      } catch (error) {
-        console.error("Failed to fetch date range:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeDateRange();
-  }, []);
-
-  const handleDateChange = (date) => {
-    setSelectedDate(date);
-    fetchBorrowingData(date);
-  };
-
-  const fetchBorrowingData = async (date) => {
-    try {
-      setIsLoading(true);
-      const response = await peminjamanService.getPeminjamanByDate(date);
-      setPeminjamanData(response);
-    } catch (error) {
-      console.error("Failed to fetch borrowing data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const {
-    books,
-    loading: booksLoading,
-    totalItems: totalBooks,
-    refresh: refreshBooks
-  } = useBooks({ limit: 1000 }); // Get all books for statistics
-
-  const {
-    users,
-    loading: usersLoading,
-    totalItems: totalUsers,
-    refresh: refreshUsers
-  } = useUsers({ limit: 1000 }); // Get all users for statistics
-
-  // Calculate book statistics
+  // Memoized computations
   const bookStats = useMemo(() => {
-    if (!books) return {};
+    if (!books?.length) return { totalBooks: 0, activeBooks: 0, totalReviews: 0 };
 
     const activeBooks = books.filter(book => book.status === 'DIPINJAM').length;
     const totalReviews = books.reduce((acc, book) => acc + (book.reviews?.length || 0), 0);
 
-    return {
-      totalBooks,
-      activeBooks,
-      totalReviews
-    };
+    return { totalBooks, activeBooks, totalReviews };
   }, [books, totalBooks]);
 
-  // Calculate user statistics
   const userStats = useMemo(() => {
-    if (!users) return {};
+    if (!users?.length) return { totalUsers: 0, activeUsers: 0 };
 
-    const activeUsers = users.filter(user => user.is_active === true && user.role === 'USER').length;
-
-    return {
-      totalUsers,
-      activeUsers
-    };
+    const activeUsers = users.filter(user => user.is_active && user.role === 'USER').length;
+    return { totalUsers, activeUsers };
   }, [users, totalUsers]);
 
-  const categoryData = useMemo(() => {
-    if (!books) return [];
-
-    const categories = books.reduce((acc, book) => {
-      const category = book.category || 'Uncategorized';
-      acc[category] = (acc[category] || 0) + 1;
-      return acc;
-    }, {});
-
-    return Object.entries(categories).map(([name, value]) => ({
-      name,
-      value
-    }));
-  }, [books]);
-
-  // Enhanced Stats with Real Data
   const stats = useMemo(() => [
     {
       title: "Total Buku",
@@ -273,16 +157,12 @@ const Dashboard = () => {
     }
   ];
 
-
-  const handleExport = () => {
-    // Implement export functionality
+  // Callbacks for user interactions
+  const handleExport = useCallback(() => {
     const data = {
-      books: books,
-      users: users,
-      stats: {
-        books: bookStats,
-        users: userStats
-      }
+      books,
+      users,
+      stats: { books: bookStats, users: userStats }
     };
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -292,55 +172,38 @@ const Dashboard = () => {
     a.download = 'dashboard-data.json';
     a.click();
     URL.revokeObjectURL(url);
-  };
+  }, [books, users, bookStats, userStats]);
 
+  const handleFilterChange = useCallback((filters) => {
+    console.log('Filters applied:', filters);
+  }, []);
 
-  const handleRefresh = () => {
-    // Placeholder for data refresh
-    console.log('Memperbarui data...');
-  };
-
-  const fetchFilteredData = async (filters) => {
-    try {
-      setIsLoading(true);
-      // Example API call with filters
-      const response = await peminjamanService.getPeminjamanWithFilters({
-        startDate: filters.dateRange.startDate,
-        endDate: filters.dateRange.endDate,
-        category: filters.category,
-        status: filters.status,
-        userType: filters.userType,
-        activity: filters.activity,
-        sortBy: filters.sortBy
-      });
-      setPeminjamanData(response);
-    } catch (error) {
-      console.error("Failed to fetch filtered data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const renderTrendIcon = (trend) => {
+  const renderTrendIcon = useCallback((trend) => {
     return trend === 'up' ?
       <ArrowUp className="text-green-500 inline ml-1" size={16} /> :
       <ArrowDown className="text-red-500 inline ml-1" size={16} />;
-  };
+  }, []);
+
+  if (booksLoading || usersLoading) {
+    return <div className="min-h-screen bg-[#1a1625] p-6 flex items-center justify-center">
+      <span className="text-white">Loading dashboard...</span>
+    </div>;
+  }
 
   return (
     <div className="min-h-screen bg-[#1a1625] p-3 sm:p-6 mt-16 sm:mt-20 mb-1 rounded-lg">
-      {/* Mobile Menu Button */}
-      <div className="block md:hidden mb-4">
+      {/* Mobile Menu */}
+      {isMobileView && (
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="w-full flex justify-between items-center"
+          className="w-full flex justify-between items-center mb-4"
         >
           <span>Menu</span>
           <Menu size={20} />
         </Button>
-      </div>
+      )}
 
       {/* Top Controls */}
       <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 mb-8">
@@ -349,35 +212,26 @@ const Dashboard = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari aktivitas..."
               className="w-full pl-10 pr-4 py-2 bg-[#2a2438] border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
-          <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-            <RefreshCw size={16} className="inline mr-2" /> Refresh
-          </button>
+          <Button onClick={handleExport} className="flex items-center gap-2">
+            <Download size={16} /> Export
+          </Button>
         </div>
-        <div className="flex gap-4">
-          <FilterPanel onFilterChange={(filters) => {
-            console.log('Filters changed:', filters);
-            fetchFilteredData(filters);
-          }} />
-          <button className="px-4 py-2 bg-[#2a2438] text-white rounded-lg hover:bg-[#362f47] transition-colors">
-            <Download size={16} className="inline mr-2" /> Export
-          </button>
-        </div>
+        <FilterPanel onFilterChange={handleFilterChange} />
       </div>
 
-      <div className="mb-8">
-        <CurrentDateTime />
+      <div className='mb-6'>
+      <CurrentDateTime />
       </div>
+      
 
-      {/* Tabs Navigation - Responsive */}
-      <Tabs
-        defaultValue="overview"
-        onValueChange={setActiveTab}
-        className="mb-6"
-      >
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full flex-wrap">
           <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
           <TabsTrigger value="details" className="flex-1">Detailed Stats</TabsTrigger>
@@ -385,8 +239,8 @@ const Dashboard = () => {
         </TabsList>
       </Tabs>
 
-      {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-5 mb-6">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-3">
         {stats.map((stat, index) => (
           <Card key={index} className="bg-[#2a2438] border-0">
             <CardContent className="p-4">
@@ -406,7 +260,7 @@ const Dashboard = () => {
       </div>
 
       {/* Detailed Stats Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         {detailedStats.map((section, index) => (
           <Card key={index} className="bg-[#2a2438] border-0">
             <CardHeader>
