@@ -11,7 +11,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/admin/Card";
-import Button from "../../components/ui/admin/button";
+import Button from "../../components/ui/admin/Button";
 import FilterPanel from '../../components/modules/admin/FilterPanel';
 import CurrentDateTime from '../../components/modules/admin/CurrentDateTime';
 import useWindowSize from '../../hooks/useWindowSize';
