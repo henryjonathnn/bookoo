@@ -17,6 +17,7 @@ import CurrentDateTime from '../../components/modules/admin/CurrentDateTime';
 import useWindowSize from '../../hooks/useWindowSize';
 import { useBooks } from '../../hooks/useBook';
 import { useUsers } from '../../hooks/useUsers';
+import { useBookCategories } from '../../hooks/useBookCategories';
 
 const COLORS = ['#8B5CF6', '#EC4899', '#10B981', '#3B82F6'];
 
@@ -90,11 +91,13 @@ const Dashboard = () => {
     }
   ], []);
 
+  const { totalCategories, loading: categoriesLoading } = useBookCategories();
+
   // Static overview data
   const libraryOverview = useMemo(() => ({
     totalBooks: bookStats.totalBooks || 0,
     totalMembers: userStats.totalMembers || 0,
-    totalCategories: 48,
+    totalCategories: totalCategories || 0,
     totalStaff: userStats.totalStaff || 0,
     totalDipinjam: 3,
     averageRating: 4.5

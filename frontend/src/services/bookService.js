@@ -29,4 +29,5 @@ export const bookService = {
   createBuku: createApiMethod((bookData) => api.post("/buku", bookData)),
   updateBuku: createApiMethod((id, bookData) => api.patch(`/buku/${id}`, bookData)),
   deleteBuku: createApiMethod((id) => api.delete(`/buku/${id}`)),
+  getKategori: createApiMethod(() => api.get("/buku/kategori")),
 };

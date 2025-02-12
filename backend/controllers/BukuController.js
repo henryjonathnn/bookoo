@@ -211,7 +211,7 @@ export const bukuController = {
     }
   },
 
-  // Additional method for bulk operations if needed
+  // Additional method for bulk operations
   bulkCreateBuku: async (req, res) => {
     const transaction = await Buku.sequelize.transaction();
 
@@ -229,6 +229,27 @@ export const bukuController = {
       await transaction.rollback();
       res.status(500).json({
         msg: "Gagal menambahkan buku secara massal",
+        ...(process.env.NODE_ENV === "development" && { error: error.message }),
+      });
+    }
+  },
+  
+  getKategori: async (req, res) => {
+    try {
+      // Dapatkan model Buku
+      const tableDefinition = Buku.rawAttributes.kategori;
+      
+      // Ambil values dari ENUM
+      const enumValues = tableDefinition.values;
+
+      res.json({
+        totalCategories: enumValues.length,
+        categories: enumValues
+      });
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      res.status(500).json({
+        msg: "Gagal mendapatkan data kategori",
         ...(process.env.NODE_ENV === "development" && { error: error.message }),
       });
     }

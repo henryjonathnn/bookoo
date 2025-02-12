@@ -6,7 +6,8 @@ import { adminMiddleware, authMiddleware, staffMiddleware } from "../middlewares
 const router = express.Router();
 router
   .get("/", bukuController.getBuku)
-  .post("/", authMiddleware, adminMiddleware, coverUpload.single("cover_img"), bukuController.createBuku);
+  .post("/", authMiddleware, adminMiddleware, coverUpload.single("cover_img"), bukuController.createBuku)
+  .get("/kategori", bukuController.getKategori);
 
 router
   .get("/:id", authMiddleware, bukuController.getBukuById)
