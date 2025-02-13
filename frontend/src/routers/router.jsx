@@ -12,7 +12,7 @@ import Checkout from "../pages/checkout/Checkout"
 import Profile from "../pages/profile/Profile"
 
 // Admin pages
-import Dashboard from "../pages/admin/Dashboard"
+import Dashboard from "../pages/admin/dashboard/Dashboard"
 import DataBuku from "../pages/admin/DataBuku"
 import DataUser from "../pages/admin/DataUser"
 import DataPeminjaman from "../pages/admin/DataPeminjaman"
