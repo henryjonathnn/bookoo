@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   BookOpen, Users, Bookmark, Award, Search, Bell,
   ArrowUp, ArrowDown, Download, RefreshCw, Menu, Clock,
@@ -19,6 +19,7 @@ import { useBooks } from '../../hooks/useBook';
 import { useUsers } from '../../hooks/useUsers';
 import { usePeminjaman } from '../../hooks/usePeminjaman';
 import { useBookCategories } from '../../hooks/useBookCategories';
+import { peminjamanService } from '../../services/peminjamanService';
 
 const COLORS = ['#8B5CF6', '#EC4899', '#10B981', '#3B82F6'];
 
@@ -26,6 +27,7 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('today');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [totalPeminjaman, setTotalPeminjaman ] = useState(0)
   const { width } = useWindowSize();
   const isMobileView = width < 768;
 
@@ -33,6 +35,19 @@ const Dashboard = () => {
   const { books, loading: booksLoading, totalItems: totalBooks } = useBooks({ limit: 1000 });
   const { users, loading: usersLoading, totalItems: totalUsers } = useUsers({ limit: 1000 });
   const { totalCategories, loading: categoriesLoading } = useBookCategories();
+
+  useEffect(() => {
+    const fetchTotalPeminjaman = async () => {
+      try {
+        const response = await peminjamanService.getAllPeminjaman()
+        setTotalPeminjaman(response.totalItems || 0)
+      } catch (error) {
+        console.error('Error fetching total peminjaman:', error)
+        setTotalPeminjaman(0)
+      }
+    }
+    fetchTotalPeminjaman()
+  }, [])
 
   const libraryStats = useMemo(() => {
     if (!books?.length) return {
@@ -45,7 +60,8 @@ const Dashboard = () => {
     };
 
     // Count books with status "DIPINJAM"
-    const totalDipinjam = 22
+    const totalDipinjam = totalPeminjaman
+    console.log()
 
     // Calculate average rating if available
     const validRatings = books.filter(book => book.rating > 0);
