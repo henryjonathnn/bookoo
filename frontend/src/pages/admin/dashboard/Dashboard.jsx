@@ -37,11 +37,45 @@ const Dashboard = () => {
     totalCategories,
     totalPeminjaman,
     peminjamanData,
-    isLoading
-  } = useParallelDataFetch()
+    isLoading,
+    error,
+    refresh
+  } = useParallelDataFetch();
+
+  useEffect(() => {
+    let lastY = 0;
+    const handleTouchStart = (e) => {
+      lastY = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e) => {
+      const currentY = e.touches[0].clientY;
+      if (currentY - lastY > 150) { // Pull down threshold
+        refresh();
+      }
+    };
+
+    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchmove', handleTouchMove);
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [refresh]);
 
   if (isLoading) {
     <LoadingSpinner />
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#1a1625] p-6 mt-16">
+        <div className="text-red-500">
+          Error loading data. Please try again.
+        </div>
+      </div>
+    );
   }
 
   // Callbacks for user interactions
@@ -99,10 +133,10 @@ const Dashboard = () => {
       </div>
       {/* Perpustakaan Overview Panel - Static Data */}
       <LibraryStatsOverview
-        books={books}
-        users={users}
-        totalCategories={totalCategories}
-        totalPeminjaman={totalPeminjaman}
+        books={books || []}
+        users={users || []}
+        totalCategories={totalCategories || 0}
+        totalPeminjaman={totalPeminjaman || 0}
       />
 
       {/* Controls for Filterable Stats */}
@@ -134,9 +168,8 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-
       <FilterableStatsGrid
-        peminjaman={peminjamanData}
+        peminjaman={peminjamanData || []}
         selectedPeriod={selectedPeriod}
       />
     </div>

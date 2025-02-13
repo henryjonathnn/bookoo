@@ -1,69 +1,64 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from 'react';
 import { peminjamanService } from "../services/peminjamanService";
-import { useBooks } from "./useBook";
-import { useBookCategories } from "./useBookCategories";
-import { useUsers } from "./useUsers";
+import { bookService } from "../services/bookService";
+import { userService } from "../services/userService";
+
+// Cache management
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const cache = new Map();
+
+const useCache = (key, data) => {
+  if (!cache.has(key) || Date.now() - cache.get(key).timestamp > CACHE_DURATION) {
+    cache.set(key, { data, timestamp: Date.now() });
+  }
+  return cache.get(key).data;
+};
 
 export const useParallelDataFetch = () => {
-  const [totalPeminjaman, setTotalPeminjaman] = useState(0);
-  const [peminjamanData, setPeminjamanData] = useState([]);
-  const [peminjamanLoading, setPeminjamanLoading] = useState(true);
+  const [data, setData] = useState({
+    books: [],
+    users: [],
+    totalCategories: 0,
+    peminjamanData: [],
+    totalPeminjaman: 0
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
 
-  const {
-    books,
-    loading: booksLoading,
-    totalItems: totalBooks,
-  } = useBooks({ limit: 1000 });
+      const booksResponse = await bookService.getBuku({ limit: 1000 });
+      const usersResponse = await userService.getUsers({ limit: 1000 });
+      const categoriesResponse = await bookService.getKategori();
+      const peminjamanResponse = await peminjamanService.getAllPeminjaman({ limit: 1000 });
 
-  const { users, loading: usersLoading } = useUsers({ limit: 1000 });
-
-  const { totalCategories, loading: categoriesLoading } = useBookCategories();
+      const newData = {
+        books: booksResponse.data || [],
+        users: usersResponse.users || [],
+        totalCategories: categoriesResponse.totalCategories || 0,
+        peminjamanData: peminjamanResponse.peminjaman || [],
+        totalPeminjaman: peminjamanResponse.totalItems || 0
+      };
+      
+      setData(newData);
+      setError(null);
+    } catch (err) {
+      setError(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchPeminjamanData = async () => {
-      setPeminjamanLoading(true);
-      try {
-        // Fetch both total and detailed peminjaman data in parallel
-        const [totalResponse, detailResponse] = await Promise.all([
-          peminjamanService.getAllPeminjaman(),
-          peminjamanService.getAllPeminjaman({
-            limit: 1000,
-            // status: 'ALL',
-            // sort: 'created_at:desc'
-          }),
-        ]);
-
-        setTotalPeminjaman(totalResponse.totalItems || 0);
-        setPeminjamanData(detailResponse.data || []);
-      } catch (error) {
-        console.error("Error fetching peminjaman data:", error);
-        setTotalPeminjaman(0);
-        setPeminjamanData([]);
-      } finally {
-        setPeminjamanLoading(false);
-      }
-    };
-
-    fetchPeminjamanData();
+    fetchData();
   }, []);
 
-  const isLoading =
-    booksLoading || usersLoading || categoriesLoading || peminjamanLoading;
-
   return {
-    books,
-    users,
-    totalCategories,
-    peminjamanData,
-    totalPeminjaman,
+    ...data,
     isLoading,
-
-    // metadata
-    metadata: {
-      booksLoading,
-      usersLoading,
-      categoriesLoading,
-      peminjamanLoading,
-    },
+    error,
+    refresh: fetchData
   };
 };

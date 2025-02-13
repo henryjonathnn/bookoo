@@ -3,22 +3,27 @@ import {
   BookOpen, Users, UserPlus, Star, Award
 } from 'react-feather';
 
-// Create a separate LibraryStatsOverview component for better code splitting
 export const LibraryStatsOverview = React.memo(({ books, users, totalCategories, totalPeminjaman }) => {
   const libraryStats = useMemo(() => {
-    const validRatings = books?.filter(book => book.rating > 0) || [];
-    const averageRating = validRatings.length > 0
-      ? (validRatings.reduce((sum, book) => sum + book.rating, 0) / validRatings.length).toFixed(1)
-      : 0;
-
-    return {
-      totalBooks: books?.length || 0,
-      totalMembers: users?.filter(user => user.role === 'USER').length || 0,
+    const stats = {
+      totalBooks: Array.isArray(books) ? books.length : 0,
+      totalMembers: Array.isArray(users) ? users.filter(user => user.role === 'USER').length : 0,
       totalCategories: totalCategories || 0,
-      totalStaff: users?.filter(user => user.role === 'STAFF').length || 0,
+      totalStaff: Array.isArray(users) ? users.filter(user => user.role === 'STAFF').length : 0,
       totalDipinjam: totalPeminjaman || 0,
-      averageRating
+      averageRating: 0
     };
+
+    if (Array.isArray(books) && books.length > 0) {
+      const validRatings = books.filter(book => book.rating > 0);
+      if (validRatings.length > 0) {
+        stats.averageRating = (
+          validRatings.reduce((sum, book) => sum + book.rating, 0) / validRatings.length
+        ).toFixed(1);
+      }
+    }
+
+    return stats;
   }, [books, users, totalCategories, totalPeminjaman]);
 
   const StatCard = React.memo(({ icon: Icon, value, label, iconColor }) => (

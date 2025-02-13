@@ -30,7 +30,12 @@ export const peminjamanService = {
       ...(search && { search }),
     });
     const response = await api.get(`/peminjaman?${queryParams}`);
-    return response.data;
+    return {
+      totalItems: response.data.totalItems,
+      peminjaman: response.data.peminjaman || [],
+      currentPage: response.data.currentPage,
+      totalPages: response.data.totalPages,
+    };
   },
 
   async updateStatus(id, status, alasanPenolakan = null) {
@@ -50,26 +55,26 @@ export const peminjamanService = {
     return response.data.earliestDate;
   },
 
-    async getPeminjamanByDate(startDate, endDate) {
-      const response = await api.get('/peminjaman/by-date', {
-        params: { startDate, endDate }
-      });
-      return response.data;
-    },
+  async getPeminjamanByDate(startDate, endDate) {
+    const response = await api.get("/peminjaman/by-date", {
+      params: { startDate, endDate },
+    });
+    return response.data;
+  },
 
-    async konfirmasiPengiriman(id, buktiPengiriman) {
-      const formData = new FormData();
-      formData.append('bukti_pengiriman', buktiPengiriman);
-    
-      const response = await api.put(
-        `/peminjaman/${id}/konfirmasi-pengiriman`, 
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      );
-      return response.data;
-    },
+  async konfirmasiPengiriman(id, buktiPengiriman) {
+    const formData = new FormData();
+    formData.append("bukti_pengiriman", buktiPengiriman);
+
+    const response = await api.put(
+      `/peminjaman/${id}/konfirmasi-pengiriman`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  },
 };
