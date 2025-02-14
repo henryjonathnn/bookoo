@@ -8,6 +8,31 @@ import schedule from "node-schedule";
 // Menjadwalkan pembaruan total denda yang diakumulasikan dari denda harian
 schedule.scheduleJob("0 0 * * *", async () => {
   try {
+    const activePeminjaman = await Peminjaman.findAll({
+      where: {
+        status: "DIPINJAM",
+        tgl_kembali_aktual: null,
+      },
+      include: [{ model: Buku, as: "buku" }],
+    });
+
+    const now = new Date();
+
+    for (const peminjaman of activePeminjaman) {
+      const tgl_kembali_rencana = new Date(peminjaman.tgl_kembali_rencana);
+
+      // Cek apakah sudah melewati masa tenggang
+      if (!isDalamMasaTenggang(now, tgl_kembali_rencana)) {
+        // Update status menjadi TERLAMBAT
+        await peminjaman.update({
+          status: "TERLAMBAT",
+          // Hitung denda awal
+          total_denda: peminjaman.buku.denda_harian,
+        });
+      }
+    }
+
+    // Update denda harian untuk yang sudah terlambat
     const overduePeminjaman = await Peminjaman.findAll({
       where: {
         status: "TERLAMBAT",
@@ -20,19 +45,21 @@ schedule.scheduleJob("0 0 * * *", async () => {
       const denda_harian = peminjaman.buku.denda_harian;
       await peminjaman.increment("total_denda", { by: denda_harian });
     }
-    console.log(`Memperbarui denda ${overduePeminjaman.length} buku yang terlambat dikembalikan`)
+
+    console.log(
+      `Memperbarui status dan denda untuk ${activePeminjaman.length} peminjaman aktif dan ${overduePeminjaman.length} peminjaman terlambat`
+    );
   } catch (error) {
-    console.error('Error memperbarui denda harian:', error);
+    console.error("Error dalam job update status dan denda:", error);
   }
 });
 
-
 // Fungsi helper untuk mengecek apakah masih dalam masa tenggang
-const isDalamMasaTenggang = (tgl_dikembalikan, tgl_rencana) => {
-  const jamMasaTenggang = 24
-  const selisihJam = (tgl_dikembalikan - tgl_rencana) / (1000 * 60 * 60)
-  return selisihJam <= jamMasaTenggang
-}
+const isDalamMasaTenggang = (current, deadline) => {
+  const jamMasaTenggang = 24;
+  const selisihJam = (current - deadline) / (1000 * 60 * 60);
+  return selisihJam <= jamMasaTenggang;
+};
 
 // Fungsi helper untuk generate resi
 const generateResiNumber = () => {
@@ -211,19 +238,19 @@ export const peminjamanController = {
       const today = new Date();
       const planReturnDate = new Date(peminjaman.tgl_kembali_rencana);
 
-      let newStatus;
+      let newStatus = "DIKEMBALIKAN";
       let totalDenda = 0;
 
-      if (isDalamMasaTenggang(today, planReturnDate)) {
-        newStatus === "DIKEMBALIKAN"
-      } else {
-        newStatus === "TERLAMBAT"
-        const daysLate = Math.ceil((today, planReturnDate) / (1000 * 60 * 60 * 24))
-        totalDenda = peminjaman.buku.denda_harian * daysLate
+      if (!isDalamMasaTenggang(today, planReturnDate)) {
+        newStatus = "TERLAMBAT";
+        const daysLate = Math.ceil(
+          (today.getTime() - planReturnDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        totalDenda = peminjaman.buku.denda_harian * daysLate;
       }
 
       const updateData = {
-        status: totalDenda > 0 ? "TERLAMBAT" : "DIKEMBALIKAN",
+        status: newStatus,
         tgl_kembali_aktual: today,
         total_denda: totalDenda,
       };
@@ -239,9 +266,11 @@ export const peminjamanController = {
 
       let notificationMessage;
       if (newStatus === "DIKEMBALIKAN") {
-        notificationMessage = `Buku ${peminjaman.buku.judul} telah berhasil dikembalikan tepat waktu!`
+        notificationMessage = `Buku ${peminjaman.buku.judul} telah berhasil dikembalikan tepat waktu!`;
       } else {
-        notificationMessage = `Buku ${peminjaman.buku.judul} telah dikembalikan terlambat. Total denda yang harus dibayarkan: Rp ${totalDenda.toLocaleString()}`
+        notificationMessage = `Buku ${
+          peminjaman.buku.judul
+        } telah dikembalikan terlambat. Total denda yang harus dibayarkan: Rp ${totalDenda.toLocaleString()}`;
       }
 
       // Create notification

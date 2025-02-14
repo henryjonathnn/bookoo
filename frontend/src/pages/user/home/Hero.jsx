@@ -1,14 +1,16 @@
 import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
 
-const Hero = memo(() => {
+const Hero = memo(({ role }) => {
+  const isUser = role === "USER";
+
   return (
     <section className="pt-24 px-2 mb-16 md:mb-16">
       <div className="relative rounded-3xl overflow-hidden">
         <div className="absolute top-0 right-0 w-full md:w-1/2 h-64 md:h-full">
-          <img 
-            src="/assets/hero8.png" 
-            alt="Books" 
+          <img
+            src="/assets/hero8.png"
+            alt="Books"
             className="w-full h-full object-contain object-center md:object-right"
             loading="lazy"
             decoding="async"
@@ -32,8 +34,11 @@ const Hero = memo(() => {
             <Link to='/buku' className="w-full md:w-auto px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl font-medium hover:opacity-90 transition-all duration-300 text-center">
               Lihat Buku Trending
             </Link>
-            <Link to='/' className="w-full md:w-auto px-6 py-3 md:px-8 md:py-4 bg-purple-500/10 rounded-xl font-medium hover:bg-purple-500/20 transition-all duration-300 border border-purple-500/20 text-center">
-              Lihat Semua Buku
+            <Link 
+              to={isUser ? '/buku' : '/admin'} 
+              className="w-full md:w-auto px-6 py-3 md:px-8 md:py-4 bg-purple-500/10 rounded-xl font-medium hover:bg-purple-500/20 transition-all duration-300 border border-purple-500/20 text-center"
+            >
+              {isUser ? "Lihat Semua Buku" : "Dashboard"}
             </Link>
           </div>
           <Stats />
@@ -50,7 +55,6 @@ const Stats = memo(() => (
     <StatItem count="75k+" label="Peminjam" />
   </div>
 ));
-
 
 const StatItem = memo(({ count, label }) => (
   <div className="text-center md:text-left">

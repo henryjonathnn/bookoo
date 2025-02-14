@@ -30,9 +30,9 @@ const Sidebar = ({ isOpen, onClose }) => {
               <div className="w-7 h-7 bg-purple-500/20 rounded flex items-center justify-center">
                 <BookOpen size={16} className="text-purple-400" />
               </div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
+              <a className="text-xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent" href='/'>
                 BooKoo
-              </h1>
+              </a>
             </div>
             <button 
               onClick={onClose}
