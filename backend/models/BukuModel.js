@@ -62,7 +62,7 @@ const Buku = db.define(
       }
     },
     denda_harian: {
-      type: DataTypes.DECIMAL(10, 2),
+      type: DataTypes.INTEGER,
       defaultValue: 0,
       validate: {
         min: { args: [0], msg: "Denda tidak boleh negatif" }

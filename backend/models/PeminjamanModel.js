@@ -67,7 +67,7 @@ const Peminjaman = db.define(
       defaultValue: "KURIR",
     },
     total_denda: {
-      type: DataTypes.DECIMAL(10, 2),
+      type: DataTypes.INTEGER,
       defaultValue: 0,
     },
     bukti_pembayaran_denda: {
