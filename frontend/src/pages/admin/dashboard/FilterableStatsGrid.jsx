@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Send, Bookmark, Activity, Clock, ArrowUp, ArrowDown } from 'react-feather';
 import { Card, CardContent } from "../../../components/ui/admin/Card";
 
@@ -26,7 +26,7 @@ const useFilterableStats = (peminjaman, selectedPeriod) => {
 
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
+    
     // Fungsi untuk mendapatkan rentang waktu berdasarkan periode
     const getTimeRange = () => {
       const end = new Date();
@@ -40,7 +40,7 @@ const useFilterableStats = (peminjaman, selectedPeriod) => {
           start.setDate(start.getDate() - 7);
           break;
         case 'month':
-          start.setDate(start.getDate() - 30);
+          start.setMonth(start.getMonth(), 1); // Awal bulan ini
           break;
         default:
           start = startOfToday;
@@ -48,117 +48,138 @@ const useFilterableStats = (peminjaman, selectedPeriod) => {
       return { start, end };
     };
 
-    const currentRange = getTimeRange();
-    const prevRange = {
-      start: new Date(currentRange.start),
-      end: new Date(currentRange.start)
-    };
-    prevRange.start.setDate(prevRange.start.getDate() - (selectedPeriod === 'today' ? 1 : selectedPeriod === 'week' ? 7 : 30));
+    const timeRange = getTimeRange();
 
     // Fungsi untuk mengecek apakah tanggal berada dalam rentang
-    const isInRange = (date, range) => {
+    const isInRange = (date) => {
       const checkDate = new Date(date);
-      return checkDate >= range.start && checkDate <= range.end;
+      return checkDate >= timeRange.start && checkDate <= timeRange.end;
     };
 
-    // Fungsi untuk menghitung data berdasarkan status dan rentang waktu
-    const countByStatusAndRange = (status, range, includeActive = false) => {
+    // Fungsi untuk menghitung status berdasarkan kondisi
+    const countByStatus = (status, requireInRange = false) => {
       return peminjaman.filter(p => {
         const peminjamanDate = new Date(p.createdAt);
-        if (includeActive) {
-          // Untuk peminjaman aktif dan terlambat, cek status saat ini
-          return p.status === status;
-        } else {
-          // Untuk request dan pengembalian, cek dalam rentang waktu
-          return p.status === status && isInRange(peminjamanDate, range);
+        
+        // Untuk status yang perlu dicek dalam rentang waktu
+        if (requireInRange) {
+          return p.status === status && isInRange(peminjamanDate);
         }
+        
+        // Untuk status yang perlu dicek kondisi saat ini (masih aktif)
+        return p.status === status && peminjamanDate <= timeRange.end;
       }).length;
     };
 
-    // Hitung statistik untuk periode saat ini
-    const currentPending = countByStatusAndRange('PENDING', currentRange);
-    const currentActive = countByStatusAndRange('DIPINJAM', currentRange, true);
-    const currentReturned = countByStatusAndRange('DIKEMBALIKAN', currentRange);
-    const currentOverdue = countByStatusAndRange('TERLAMBAT', currentRange, true);
-
-    // Hitung statistik untuk periode sebelumnya
-    const prevPending = countByStatusAndRange('PENDING', prevRange);
-    const prevActive = countByStatusAndRange('DIPINJAM', prevRange, true);
-    const prevReturned = countByStatusAndRange('DIKEMBALIKAN', prevRange);
-    const prevOverdue = countByStatusAndRange('TERLAMBAT', prevRange, true);
-
-    // Fungsi untuk menghitung perubahan persentase
-    const calculateChange = (current, previous) => {
-      if (previous === 0) return current > 0 ? '+100%' : '0%';
-      const change = ((current - previous) / previous) * 100;
-      return `${change > 0 ? '+' : ''}${change.toFixed(1)}%`;
-    };
+    // Hitung statistik berdasarkan status
+    const pendingCount = countByStatus('PENDING'); // Yang masih pending sampai saat ini
+    const activeCount = countByStatus('DIPINJAM'); // Yang masih dipinjam sampai saat ini
+    const returnedCount = countByStatus('DIKEMBALIKAN', true); // Yang dikembalikan dalam periode
+    const overdueCount = countByStatus('TERLAMBAT'); // Yang masih terlambat sampai saat ini
 
     const periodText = selectedPeriod === 'today' 
       ? 'hari ini' 
       : selectedPeriod === 'week' 
-        ? 'minggu ini' 
+        ? '7 hari terakhir' 
         : 'bulan ini';
 
     return [
       {
         title: "Request Peminjaman",
-        value: currentPending,
-        change: calculateChange(currentPending, prevPending),
+        value: pendingCount,
+        change: "0%", // Bisa dihitung perubahan jika diperlukan
         icon: <Send className="text-blue-500" />,
         bgColor: "bg-blue-500/10",
-        trend: currentPending >= prevPending ? 'up' : 'down',
-        description: `Permintaan peminjaman baru ${periodText}`
+        trend: 'up',
+        description: `Total permintaan peminjaman yang masih pending ${periodText}`
       },
       {
         title: "Peminjaman Aktif",
-        value: currentActive,
-        change: calculateChange(currentActive, prevActive),
+        value: activeCount,
+        change: "0%",
         icon: <Bookmark className="text-purple-500" />,
         bgColor: "bg-purple-500/10",
-        trend: currentActive >= prevActive ? 'up' : 'down',
+        trend: 'up',
         description: `Total peminjaman yang sedang berlangsung ${periodText}`
       },
       {
         title: "Pengembalian",
-        value: currentReturned,
-        change: calculateChange(currentReturned, prevReturned),
+        value: returnedCount,
+        change: "0%",
         icon: <Activity className="text-green-500" />,
         bgColor: "bg-green-500/10",
-        trend: currentReturned >= prevReturned ? 'up' : 'down',
+        trend: 'up',
         description: `Buku yang dikembalikan ${periodText}`
       },
       {
         title: "Keterlambatan",
-        value: currentOverdue,
-        change: calculateChange(currentOverdue, prevOverdue),
+        value: overdueCount,
+        change: "0%",
         icon: <Clock className="text-red-500" />,
         bgColor: "bg-red-500/10",
-        trend: currentOverdue <= prevOverdue ? 'up' : 'down',
-        description: `Total peminjaman yang melewati tenggat waktu ${periodText}`
+        trend: 'down',
+        description: `Total peminjaman yang masih terlambat ${periodText}`
       }
     ];
   }, [peminjaman, selectedPeriod]);
 };
 
 const FilterableStatsGrid = React.memo(({ peminjaman, selectedPeriod }) => {
+  const [activePeriod, setActivePeriod] = useState('month'); // Default ke bulan ini
   const renderTrendIcon = React.useCallback((trend) => {
     return trend === 'up' ?
       <ArrowUp className="text-green-500 inline ml-1" size={16} /> :
       <ArrowDown className="text-red-500 inline ml-1" size={16} />;
   }, []);
 
-  const stats = useFilterableStats(peminjaman, selectedPeriod);
+  const stats = useFilterableStats(peminjaman, activePeriod);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {stats.map((stat, index) => (
-        <StatCard 
-          key={index} 
-          stat={stat} 
-          renderTrendIcon={renderTrendIcon}
-        />
-      ))}
+    <div className="space-y-6">
+      {/* Period Tabs */}
+      <div className="flex gap-2 bg-[#2a2438] p-1 rounded-lg w-fit">
+        <button
+          onClick={() => setActivePeriod('today')}
+          className={`px-4 py-2 rounded-lg transition-colors ${
+            activePeriod === 'today'
+              ? 'bg-purple-600 text-white'
+              : 'text-gray-400 hover:text-white hover:bg-[#362f47]'
+          }`}
+        >
+          Hari Ini
+        </button>
+        <button
+          onClick={() => setActivePeriod('week')}
+          className={`px-4 py-2 rounded-lg transition-colors ${
+            activePeriod === 'week'
+              ? 'bg-purple-600 text-white'
+              : 'text-gray-400 hover:text-white hover:bg-[#362f47]'
+          }`}
+        >
+          Minggu Ini
+        </button>
+        <button
+          onClick={() => setActivePeriod('month')}
+          className={`px-4 py-2 rounded-lg transition-colors ${
+            activePeriod === 'month'
+              ? 'bg-purple-600 text-white'
+              : 'text-gray-400 hover:text-white hover:bg-[#362f47]'
+          }`}
+        >
+          Bulan Ini
+        </button>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, index) => (
+          <StatCard 
+            key={index} 
+            stat={stat} 
+            renderTrendIcon={renderTrendIcon}
+          />
+        ))}
+      </div>
     </div>
   );
 });
