@@ -28,8 +28,18 @@ const COLORS = ['#8B5CF6', '#EC4899', '#10B981', '#3B82F6'];
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activePeriod, setActivePeriod] = useState('month'); // 'today', 'week', 'month'
+  const [activePeriod, setActivePeriod] = useState('month');
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
+  });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    status: '',
+    kategori: '',
+    role: '',
+    active: ''
+  });
   const { width } = useWindowSize();
   const isMobileView = width < 768;
 
@@ -112,18 +122,17 @@ const Dashboard = () => {
     alert("Mengekspor Data..")
   }, []);
 
-  const handleFilterChange = useCallback((dateRange) => {
-    console.log('Filter changed:', dateRange);
+  const handleFilterChange = useCallback((newDateRange) => {
+    setDateRange(newDateRange);
   }, []);
 
-  // Hitung data yang difilter untuk stats grid
+  // Filter data berdasarkan date range
   const filteredPeminjamanData = useMemo(() => {
     return peminjamanData?.filter(item => {
       const itemDate = new Date(item.createdAt);
-      return itemDate >= getDateRange().startDate &&
-        itemDate <= getDateRange().endDate;
+      return itemDate >= dateRange.startDate && itemDate <= dateRange.endDate;
     }) || [];
-  }, [peminjamanData, getDateRange]);
+  }, [peminjamanData, dateRange]);
 
   const renderTrendIcon = useCallback((trend) => {
     return trend === 'up' ?
@@ -175,6 +184,7 @@ const Dashboard = () => {
         <FilterPanel
           onFilterChange={handleFilterChange}
           peminjaman={peminjamanData || []}
+          initialFilters={dateRange}
         />
       </div>
 
@@ -183,13 +193,12 @@ const Dashboard = () => {
       </div>
 
       <div className="mb-6">
-        {/* Overview Panel dengan data akumulatif */}
         <LibraryStatsOverview
           books={books || []}
           users={users || []}
           totalCategories={totalCategories || 0}
-          totalPeminjaman={peminjamanData || []} // Kirim semua data peminjaman
-          dateRange={getDateRange()} // Tambahkan dateRange
+          totalPeminjaman={filteredPeminjamanData}
+          dateRange={dateRange}
         />
       </div>
 
@@ -224,17 +233,15 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {/* Stats Grid dengan data terfilter */}
       <FilterableStatsGrid
         peminjaman={filteredPeminjamanData}
         selectedPeriod={activePeriod}
       />
 
-      {/* Tambahkan Charts */}
       <DashboardCharts
-        peminjaman={peminjamanData}
-        books={books}
-        dateRange={getDateRange()}
+        peminjaman={filteredPeminjamanData}
+        books={books || []}
+        dateRange={dateRange}
       />
     </div>
   );
