@@ -22,6 +22,7 @@ import LoadingSpinner from '../../../components/ui/LoadingSpinner';
 import { LibraryStatsOverview } from './LibraryStatsOverview';
 import FilterableStatsGrid from './FilterableStatsGrid';
 import DashboardCharts from './DashboardCharts';
+import ExportDashboard from './ExportDashboard';
 
 const COLORS = ['#8B5CF6', '#EC4899', '#10B981', '#3B82F6'];
 
@@ -132,6 +133,15 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#1a1625] p-6 mt-16">
+      <div className="mb-6 flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+        <ExportDashboard 
+          peminjaman={peminjamanData} 
+          books={books}
+          users={users}
+        />
+      </div>
+
       {/* Mobile Menu */}
       {isMobileView && (
         <Button

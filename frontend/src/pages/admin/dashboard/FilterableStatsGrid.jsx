@@ -21,7 +21,41 @@ const StatCard = React.memo(({ stat }) => {
 
 const useFilterableStats = (peminjaman, selectedPeriod) => {
   return useMemo(() => {
-    // Selalu kembalikan array stats meskipun tidak ada data
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - 7);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // Fungsi untuk mengecek apakah tanggal pengembalian ada dalam periode
+    const isReturnedInPeriod = (peminjaman) => {
+      const returnDate = peminjaman.tanggal_pengembalian ? new Date(peminjaman.tanggal_pengembalian) : null;
+      if (!returnDate) return false;
+
+      switch (selectedPeriod) {
+        case 'today':
+          return returnDate >= startOfToday && returnDate <= endOfToday;
+        case 'week':
+          return returnDate >= startOfWeek && returnDate <= now;
+        case 'month':
+          return returnDate >= startOfMonth && returnDate <= now;
+        default:
+          return false;
+      }
+    };
+
+    // Hitung status yang aktif hingga saat ini
+    const activeStats = {
+      pending: peminjaman?.filter(p => p.status === "PENDING").length || 0,
+      dipinjam: peminjaman?.filter(p => p.status === "DIPINJAM").length || 0,
+      terlambat: peminjaman?.filter(p => p.status === "TERLAMBAT").length || 0,
+      // Khusus untuk pengembalian, hitung berdasarkan periode
+      dikembalikan: peminjaman?.filter(p => 
+        p.status === "DIKEMBALIKAN" && isReturnedInPeriod(p)
+      ).length || 0
+    };
+
     const periodText = selectedPeriod === 'today' ? 'hari ini' 
       : selectedPeriod === 'week' ? 'minggu ini' 
       : 'bulan ini';
@@ -29,39 +63,39 @@ const useFilterableStats = (peminjaman, selectedPeriod) => {
     return [
       {
         name: "Request Peminjaman",
-        value: peminjaman?.filter(p => p.status === "PENDING")?.length || 0,
+        value: activeStats.pending,
         change: "0%",
         icon: <Clock className="text-blue-500" />,
         bgColor: "bg-blue-500/10",
         trend: 'neutral',
-        description: `Total permintaan peminjaman yang masih pending ${periodText}`
+        description: `Total permintaan peminjaman yang masih pending hingga ${periodText}`
       },
       {
         name: "Peminjaman Aktif",
-        value: peminjaman?.filter(p => p.status === "DIPINJAM")?.length || 0,
+        value: activeStats.dipinjam,
         change: "0%",
         icon: <BookOpen className="text-purple-500" />,
         bgColor: "bg-purple-500/10",
         trend: 'neutral',
-        description: `Total buku yang sedang dipinjam ${periodText}`
+        description: `Total buku yang sedang dipinjam hingga ${periodText}`
       },
       {
         name: "Pengembalian",
-        value: peminjaman?.filter(p => p.status === "DIKEMBALIKAN")?.length || 0,
+        value: activeStats.dikembalikan,
         change: "0%",
         icon: <CheckCircle className="text-green-500" />,
         bgColor: "bg-green-500/10",
         trend: 'neutral',
-        description: `Total buku yang sudah dikembalikan ${periodText}`
+        description: `Total buku yang dikembalikan ${periodText}`
       },
       {
         name: "Keterlambatan",
-        value: peminjaman?.filter(p => p.status === "TERLAMBAT")?.length || 0,
+        value: activeStats.terlambat,
         change: "0%",
         icon: <AlertCircle className="text-red-500" />,
         bgColor: "bg-red-500/10",
         trend: 'neutral',
-        description: `Total peminjaman yang masih terlambat ${periodText}`
+        description: `Total peminjaman yang terlambat hingga ${periodText}`
       }
     ];
   }, [peminjaman, selectedPeriod]);
