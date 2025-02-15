@@ -62,6 +62,7 @@ const FilterModal = ({
           key: 'status',
           label: 'Status',
           type: 'select',
+          defaultLabel: 'Pilih Status',
           choices: ['PENDING', 'DIPROSES', 'DIKIRIM', 'DIPINJAM', 'DIKEMBALIKAN', 'DITOLAK', 'TERLAMBAT']
         }
       ]

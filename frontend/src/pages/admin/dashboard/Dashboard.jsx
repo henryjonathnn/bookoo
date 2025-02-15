@@ -21,19 +21,16 @@ import { useParallelDataFetch } from '../../../hooks/useParallelDataFetch';
 import LoadingSpinner from '../../../components/ui/LoadingSpinner';
 import { LibraryStatsOverview } from './LibraryStatsOverview';
 import FilterableStatsGrid from './FilterableStatsGrid';
+import DashboardCharts from './DashboardCharts';
 
 const COLORS = ['#8B5CF6', '#EC4899', '#10B981', '#3B82F6'];
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedPeriod, setSelectedPeriod] = useState('monthly');
+  const [activePeriod, setActivePeriod] = useState('month'); // 'today', 'week', 'month'
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { width } = useWindowSize();
   const isMobileView = width < 768;
-  const [currentDateRange, setCurrentDateRange] = useState({
-    startDate: new Date(new Date().getFullYear(), 0, 1), // Awal tahun
-    endDate: new Date()
-  });
 
   const {
     books,
@@ -45,6 +42,33 @@ const Dashboard = () => {
     error,
     refresh
   } = useParallelDataFetch();
+
+  const getDateRange = () => {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    switch (activePeriod) {
+      case 'today':
+        return {
+          startDate: startOfToday,
+          endDate: now
+        };
+      case 'week':
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - 7);
+        return {
+          startDate: startOfWeek,
+          endDate: now
+        };
+      case 'month':
+      default:
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        return {
+          startDate: startOfMonth,
+          endDate: now
+        };
+    }
+  };
 
   useEffect(() => {
     let lastY = 0;
@@ -89,17 +113,16 @@ const Dashboard = () => {
 
   const handleFilterChange = useCallback((dateRange) => {
     console.log('Filter changed:', dateRange);
-    setCurrentDateRange(dateRange);
   }, []);
 
   // Hitung data yang difilter untuk stats grid
   const filteredPeminjamanData = useMemo(() => {
     return peminjamanData?.filter(item => {
       const itemDate = new Date(item.createdAt);
-      return itemDate >= currentDateRange.startDate && 
-             itemDate <= currentDateRange.endDate;
+      return itemDate >= getDateRange().startDate &&
+        itemDate <= getDateRange().endDate;
     }) || [];
-  }, [peminjamanData, currentDateRange]);
+  }, [peminjamanData, getDateRange]);
 
   const renderTrendIcon = useCallback((trend) => {
     return trend === 'up' ?
@@ -139,8 +162,8 @@ const Dashboard = () => {
             <Download size={16} /> Export
           </Button>
         </div>
-        <FilterPanel 
-          onFilterChange={handleFilterChange} 
+        <FilterPanel
+          onFilterChange={handleFilterChange}
           peminjaman={peminjamanData || []}
         />
       </div>
@@ -148,19 +171,60 @@ const Dashboard = () => {
       <div className='mb-6'>
         <CurrentDateTime />
       </div>
-      {/* Overview Panel dengan data akumulatif */}
-      <LibraryStatsOverview
-        books={books || []}
-        users={users || []}
-        totalCategories={totalCategories || 0}
-        totalPeminjaman={peminjamanData || []} // Kirim semua data peminjaman
-        dateRange={currentDateRange} // Tambahkan dateRange
-      />
+
+      <div className="mb-6">
+        {/* Overview Panel dengan data akumulatif */}
+        <LibraryStatsOverview
+          books={books || []}
+          users={users || []}
+          totalCategories={totalCategories || 0}
+          totalPeminjaman={peminjamanData || []} // Kirim semua data peminjaman
+          dateRange={getDateRange()} // Tambahkan dateRange
+        />
+      </div>
+
+      {/* Period Tabs */}
+      <div className="flex gap-2 bg-[#2a2438] p-1 rounded-lg w-fit mb-6">
+        <button
+          onClick={() => setActivePeriod('today')}
+          className={`px-4 py-2 rounded-lg transition-colors ${activePeriod === 'today'
+            ? 'bg-purple-600 text-white'
+            : 'text-gray-400 hover:text-white hover:bg-[#362f47]'
+            }`}
+        >
+          Hari Ini
+        </button>
+        <button
+          onClick={() => setActivePeriod('week')}
+          className={`px-4 py-2 rounded-lg transition-colors ${activePeriod === 'week'
+            ? 'bg-purple-600 text-white'
+            : 'text-gray-400 hover:text-white hover:bg-[#362f47]'
+            }`}
+        >
+          Minggu Ini
+        </button>
+        <button
+          onClick={() => setActivePeriod('month')}
+          className={`px-4 py-2 rounded-lg transition-colors ${activePeriod === 'month'
+            ? 'bg-purple-600 text-white'
+            : 'text-gray-400 hover:text-white hover:bg-[#362f47]'
+            }`}
+        >
+          Bulan Ini
+        </button>
+      </div>
 
       {/* Stats Grid dengan data terfilter */}
       <FilterableStatsGrid
         peminjaman={filteredPeminjamanData}
-        selectedPeriod={selectedPeriod}
+        selectedPeriod={activePeriod}
+      />
+
+      {/* Tambahkan Charts */}
+      <DashboardCharts
+        peminjaman={peminjamanData}
+        books={books}
+        dateRange={getDateRange()}
       />
     </div>
   );
