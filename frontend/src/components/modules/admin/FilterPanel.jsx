@@ -4,7 +4,7 @@ import DatePicker from '../../ui/admin/DatePicker';
 
 const FilterPanel = ({ onFilterChange, peminjaman = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [filterType, setFilterType] = useState('monthly'); // 'monthly' atau 'custom'
+  const [filterType, setFilterType] = useState('monthly');
   const [availableMonths, setAvailableMonths] = useState([]);
   const [availableYears, setAvailableYears] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
@@ -27,28 +27,16 @@ const FilterPanel = ({ onFilterChange, peminjaman = [] }) => {
         .filter(date => !isNaN(date.getTime()));
 
       if (dates.length > 0) {
-        // Dapatkan tahun yang unik dan urutkan
         const years = [...new Set(dates.map(date => date.getFullYear()))]
           .sort((a, b) => b - a);
         setAvailableYears(years.length > 0 ? years : [new Date().getFullYear()]);
 
-        // Dapatkan bulan yang tersedia untuk tahun yang dipilih
         const monthsInYear = dates
           .filter(date => date.getFullYear() === selectedYear)
           .map(date => date.getMonth());
         
         const uniqueMonths = [...new Set(monthsInYear)].sort((a, b) => a - b);
-        
-        // Jika tidak ada bulan yang tersedia untuk tahun ini, gunakan semua bulan
-        if (uniqueMonths.length === 0) {
-          setAvailableMonths([...Array(12).keys()]); // 0-11 untuk semua bulan
-        } else {
-          setAvailableMonths(uniqueMonths);
-        }
-      } else {
-        // Jika tidak ada data, set default ke tahun dan bulan saat ini
-        setAvailableYears([new Date().getFullYear()]);
-        setAvailableMonths([new Date().getMonth()]);
+        setAvailableMonths(uniqueMonths.length > 0 ? uniqueMonths : [new Date().getMonth()]);
       }
     }
   }, [peminjaman, selectedYear]);
@@ -71,9 +59,46 @@ const FilterPanel = ({ onFilterChange, peminjaman = [] }) => {
   };
 
   const handleCustomDateChange = (type, date) => {
-    const newDateRange = { ...dateRange, [type]: date };
+    let newDateRange = { ...dateRange };
+    
+    if (type === 'startDate') {
+      // Jika tanggal mulai baru lebih besar dari tanggal akhir, sesuaikan tanggal akhir
+      if (date > dateRange.endDate) {
+        newDateRange = {
+          startDate: date,
+          endDate: new Date(date.getTime())
+        };
+      } else {
+        newDateRange.startDate = date;
+      }
+    } else {
+      // Jika tanggal akhir baru lebih kecil dari tanggal mulai, sesuaikan tanggal mulai
+      if (date < dateRange.startDate) {
+        newDateRange = {
+          startDate: new Date(date.getTime()),
+          endDate: date
+        };
+      } else {
+        newDateRange.endDate = date;
+      }
+    }
+
+    // Set waktu untuk memastikan mencakup seluruh hari
+    if (type === 'startDate') {
+      newDateRange.startDate.setHours(0, 0, 0, 0);
+    } else {
+      newDateRange.endDate.setHours(23, 59, 59, 999);
+    }
+
     setDateRange(newDateRange);
     onFilterChange(newDateRange);
+  };
+
+  const handleFilterTypeChange = (type) => {
+    setFilterType(type);
+    if (type === 'monthly') {
+      handleMonthYearChange(selectedMonth, selectedYear);
+    }
   };
 
   const resetFilters = () => {
@@ -100,96 +125,96 @@ const FilterPanel = ({ onFilterChange, peminjaman = [] }) => {
             <h3 className="text-lg font-medium text-white">Filters</h3>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1 hover:bg-slate-700 rounded-full transition-colors"
+              className="text-gray-400 hover:text-white"
             >
-              <X size={18} />
+              <X size={20} />
             </button>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <button
-                onClick={() => setFilterType('monthly')}
-                className={`flex-1 px-3 py-2 rounded-lg transition-colors ${
-                  filterType === 'monthly' 
-                    ? 'bg-purple-600 text-white' 
-                    : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-                }`}
-              >
-                Bulanan
-              </button>
-              <button
-                onClick={() => setFilterType('custom')}
-                className={`flex-1 px-3 py-2 rounded-lg transition-colors ${
-                  filterType === 'custom' 
-                    ? 'bg-purple-600 text-white' 
-                    : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-                }`}
-              >
-                Kustom
-              </button>
-            </div>
+          <div className="flex items-center gap-2 mb-4">
+            <button
+              onClick={() => handleFilterTypeChange('monthly')}
+              className={`flex-1 px-3 py-2 rounded-lg transition-colors ${
+                filterType === 'monthly' 
+                  ? 'bg-purple-600 text-white' 
+                  : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+              }`}
+            >
+              Bulanan
+            </button>
+            <button
+              onClick={() => handleFilterTypeChange('custom')}
+              className={`flex-1 px-3 py-2 rounded-lg transition-colors ${
+                filterType === 'custom' 
+                  ? 'bg-purple-600 text-white' 
+                  : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+              }`}
+            >
+              Kustom
+            </button>
+          </div>
 
-            <div className="space-y-2">
-              {filterType === 'custom' ? (
-                <div className="space-y-2">
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm text-gray-400">Tanggal Mulai</label>
-                    <DatePicker
-                      onDateChange={(date) => handleCustomDateChange('startDate', date)}
-                      minDate={new Date(Math.min(...availableYears))}
-                      maxDate={dateRange.endDate}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm text-gray-400">Tanggal Akhir</label>
-                    <DatePicker
-                      onDateChange={(date) => handleCustomDateChange('endDate', date)}
-                      minDate={dateRange.startDate}
-                      maxDate={new Date()}
-                    />
-                  </div>
+          <div className="space-y-2">
+            {filterType === 'custom' ? (
+              <div className="space-y-2">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm text-gray-400">Tanggal Mulai</label>
+                  <DatePicker
+                    selectedDate={dateRange.startDate}
+                    onDateChange={(date) => handleCustomDateChange('startDate', date)}
+                    minDate={new Date(Math.min(...availableYears, new Date().getFullYear(), 1))}
+                    maxDate={dateRange.endDate}
+                  />
                 </div>
-              ) : (
-                <div className="flex gap-2">
-                  <select
-                    value={selectedMonth}
-                    onChange={(e) => handleMonthYearChange(parseInt(e.target.value), selectedYear)}
-                    className="flex-1 px-3 py-2 bg-[#362f47] border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    {availableMonths.map((monthIndex) => (
-                      <option key={monthIndex} value={monthIndex}>
-                        {months[monthIndex]}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => handleMonthYearChange(selectedMonth, parseInt(e.target.value))}
-                    className="w-28 px-3 py-2 bg-[#362f47] border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    {availableYears.map((year) => (
-                      <option key={year} value={year}>{year}</option>
-                    ))}
-                  </select>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm text-gray-400">Tanggal Akhir</label>
+                  <DatePicker
+                    selectedDate={dateRange.endDate}
+                    onDateChange={(date) => handleCustomDateChange('endDate', date)}
+                    minDate={dateRange.startDate}
+                    maxDate={new Date()}
+                  />
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => handleMonthYearChange(parseInt(e.target.value), selectedYear)}
+                  className="flex-1 px-3 py-2 bg-[#362f47] border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  {availableMonths.map((monthIndex) => (
+                    <option key={monthIndex} value={monthIndex}>
+                      {months[monthIndex]}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => handleMonthYearChange(selectedMonth, parseInt(e.target.value))}
+                  className="w-28 px-3 py-2 bg-[#362f47] border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  {availableYears.map((year) => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
 
-            <div className="flex gap-2 pt-4">
-              <button
-                onClick={resetFilters}
-                className="flex-1 px-4 py-2 bg-slate-600 hover:bg-slate-700 rounded-lg transition-colors"
-              >
-                Reset
-              </button>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
-              >
-                Terapkan
-              </button>
-            </div>
+          <div className="flex gap-2 pt-4">
+            <button
+              onClick={resetFilters}
+              className="flex-1 px-4 py-2 bg-slate-600 hover:bg-slate-700 rounded-lg transition-colors"
+            >
+              Reset
+            </button>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
+            >
+              Terapkan
+            </button>
           </div>
         </div>
       )}
