@@ -22,91 +22,120 @@ const StatCard = React.memo(({ stat, renderTrendIcon }) => (
 
 const useFilterableStats = (peminjaman, selectedPeriod) => {
   return useMemo(() => {
-    if (!peminjaman) return [];
+    if (!peminjaman || peminjaman.length === 0) return [];
 
-    const today = new Date();
-    const startOfWeek = new Date(today.setDate(today.getDate() - 7));
-    const startOfMonth = new Date(today.setDate(today.getDate() - 30));
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const filterByDate = (items, startDate) => {
-      return items.filter(item => new Date(item.created_at) >= startDate);
+    // Fungsi untuk mendapatkan rentang waktu berdasarkan periode
+    const getTimeRange = () => {
+      const end = new Date();
+      let start = new Date();
+
+      switch (selectedPeriod) {
+        case 'today':
+          start = startOfToday;
+          break;
+        case 'week':
+          start.setDate(start.getDate() - 7);
+          break;
+        case 'month':
+          start.setDate(start.getDate() - 30);
+          break;
+        default:
+          start = startOfToday;
+      }
+      return { start, end };
     };
 
+    const currentRange = getTimeRange();
+    const prevRange = {
+      start: new Date(currentRange.start),
+      end: new Date(currentRange.start)
+    };
+    prevRange.start.setDate(prevRange.start.getDate() - (selectedPeriod === 'today' ? 1 : selectedPeriod === 'week' ? 7 : 30));
+
+    // Fungsi untuk mengecek apakah tanggal berada dalam rentang
+    const isInRange = (date, range) => {
+      const checkDate = new Date(date);
+      return checkDate >= range.start && checkDate <= range.end;
+    };
+
+    // Fungsi untuk menghitung data berdasarkan status dan rentang waktu
+    const countByStatusAndRange = (status, range, includeActive = false) => {
+      return peminjaman.filter(p => {
+        const peminjamanDate = new Date(p.createdAt);
+        if (includeActive) {
+          // Untuk peminjaman aktif dan terlambat, cek status saat ini
+          return p.status === status;
+        } else {
+          // Untuk request dan pengembalian, cek dalam rentang waktu
+          return p.status === status && isInRange(peminjamanDate, range);
+        }
+      }).length;
+    };
+
+    // Hitung statistik untuk periode saat ini
+    const currentPending = countByStatusAndRange('PENDING', currentRange);
+    const currentActive = countByStatusAndRange('DIPINJAM', currentRange, true);
+    const currentReturned = countByStatusAndRange('DIKEMBALIKAN', currentRange);
+    const currentOverdue = countByStatusAndRange('TERLAMBAT', currentRange, true);
+
+    // Hitung statistik untuk periode sebelumnya
+    const prevPending = countByStatusAndRange('PENDING', prevRange);
+    const prevActive = countByStatusAndRange('DIPINJAM', prevRange, true);
+    const prevReturned = countByStatusAndRange('DIKEMBALIKAN', prevRange);
+    const prevOverdue = countByStatusAndRange('TERLAMBAT', prevRange, true);
+
+    // Fungsi untuk menghitung perubahan persentase
     const calculateChange = (current, previous) => {
       if (previous === 0) return current > 0 ? '+100%' : '0%';
       const change = ((current - previous) / previous) * 100;
       return `${change > 0 ? '+' : ''}${change.toFixed(1)}%`;
     };
 
-    // Filter data based on selected period
-    const periodData = {
-      today: filterByDate(peminjaman, new Date().setHours(0, 0, 0, 0)),
-      week: filterByDate(peminjaman, startOfWeek),
-      month: filterByDate(peminjaman, startOfMonth)
-    }[selectedPeriod];
-
-    // Calculate previous period data for comparison
-    const previousPeriodData = {
-      today: filterByDate(peminjaman, new Date(new Date().setDate(new Date().getDate() - 1))),
-      week: filterByDate(peminjaman, new Date(startOfWeek.setDate(startOfWeek.getDate() - 7))),
-      month: filterByDate(peminjaman, new Date(startOfMonth.setDate(startOfMonth.getDate() - 30)))
-    }[selectedPeriod];
-
-    // Calculate stats
-    const requestPeminjaman = periodData.filter(p => p.status === 'PENDING').length;
-    const previousRequestPeminjaman = previousPeriodData.filter(p => p.status === 'PENDING').length;
-
-    const peminjamanAktif = periodData.filter(p => p.status === 'DIPINJAM').length;
-    const previousPeminjamanAktif = previousPeriodData.filter(p => p.status === 'DIPINJAM').length;
-
-    const pengembalianHariIni = periodData.filter(p => p.status === 'SELESAI').length;
-    const previousPengembalian = previousPeriodData.filter(p => p.status === 'SELESAI').length;
-
-    const keterlambatan = periodData.filter(p => {
-      const dueDate = new Date(p.tgl_kembali);
-      return p.status === 'DIPINJAM' && dueDate < new Date();
-    }).length;
-    const previousKeterlambatan = previousPeriodData.filter(p => {
-      const dueDate = new Date(p.tgl_kembali);
-      return p.status === 'DIPINJAM' && dueDate < new Date();
-    }).length;
+    const periodText = selectedPeriod === 'today' 
+      ? 'hari ini' 
+      : selectedPeriod === 'week' 
+        ? 'minggu ini' 
+        : 'bulan ini';
 
     return [
       {
         title: "Request Peminjaman",
-        value: requestPeminjaman,
-        change: calculateChange(requestPeminjaman, previousRequestPeminjaman),
+        value: currentPending,
+        change: calculateChange(currentPending, prevPending),
         icon: <Send className="text-blue-500" />,
         bgColor: "bg-blue-500/10",
-        trend: requestPeminjaman >= previousRequestPeminjaman ? 'up' : 'down',
-        description: "Jumlah permintaan peminjaman yang belum disetujui"
+        trend: currentPending >= prevPending ? 'up' : 'down',
+        description: `Permintaan peminjaman baru ${periodText}`
       },
       {
         title: "Peminjaman Aktif",
-        value: peminjamanAktif,
-        change: calculateChange(peminjamanAktif, previousPeminjamanAktif),
+        value: currentActive,
+        change: calculateChange(currentActive, prevActive),
         icon: <Bookmark className="text-purple-500" />,
         bgColor: "bg-purple-500/10",
-        trend: peminjamanAktif >= previousPeminjamanAktif ? 'up' : 'down',
-        description: "Total peminjaman yang sedang berlangsung"
+        trend: currentActive >= prevActive ? 'up' : 'down',
+        description: `Total peminjaman yang sedang berlangsung ${periodText}`
       },
       {
-        title: "Pengembalian Hari Ini",
-        value: pengembalianHariIni,
-        change: calculateChange(pengembalianHariIni, previousPengembalian),
+        title: "Pengembalian",
+        value: currentReturned,
+        change: calculateChange(currentReturned, prevReturned),
         icon: <Activity className="text-green-500" />,
         bgColor: "bg-green-500/10",
-        trend: pengembalianHariIni >= previousPengembalian ? 'up' : 'down',
-        description: "Buku yang dikembalikan hari ini"
+        trend: currentReturned >= prevReturned ? 'up' : 'down',
+        description: `Buku yang dikembalikan ${periodText}`
       },
       {
         title: "Keterlambatan",
-        value: keterlambatan,
-        change: calculateChange(keterlambatan, previousKeterlambatan),
+        value: currentOverdue,
+        change: calculateChange(currentOverdue, prevOverdue),
         icon: <Clock className="text-red-500" />,
         bgColor: "bg-red-500/10",
-        trend: keterlambatan <= previousKeterlambatan ? 'up' : 'down',
-        description: "Peminjaman yang melewati tenggat waktu"
+        trend: currentOverdue <= prevOverdue ? 'up' : 'down',
+        description: `Total peminjaman yang melewati tenggat waktu ${periodText}`
       }
     ];
   }, [peminjaman, selectedPeriod]);

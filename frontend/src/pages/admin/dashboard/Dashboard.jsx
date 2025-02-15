@@ -83,9 +83,14 @@ const Dashboard = () => {
     alert("Mengekspor Data..")
   }, []);
 
-  const handleFilterChange = useCallback((filters) => {
-    console.log('Filters applied:', filters);
-  }, []);
+  const handleFilterChange = useCallback((dateRange) => {
+    // Filter your data based on the date range
+    const filteredData = peminjamanData.filter(item => {
+      const itemDate = new Date(item.created_at);
+      return itemDate >= dateRange.startDate && itemDate <= dateRange.endDate;
+    });
+    // Update your state or pass to child components as needed
+  }, [peminjamanData]);
 
   const renderTrendIcon = useCallback((trend) => {
     return trend === 'up' ?
@@ -125,7 +130,10 @@ const Dashboard = () => {
             <Download size={16} /> Export
           </Button>
         </div>
-        <FilterPanel onFilterChange={handleFilterChange} />
+        <FilterPanel 
+        onFilterChange={handleFilterChange} 
+        peminjaman={peminjamanData || []}
+        />
       </div>
 
       <div className='mb-6'>
