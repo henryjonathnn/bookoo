@@ -3,16 +3,24 @@ import {
   BookOpen, Users, UserPlus, Star, Award
 } from 'react-feather';
 
-export const LibraryStatsOverview = React.memo(({ books, users, totalCategories, totalPeminjaman }) => {
+export const LibraryStatsOverview = React.memo(({ books, users, totalCategories, totalPeminjaman, dateRange }) => {
   const libraryStats = useMemo(() => {
     const stats = {
       totalBooks: Array.isArray(books) ? books.length : 0,
       totalMembers: Array.isArray(users) ? users.filter(user => user.role === 'USER').length : 0,
       totalCategories: totalCategories || 0,
       totalStaff: Array.isArray(users) ? users.filter(user => user.role === 'STAFF').length : 0,
-      totalDipinjam: totalPeminjaman || 0,
+      totalDipinjam: 0,
       averageRating: 0
     };
+
+    // Hitung total peminjaman berdasarkan tanggal
+    if (Array.isArray(totalPeminjaman)) {
+      stats.totalDipinjam = totalPeminjaman.filter(p => {
+        const peminjamanDate = new Date(p.createdAt);
+        return peminjamanDate <= dateRange.endDate;
+      }).length;
+    }
 
     if (Array.isArray(books) && books.length > 0) {
       const validRatings = books.filter(book => book.rating > 0);
@@ -24,7 +32,7 @@ export const LibraryStatsOverview = React.memo(({ books, users, totalCategories,
     }
 
     return stats;
-  }, [books, users, totalCategories, totalPeminjaman]);
+  }, [books, users, totalCategories, totalPeminjaman, dateRange]);
 
   const StatCard = React.memo(({ icon: Icon, value, label, iconColor }) => (
     <div className="flex flex-col items-center p-3 bg-[#362f47] rounded-lg">

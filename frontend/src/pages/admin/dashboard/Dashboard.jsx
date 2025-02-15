@@ -26,10 +26,14 @@ const COLORS = ['#8B5CF6', '#EC4899', '#10B981', '#3B82F6'];
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedPeriod, setSelectedPeriod] = useState('today');
+  const [selectedPeriod, setSelectedPeriod] = useState('monthly');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { width } = useWindowSize();
   const isMobileView = width < 768;
+  const [currentDateRange, setCurrentDateRange] = useState({
+    startDate: new Date(new Date().getFullYear(), 0, 1), // Awal tahun
+    endDate: new Date()
+  });
 
   const {
     books,
@@ -84,13 +88,18 @@ const Dashboard = () => {
   }, []);
 
   const handleFilterChange = useCallback((dateRange) => {
-    // Filter your data based on the date range
-    const filteredData = peminjamanData.filter(item => {
-      const itemDate = new Date(item.created_at);
-      return itemDate >= dateRange.startDate && itemDate <= dateRange.endDate;
-    });
-    // Update your state or pass to child components as needed
-  }, [peminjamanData]);
+    console.log('Filter changed:', dateRange);
+    setCurrentDateRange(dateRange);
+  }, []);
+
+  // Hitung data yang difilter untuk stats grid
+  const filteredPeminjamanData = useMemo(() => {
+    return peminjamanData?.filter(item => {
+      const itemDate = new Date(item.createdAt);
+      return itemDate >= currentDateRange.startDate && 
+             itemDate <= currentDateRange.endDate;
+    }) || [];
+  }, [peminjamanData, currentDateRange]);
 
   const renderTrendIcon = useCallback((trend) => {
     return trend === 'up' ?
@@ -131,53 +140,26 @@ const Dashboard = () => {
           </Button>
         </div>
         <FilterPanel 
-        onFilterChange={handleFilterChange} 
-        peminjaman={peminjamanData || []}
+          onFilterChange={handleFilterChange} 
+          peminjaman={peminjamanData || []}
         />
       </div>
 
       <div className='mb-6'>
         <CurrentDateTime />
       </div>
-      {/* Perpustakaan Overview Panel - Static Data */}
+      {/* Overview Panel dengan data akumulatif */}
       <LibraryStatsOverview
         books={books || []}
         users={users || []}
         totalCategories={totalCategories || 0}
-        totalPeminjaman={totalPeminjaman || 0}
+        totalPeminjaman={peminjamanData || []} // Kirim semua data peminjaman
+        dateRange={currentDateRange} // Tambahkan dateRange
       />
 
-      {/* Controls for Filterable Stats */}
-      <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 mb-6">
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-bold text-white">Statistik Perpustakaan</h2>
-          <div className="flex gap-2">
-            <Button
-              variant={selectedPeriod === 'today' ? 'default' : 'secondary'}
-              onClick={() => setSelectedPeriod('today')}
-              size="sm"
-            >
-              Hari Ini
-            </Button>
-            <Button
-              variant={selectedPeriod === 'week' ? 'default' : 'secondary'}
-              onClick={() => setSelectedPeriod('week')}
-              size="sm"
-            >
-              Minggu Ini
-            </Button>
-            <Button
-              variant={selectedPeriod === 'month' ? 'default' : 'secondary'}
-              onClick={() => setSelectedPeriod('month')}
-              size="sm"
-            >
-              Bulan Ini
-            </Button>
-          </div>
-        </div>
-      </div>
+      {/* Stats Grid dengan data terfilter */}
       <FilterableStatsGrid
-        peminjaman={peminjamanData || []}
+        peminjaman={filteredPeminjamanData}
         selectedPeriod={selectedPeriod}
       />
     </div>

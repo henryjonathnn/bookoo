@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Filter, X, ChevronDown, Calendar } from 'react-feather';
+import { Filter, X, ChevronDown } from 'react-feather';
 import DatePicker from '../../ui/admin/DatePicker';
 
 const FilterPanel = ({ onFilterChange, peminjaman = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isCustomPeriod, setIsCustomPeriod] = useState(false);
+  const [filterType, setFilterType] = useState('monthly'); // 'monthly' atau 'custom'
   const [availableMonths, setAvailableMonths] = useState([]);
   const [availableYears, setAvailableYears] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
@@ -19,40 +19,41 @@ const FilterPanel = ({ onFilterChange, peminjaman = [] }) => {
     "Juli", "Agustus", "September", "Oktober", "November", "Desember"
   ];
 
-  // Process available dates from peminjaman data
+  // Proses data peminjaman untuk mendapatkan bulan dan tahun yang tersedia
   useEffect(() => {
     if (peminjaman && peminjaman.length > 0) {
-      // Filter out invalid dates and create Date objects
       const dates = peminjaman
-        .map(p => new Date(p.created_at))
+        .map(p => new Date(p.createdAt))
         .filter(date => !isNaN(date.getTime()));
 
       if (dates.length > 0) {
-        // Get unique years
+        // Dapatkan tahun yang unik dan urutkan
         const years = [...new Set(dates.map(date => date.getFullYear()))]
-          .sort((a, b) => b - a); // Sort descending
-        setAvailableYears(years);
+          .sort((a, b) => b - a);
+        setAvailableYears(years.length > 0 ? years : [new Date().getFullYear()]);
 
-        // Get months for selected year
+        // Dapatkan bulan yang tersedia untuk tahun yang dipilih
         const monthsInYear = dates
           .filter(date => date.getFullYear() === selectedYear)
           .map(date => date.getMonth());
         
         const uniqueMonths = [...new Set(monthsInYear)].sort((a, b) => a - b);
-        setAvailableMonths(uniqueMonths.length > 0 ? uniqueMonths : [new Date().getMonth()]);
+        
+        // Jika tidak ada bulan yang tersedia untuk tahun ini, gunakan semua bulan
+        if (uniqueMonths.length === 0) {
+          setAvailableMonths([...Array(12).keys()]); // 0-11 untuk semua bulan
+        } else {
+          setAvailableMonths(uniqueMonths);
+        }
       } else {
-        // Fallback to current month/year if no valid dates
+        // Jika tidak ada data, set default ke tahun dan bulan saat ini
         setAvailableYears([new Date().getFullYear()]);
         setAvailableMonths([new Date().getMonth()]);
       }
-    } else {
-      // Fallback to current month/year if no data
-      setAvailableYears([new Date().getFullYear()]);
-      setAvailableMonths([new Date().getMonth()]);
     }
   }, [peminjaman, selectedYear]);
 
-  // Set initial filter on component mount
+  // Set filter default saat komponen dimount
   useEffect(() => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
@@ -78,7 +79,7 @@ const FilterPanel = ({ onFilterChange, peminjaman = [] }) => {
   const resetFilters = () => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
-    setIsCustomPeriod(false);
+    setFilterType('monthly');
     handleMonthYearChange(currentMonth, currentYear);
   };
 
@@ -108,9 +109,9 @@ const FilterPanel = ({ onFilterChange, peminjaman = [] }) => {
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <button
-                onClick={() => setIsCustomPeriod(false)}
+                onClick={() => setFilterType('monthly')}
                 className={`flex-1 px-3 py-2 rounded-lg transition-colors ${
-                  !isCustomPeriod 
+                  filterType === 'monthly' 
                     ? 'bg-purple-600 text-white' 
                     : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
                 }`}
@@ -118,9 +119,9 @@ const FilterPanel = ({ onFilterChange, peminjaman = [] }) => {
                 Bulanan
               </button>
               <button
-                onClick={() => setIsCustomPeriod(true)}
+                onClick={() => setFilterType('custom')}
                 className={`flex-1 px-3 py-2 rounded-lg transition-colors ${
-                  isCustomPeriod 
+                  filterType === 'custom' 
                     ? 'bg-purple-600 text-white' 
                     : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
                 }`}
@@ -130,7 +131,7 @@ const FilterPanel = ({ onFilterChange, peminjaman = [] }) => {
             </div>
 
             <div className="space-y-2">
-              {isCustomPeriod ? (
+              {filterType === 'custom' ? (
                 <div className="space-y-2">
                   <div className="flex flex-col gap-2">
                     <label className="text-sm text-gray-400">Tanggal Mulai</label>
