@@ -2,7 +2,7 @@ import axios from "axios";
 import { API_CONFIG } from "../config/api.config";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+  baseURL: import.meta.env.VITE_API_URL || 'https://bookoo-backend-production.up.railway.app',
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
