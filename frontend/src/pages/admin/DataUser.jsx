@@ -17,40 +17,44 @@ const DataUser = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [filters, setFilters] = useState({
-    role: '',
-    active: 'ACTIVE'
-  })
-
-  const {
-    users,
-    loading,
-    error,
-    totalItems,
-    totalPages,
-    currentPage,
-    updateParams,
-    refresh
-  } = useUsers({
+  const [searchParams, setSearchParams] = useState({
     page: 1,
     limit: 10,
     search: '',
-    ...filters
+    role: '',
+    active: 'ACTIVE'
   });
 
-  const handleFilter = (newFilters) => {
+  const {
+    data,
+    isLoading,
+    error,
+    refetch
+  } = useUsers(searchParams);
 
-    const processedFilters = {
+  const handleFilter = useCallback((newFilters) => {
+    setSearchParams(prev => ({
+      ...prev,
       ...newFilters,
-      role: newFilters.role === 'ALL' ? '' : newFilters.role
-    }
+      role: newFilters.role === 'ALL' ? '' : newFilters.role,
+      page: 1 // Reset page when filter changes
+    }));
+  }, []);
 
-    setFilters(processedFilters);
-    updateParams({
-      ...processedFilters,
-      page: 1
-    })
-  }
+  const handleSearch = useCallback((searchValue) => {
+    setSearchParams(prev => ({
+      ...prev,
+      search: searchValue,
+      page: 1 // Reset page when search changes
+    }));
+  }, []);
+
+  const handlePageChange = useCallback((page) => {
+    setSearchParams(prev => ({
+      ...prev,
+      page
+    }));
+  }, []);
 
   // INI FORM
   const userFormConfig = {
@@ -106,23 +110,12 @@ const DataUser = () => {
     ]
   };
 
-
   // Error handling
   useEffect(() => {
     if (error) {
-      toast.error(error);
+      toast.error(error.message || 'Terjadi kesalahan saat mengambil data');
     }
   }, [error]);
-
-  // Search handler with debounce
-  const handleSearch = useCallback((searchValue) => {
-    updateParams({ search: searchValue, page: 1 });
-  }, [updateParams]);
-
-  // Page change handler
-  const handlePageChange = useCallback((page) => {
-    updateParams({ page });
-  }, [updateParams]);
 
   const handleOpenCreateModal = useCallback(() => {
     setSelectedUser(null);
@@ -148,7 +141,7 @@ const DataUser = () => {
         await userService.createUser(formData);
         toast.success('User berhasil ditambahkan!');
       }
-      refresh();
+      refetch();
       handleCloseModal();
     } catch (error) {
       toast.error(error.message);
@@ -156,15 +149,14 @@ const DataUser = () => {
     }
   };
 
-
   // Select all handler
   const handleSelectAll = useCallback((e) => {
-    if (e.target.checked && users?.length > 0) {
-      setSelectedUsers(users.map(user => user.id));
+    if (e.target.checked && data?.users?.length > 0) {
+      setSelectedUsers(data.users.map(user => user.id));
     } else {
       setSelectedUsers([]);
     }
-  }, [users]);
+  }, [data]);
 
   // Individual select handler
   const handleSelectUser = useCallback((userId, checked) => {
@@ -201,7 +193,7 @@ const DataUser = () => {
         type="checkbox"
         className="rounded border-gray-600 text-purple-600 focus:ring-purple-500 hidden md:block"
         onChange={handleSelectAll}
-        checked={users?.length > 0 && selectedUsers.length === users.length}
+        checked={data?.users?.length > 0 && selectedUsers.length === data.users.length}
       />,
       className: 'hidden md:table-cell w-[5%] px-2 lg:px-6 py-3'
     },
@@ -292,12 +284,12 @@ const DataUser = () => {
           <TombolAksi
             onEdit={() => handleOpenEditModal(user)}
             onDelete={() => handleDelete(user.id)}
-            onRefresh={refresh}
+            onRefresh={refetch}
           />
         </div>
       </td>
     </tr>
-  ), [selectedUsers, handleSelectUser, formatDate, refresh]);
+  ), [selectedUsers, handleSelectUser, formatDate, refetch]);
 
   return (
     <div className="pt-16">
@@ -313,25 +305,28 @@ const DataUser = () => {
         onSearch={handleSearch}
         onFilter={handleFilter}
         filterType="user"
-        initialValue=""
-        initialFilters={filters}
+        initialValue={searchParams.search}
+        initialFilters={{
+          role: searchParams.role,
+          active: searchParams.active
+        }}
         className="w-full"
       />
 
-      {loading ? (
+      {isLoading ? (
         <LoadingSpinner />
       ) : (
         <div className="w-full">
           <div className="inline-block min-w-full align-middle">
             <DataTable
               columns={columns}
-              data={users}
+              data={data?.users || []}
               renderRow={renderUserRow}
-              totalEntries={totalItems}
-              currentPage={currentPage}
-              totalPages={totalPages}
+              totalEntries={data?.totalItems || 0}
+              currentPage={searchParams.page}
+              totalPages={data?.totalPages || 0}
               onPageChange={handlePageChange}
-              entriesPerPage={10}
+              entriesPerPage={searchParams.limit}
               className="w-full text-sm"
             />
           </div>

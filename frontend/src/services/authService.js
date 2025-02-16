@@ -1,4 +1,5 @@
 import api from './axios.instance';
+import { handleApiError } from '../utils/api.utils';
 
 export const authService = {
   async register(userData) {
@@ -7,11 +8,15 @@ export const authService = {
   },
 
   async login(credentials) {
-    const response = await api.post("/users/login", credentials);
-    if (response.data.accessToken) {
-      localStorage.setItem('token', response.data.accessToken);
+    try {
+      const response = await api.post("/users/login", credentials);
+      if (response.data.accessToken) {
+        localStorage.setItem('token', response.data.accessToken);
+      }
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
     }
-    return response.data;
   },
 
   async logout() {

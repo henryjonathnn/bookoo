@@ -2,8 +2,11 @@ import axios from "axios";
 import { API_CONFIG } from "../config/api.config";
 
 const api = axios.create({
-  baseURL: API_CONFIG.baseURL,
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
   timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
   withCredentials: true
 });
 
@@ -25,10 +28,26 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const response = await api.get('/users/token');
+        const { accessToken } = response.data;
+        
+        localStorage.setItem('token', accessToken);
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        
+        return api(originalRequest);
+      } catch (refreshError) {
+        localStorage.removeItem('token');
+        window.location.href = '/';
+        return Promise.reject(refreshError);
+      }
     }
+
     return Promise.reject(error);
   }
 );

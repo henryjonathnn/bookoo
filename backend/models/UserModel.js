@@ -60,19 +60,27 @@ const User = db.define(
     freezeTableName: true,
     timestamps: true,
     indexes: [
-      { fields: ["email"] },
-      { fields: ["username"] },
+      { fields: ["email"], unique: true },
+      { fields: ["username"], unique: true },
       { fields: ["role"] },
       { fields: ["is_active"] },
+      { fields: ["createdAt"] },
+      { fields: ["name", "email", "username"] }
     ],
     defaultScope: {
-      attributes: { exclude: ["password", "refresh_token"] },
+      attributes: { 
+        exclude: ["password", "refresh_token"],
+        include: ["id", "name", "email", "username", "role", "is_active", "profile_img", "createdAt"]
+      }
     },
     scopes: {
       withAuth: {
         attributes: { include: ["password", "refresh_token"] },
       },
-    },
+      list: {
+        attributes: ["id", "name", "email", "username", "role", "is_active", "profile_img", "createdAt"]
+      }
+    }
   }
 );
 

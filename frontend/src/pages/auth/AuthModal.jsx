@@ -87,22 +87,17 @@ const AuthModal = ({ isOpen, onClose }) => {
     e.preventDefault();
     if (!isFormValid || isSubmitting) return;
 
-    if (!isLogin && registerStep === 1) {
-      if (formData.password !== formData.confirmPassword) {
-        setError('Password tidak sesuai dengan konfirmasi');
-        return;
-      }
-      setRegisterStep(2);
-      return;
-    }
-
     setIsSubmitting(true);
+    setError('');
+
     try {
       if (isLogin) {
-        await login({
+        const credentials = {
           email: formData.email.trim(),
           password: formData.password
-        });
+        };
+
+        await login(credentials);
         onClose();
       } else {
         await register({
@@ -117,11 +112,11 @@ const AuthModal = ({ isOpen, onClose }) => {
       }
     } catch (err) {
       console.error('Auth error:', err);
-      setError(err.response?.data?.msg || 'Terjadi kesalahan pada server');
+      setError(err.message || 'Terjadi kesalahan saat autentikasi');
     } finally {
       setIsSubmitting(false);
     }
-  }, [isFormValid, isSubmitting, isLogin, registerStep, formData, login, register, onClose]);
+  }, [isFormValid, isSubmitting, isLogin, formData, login, onClose]);
 
   const resetForm = useCallback(() => {
     setFormData({ email: '', password: '', name: '', username: '', confirmPassword: '' });

@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-    baseURL: "http://localhost:5000",
+    baseURL: "https://bookoo-backend-production.up.railway.app/",
     timeout: 15000,
     withCredentials: true,
   };

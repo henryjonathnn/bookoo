@@ -6,6 +6,7 @@ import path from "path";
 import { promises as fs } from 'fs';
 import { userService } from "../services/userService.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import createError from "http-errors";
 
 export const authController = {
   getUsers: asyncHandler(async (req, res) => {
@@ -13,84 +14,45 @@ export const authController = {
     res.json(result);
   }),
 
-  getUserById: async (req, res) => {
-    try {
-      const user = await User.findByPk(req.params.id, {
-        attributes: ["id", "name", "email", "username", "role", "createdAt", "profile_img"],
-      });
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      res.json(user);
-    } catch (error) {
-      res.status(500).json({
-        message: "Error fetching user",
-        error: error.message,
-      });
+  getUserById: asyncHandler(async (req, res) => {
+    const user = await User.scope('list').findByPk(req.params.id);
+    
+    if (!user) {
+      throw createError(404, "User tidak ditemukan");
     }
-  },
 
-  register: async (req, res) => {
+    res.json(user);
+  }),
+
+  register: asyncHandler(async (req, res) => {
     const { name, email, username, password, confPassword } = req.body;
 
-    // Early validation to reduce unnecessary database calls
-    if (!name || !email || !username || !password || !confPassword) {
-      return res.status(400).json({ message: "Semua kolom harus diisi!" });
-    }
-
     if (password !== confPassword) {
-      return res.status(400).json({ message: "Password tidak sesuai!" });
+      throw createError(400, "Password dan konfirmasi password tidak sesuai");
     }
 
-    try {
-      // Use transaction for atomic operation
-      const result = await User.sequelize.transaction(async (t) => {
-        // Efficient unique check
-        const existingUser = await User.findOne({
-          where: {
-            [Op.or]: [{ email }, { username }],
-          },
-          transaction: t,
-        });
+    const user = await userService.createUser({
+      name,
+      email,
+      username,
+      password
+    });
 
-        if (existingUser) {
-          const errorMessage =
-            existingUser.email === email
-              ? "Email sudah digunakan"
-              : "Username sudah digunakan";
-          throw new Error(errorMessage);
-        }
-
-        // Hash password with more secure params
-        const hashedPassword = await bcrypt.hash(password, 12);
-
-        // Create user
-        return await User.create(
-          {
-            name,
-            email,
-            username,
-            password: hashedPassword,
-            role: "user",
-          },
-          { transaction: t }
-        );
-      });
-
-      res.status(201).json({ message: "Registrasi berhasil!" });
-    } catch (error) {
-      res.status(400).json({
-        message: error.message || "Registrasi Gagal!",
-      });
-    }
-  },
+    res.status(201).json({
+      success: true,
+      message: "Registrasi berhasil!",
+      data: user
+    });
+  }),
 
   // Optimize login with more secure token generation
   login: asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     
+    if (!email || !password) {
+      throw createError(400, "Email dan password harus diisi!");
+    }
+
     const result = await userService.login(email, password);
 
     // Set refresh token cookie
@@ -102,6 +64,8 @@ export const authController = {
     });
 
     res.json({
+      success: true,
+      message: "Login berhasil!",
       accessToken: result.accessToken,
       user: result.user
     });

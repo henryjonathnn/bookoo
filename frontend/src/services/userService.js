@@ -4,28 +4,35 @@ import { handleApiError } from "../utils/api.utils";
 class UserService {
   async getUsers(params = {}) {
     try {
-      const response = await api.get("/users", { params });
+      const response = await api.get("/users", { 
+        params,
+        headers: {
+          'Cache-Control': 'max-age=300'
+        }
+      });
       return response.data;
     } catch (error) {
-      throw new Error(handleApiError(error));
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
     }
   }
 
   async createUser(userData) {
-    const formData = new FormData();
-    Object.entries(userData).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        formData.append(key, value);
-      }
-    });
-
     try {
+      const formData = new FormData();
+      Object.entries(userData).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          formData.append(key, value);
+        }
+      });
+
       const response = await api.post("/users", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       return response.data;
     } catch (error) {
-      throw new Error(handleApiError(error));
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
     }
   }
 
