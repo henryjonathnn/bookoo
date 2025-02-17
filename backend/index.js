@@ -17,7 +17,7 @@ import cookieParser from "cookie-parser";
 dotenv.config();
 const app = express();
 
-app.use(cors({ credentials: true, origin: "https://bookoo-five.vercel.app" }));
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static("public"));
