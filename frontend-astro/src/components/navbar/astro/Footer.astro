@@ -1,0 +1,92 @@
+---
+import {
+  Twitter,
+  Facebook,
+  Instagram,
+  GitHub,
+  Youtube,
+  Book,
+} from "react-feather";
+---
+
+<footer class="mt-10 md:mt-20 relative border-t border-purple-500/10 mx-3">
+  <div class="relative bg-transparent">
+    <div class="container max-w-7xl px-4 md:px-8 lg:px-16 py-6 md:py-8">
+      {/* Stack vertically on mobile, row on larger screens */}
+      <div
+        class="flex flex-col md:flex-row items-center space-y-6 md:space-y-0 md:justify-between"
+      >
+        {/* Logo and Copyright */}
+        <div class="flex items-center space-x-2 text-center md:text-left">
+          <div
+            class="h-8 w-8 bg-gradient-to-br from-purple-600 via-purple-500 to-indigo-600 rounded-lg flex items-center justify-center purple-glow"
+          >
+            <Book size={16} />
+          </div>
+          <span class="text-xs md:text-sm text-gray-400">
+            © 2025 BooKoo Digital Library by{" "}
+            <span
+              class="inline-block bg-purple-700/20 text-purple-300 px-2 py-1 rounded-lg shadow-lg mt-1 md:mt-0"
+            >
+              Hyura Dev
+            </span>
+          </span>
+        </div>
+
+        {/* Navigation Links */}
+        <nav class="flex flex-wrap justify-center gap-4 md:gap-6">
+          <a
+            href="#"
+            class="text-xs md:text-sm text-gray-400 hover:text-purple-400 transition-colors"
+            >About</a
+          >
+          <a
+            href="#"
+            class="text-xs md:text-sm text-gray-400 hover:text-purple-400 transition-colors"
+            >Terms</a
+          >
+          <a
+            href="#"
+            class="text-xs md:text-sm text-gray-400 hover:text-purple-400 transition-colors"
+            >Privacy</a
+          >
+          <a
+            href="#"
+            class="text-xs md:text-sm text-gray-400 hover:text-purple-400 transition-colors"
+            >Docs</a
+          >
+          <a
+            href="#"
+            class="text-xs md:text-sm text-gray-400 hover:text-purple-400 transition-colors"
+            >Contact</a
+          >
+        </nav>
+
+        {/* Social Links */}
+        <div class="flex items-center space-x-6">
+          <a
+            href="https://github.com/henryjonathnn"
+            target="_blank"
+            class="text-gray-400 hover:text-purple-400 transition-colors"
+          >
+            <GitHub size={16} />
+          </a>
+          <a
+            href="https://instagram.com/henryjonathnn"
+            target="_blank"
+            class="text-gray-400 hover:text-purple-400 transition-colors"
+          >
+            <Instagram size={16} />
+          </a>
+          <a
+            href="https://www.youtube.com/@henryjonathnn"
+            target="_blank"
+            class="text-gray-400 hover:text-purple-400 transition-colors"
+          >
+            <Youtube size={16} />
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

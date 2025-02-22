@@ -1,0 +1,24 @@
+---
+import '../styles/App.css'
+import '../styles/index.css'
+
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>BooKoo | {title}</title>
+	</head>
+	<body class="bg-[#0D0D1A] text-white bg-pattern">
+		<slot />
+	</body>
+</html>
