@@ -295,7 +295,7 @@ const DataUser = () => {
     <div className="pt-16">
       <PageHeader
         title="Data User"
-        subtitle="Pengelolaan data user yang ada di perpustakaan BooKoo"
+        subtitle="Pengelolaan data user yang ada di perpustakaan Booktopia"
         buttonLabel="Tambah User"
         onButtonClick={handleOpenCreateModal}
       />

@@ -14,7 +14,7 @@ const Footer = () => {
                                 <Book size={16} />
                             </div>
                             <span className="text-xs md:text-sm text-gray-400">
-                                © 2025 BooKoo Digital Library by{' '}
+                                © 2025 Booktopia Digital Library by{' '}
                                 <span className="inline-block bg-purple-700/20 text-purple-300 px-2 py-1 rounded-lg shadow-lg mt-1 md:mt-0">
                                     Hyura Dev
                                 </span>

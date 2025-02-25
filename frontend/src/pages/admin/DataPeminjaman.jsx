@@ -369,7 +369,7 @@ const DataPeminjaman = () => {
     <div className="pt-16">
       <PageHeader
         title="Data Peminjaman"
-        subtitle="Pengelolaan data peminjaman buku di perpustakaan BooKoo"
+        subtitle="Pengelolaan data peminjaman buku di perpustakaan Booktopia"
       />
 
       <SearchFilterBar

@@ -330,7 +330,7 @@ const DataBuku = () => {
     <div className="pt-16">
       <PageHeader
         title="Data Buku"
-        subtitle="Pengelolaan data buku yang ada di perpustakaan BooKoo"
+        subtitle="Pengelolaan data buku yang ada di perpustakaan Booktopia"
         buttonLabel="Tambah Buku"
         onButtonClick={handleOpenCreateModal}
       />

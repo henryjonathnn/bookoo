@@ -31,7 +31,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <BookOpen size={16} className="text-purple-400" />
               </div>
               <a className="text-xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent" href='/'>
-                BooKoo
+                Booktopia
               </a>
             </div>
             <button 
