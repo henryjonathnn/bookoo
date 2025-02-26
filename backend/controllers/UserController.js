@@ -27,22 +27,46 @@ export const authController = {
   register: asyncHandler(async (req, res) => {
     const { name, email, username, password, confPassword } = req.body;
 
+    // Validasi input
+    if (!name?.trim() || !email?.trim() || !username?.trim() || !password) {
+      throw createError(400, "Semua field harus diisi");
+    }
+
+    // Validasi format email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw createError(400, "Format email tidak valid");
+    }
+
+    // Validasi panjang password
+    if (password.length < 6) {
+      throw createError(400, "Password minimal 6 karakter");
+    }
+
     if (password !== confPassword) {
       throw createError(400, "Password dan konfirmasi password tidak sesuai");
     }
 
-    const user = await userService.createUser({
-      name,
-      email,
-      username,
-      password
-    });
+    try {
+      const user = await userService.createUser({
+        name,
+        email,
+        username,
+        password
+      });
 
-    res.status(201).json({
-      success: true,
-      message: "Registrasi berhasil!",
-      data: user
-    });
+      res.status(201).json({
+        success: true,
+        message: "Registrasi berhasil!",
+        data: user
+      });
+    } catch (error) {
+      // Jika error karena duplikasi email/username
+      if (error.name === 'SequelizeUniqueConstraintError') {
+        throw createError(400, "Email atau username sudah digunakan");
+      }
+      throw error;
+    }
   }),
 
   // Optimize login with more secure token generation

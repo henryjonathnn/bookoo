@@ -73,7 +73,8 @@ const AuthModal = ({ isOpen, onClose }) => {
         (!validationState.email || validationState.email.isValid);
     }
 
-    return formData.username && (!validationState.username || validationState.username.isValid);
+    return formData.username && formData.username.trim().length >= 3 &&
+        (!validationState.username || validationState.username.isValid);
   }, [formData, validationState, registerStep, isLogin]);
 
   const handleInputChange = useCallback(({ target: { name, value } }) => {
@@ -100,15 +101,25 @@ const AuthModal = ({ isOpen, onClose }) => {
         await login(credentials);
         onClose();
       } else {
-        await register({
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          username: formData.username.trim(),
-          password: formData.password,
-          confPassword: formData.confirmPassword 
-        });
-        setIsLogin(true);
-        resetForm();
+        if (registerStep === 1) {
+          if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+            throw new Error("Semua field harus diisi");
+          }
+          if (formData.password !== formData.confirmPassword) {
+            throw new Error("Password dan konfirmasi password tidak sesuai");
+          }
+          setRegisterStep(2);
+        } else {
+          await register({
+            name: formData.name.trim(),
+            email: formData.email.trim(),
+            username: formData.username.trim(),
+            password: formData.password,
+            confPassword: formData.confirmPassword
+          });
+          setIsLogin(true);
+          resetForm();
+        }
       }
     } catch (err) {
       console.error('Auth error:', err);
@@ -116,7 +127,7 @@ const AuthModal = ({ isOpen, onClose }) => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [isFormValid, isSubmitting, isLogin, formData, login, onClose]);
+  }, [isFormValid, isSubmitting, isLogin, formData, registerStep, login, register, onClose]);
 
   const resetForm = useCallback(() => {
     setFormData({ email: '', password: '', name: '', username: '', confirmPassword: '' });
