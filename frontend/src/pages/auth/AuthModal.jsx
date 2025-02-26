@@ -84,6 +84,14 @@ const AuthModal = ({ isOpen, onClose }) => {
     }
   }, [debouncedValidate]);
 
+  const resetForm = useCallback(() => {
+    setFormData({ email: '', password: '', name: '', username: '', confirmPassword: '' });
+    setRegisterStep(1);
+    setError('');
+    setValidationState({});
+    setIsSubmitting(false);
+  }, []);
+
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     if (!isFormValid || isSubmitting) return;
@@ -134,14 +142,6 @@ const AuthModal = ({ isOpen, onClose }) => {
       setIsSubmitting(false);
     }
   }, [isFormValid, isSubmitting, isLogin, formData, registerStep, login, register, onClose, resetForm]);
-
-  const resetForm = useCallback(() => {
-    setFormData({ email: '', password: '', name: '', username: '', confirmPassword: '' });
-    setRegisterStep(1);
-    setError('');
-    setValidationState({});
-    setIsSubmitting(false);
-  }, []);
 
   const handleModeSwitch = useCallback(() => {
     setIsLogin(prev => !prev);
