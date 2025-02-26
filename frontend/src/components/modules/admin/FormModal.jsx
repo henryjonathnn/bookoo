@@ -11,37 +11,55 @@ const FormModal = ({
 }) => {
   const [preview, setPreview] = useState('');
   const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
   const [alert, setAlert] = useState(null);
 
   useEffect(() => {
-    if (isOpen) {
-      // Initialize form data with default values
-      const initialFormData = formConfig.fields.reduce((acc, field) => {
-        acc[field.id] = initialData?.[field.id] ?? ''; // Use nullish coalescing
-        return acc;
-      }, {});
-
-      setFormData(initialFormData);
-
-      // Handle image preview
-      if (initialData?.[formConfig.imageField]) {
-        setPreview(`${apiConfig.baseURL}${initialData[formConfig.imageField]}`);
-      } else {
-        setPreview('');
-      }
+    if (initialData) {
+      setFormData(initialData);
     } else {
-      // Reset form when modal closes
-      setFormData({});
-      setPreview('');
-      setAlert(null);
+      // Reset form ketika modal dibuka untuk create baru
+      const defaultValues = {};
+      formConfig.fields.forEach(field => {
+        if (field.type === 'number') {
+          defaultValues[field.name] = field.min || 0;
+        } else {
+          defaultValues[field.name] = '';
+        }
+      });
+      setFormData(defaultValues);
     }
-  }, [isOpen, initialData, formConfig, apiConfig]);
 
-  const handleChange = (fieldId, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [fieldId]: value
-    }));
+    // Handle image preview
+    if (initialData?.[formConfig.imageField]) {
+      setPreview(`${apiConfig.baseURL}${initialData[formConfig.imageField]}`);
+    } else {
+      setPreview('');
+    }
+  }, [initialData, formConfig, isOpen]);
+
+  const handleChange = (e) => {
+    const { name, value, type, files } = e.target;
+    
+    if (type === 'file') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: files[0]
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+
+    // Clear error when field is changed
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const handleImageChange = (e) => {
@@ -72,19 +90,22 @@ const FormModal = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formDataObj = new FormData();
-
-    // Append all form fields
-    Object.entries(formData).forEach(([key, value]) => {
-      if (value instanceof File) {
-        formDataObj.append(key, value);
-      } else if (value !== '') {
-        formDataObj.append(key, value);
+    
+    // Validasi form
+    const newErrors = {};
+    formConfig.fields.forEach(field => {
+      if (field.required && !formData[field.name]) {
+        newErrors[field.name] = `${field.label} wajib diisi`;
       }
     });
 
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     try {
-      await onSubmit(formDataObj);
+      await onSubmit(formData);
       setAlert({
         type: 'success',
         message: `${formConfig.title} berhasil ${initialData ? 'diperbarui' : 'ditambahkan'}!`
@@ -92,11 +113,9 @@ const FormModal = ({
       setTimeout(() => {
         onClose();
       }, 1500);
-    } catch (err) {
-      setAlert({
-        type: 'error',
-        message: err.message
-      });
+    } catch (error) {
+      console.error('Form submit error:', error);
+      setErrors({ submit: error.message });
     }
   };
 

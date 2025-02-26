@@ -113,17 +113,38 @@ const DataBuku = () => {
 
   const handleSubmit = async (formData) => {
     try {
+      // Log untuk debugging
+      console.log('Form data before submit:', formData);
+
+      // Validasi data wajib
+      const requiredFields = ['judul', 'penulis', 'kategori'];
+      const missingFields = requiredFields.filter(field => !formData[field]);
+      
+      if (missingFields.length > 0) {
+        throw new Error(`${missingFields.join(', ')} wajib diisi`);
+      }
+
+      // Pastikan nilai numerik dikonversi dengan benar
+      const processedData = {
+        ...formData,
+        stock: parseInt(formData.stock) || 0,
+        denda_harian: parseInt(formData.denda_harian) || 0,
+        tahun_terbit: formData.tahun_terbit ? parseInt(formData.tahun_terbit) : null
+      };
+
       if (selectedBuku) {
-        await handleUpdate(selectedBuku.id, formData);
+        await handleUpdate(selectedBuku.id, processedData);
         toast.success('Buku berhasil diupdate!');
       } else {
-        await handleCreate(formData);
+        await handleCreate(processedData);
         toast.success('Buku berhasil ditambahkan!');
       }
+      
       setIsModalOpen(false);
       setSelectedBuku(null);
       refresh();
     } catch (error) {
+      console.error('Submit error:', error);
       toast.error(error.message);
     }
   };
@@ -186,78 +207,102 @@ const DataBuku = () => {
   ];
 
   const bukuFormConfig = {
-    type: 'book',
-    title: 'Buku',
-    imageField: 'cover_img',
     fields: [
-      { id: 'judul', label: 'Judul', required: true },
-      { id: 'penulis', label: 'Penulis', required: true },
-      { id: 'isbn', label: 'ISBN', required: true },
       {
-        id: 'kategori',
-        label: 'Kategori',
+        name: 'judul',
+        label: 'Judul Buku',
+        type: 'text',
         required: true,
-        component: ({ value, onChange, options }) => (
-          <select
-            value={value}
-            onChange={onChange}
-            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-          >
-            <option value="" disabled>Pilih Kategori</option>
-            {categories.map(category => (
-              <option key={category} value={category}>{category}</option>
-            ))}
-          </select>
-        )
+        placeholder: 'Masukkan judul buku'
       },
-      { id: 'stock', label: 'Stok', type: 'number', required: true },
-      { id: 'denda_harian', label: 'Denda Harian', type: 'number', required: true },
-      { id: 'penerbit', label: 'Penerbit', required: true },
-      { id: 'tahun_terbit', label: 'Tahun Terbit', type: 'number', required: true },
       {
-        id: 'deskripsi',
+        name: 'penulis',
+        label: 'Penulis',
+        type: 'text',
+        required: true,
+        placeholder: 'Masukkan nama penulis'
+      },
+      {
+        name: 'kategori',
+        label: 'Kategori',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'FIKSI', label: 'Fiksi' },
+          { value: 'NON-FIKSI', label: 'Non-Fiksi' },
+          { value: 'SAINS', label: 'Sains' },
+          { value: 'TEKNOLOGI', label: 'Teknologi' },
+          { value: 'SEJARAH', label: 'Sejarah' },
+          { value: 'SASTRA', label: 'Sastra' },
+          { value: 'KOMIK', label: 'Komik' },
+          { value: 'LAINNYA', label: 'Lainnya' }
+        ]
+      },
+      {
+        name: 'isbn',
+        label: 'ISBN',
+        type: 'text',
+        placeholder: 'Masukkan ISBN buku'
+      },
+      {
+        name: 'stock',
+        label: 'Stok',
+        type: 'number',
+        min: 0,
+        placeholder: 'Masukkan jumlah stok'
+      },
+      {
+        name: 'denda_harian',
+        label: 'Denda Harian',
+        type: 'number',
+        min: 0,
+        placeholder: 'Masukkan nominal denda'
+      },
+      {
+        name: 'penerbit',
+        label: 'Penerbit',
+        type: 'text',
+        placeholder: 'Masukkan nama penerbit'
+      },
+      {
+        name: 'tahun_terbit',
+        label: 'Tahun Terbit',
+        type: 'number',
+        min: 1800,
+        max: new Date().getFullYear(),
+        placeholder: 'Masukkan tahun terbit'
+      },
+      {
+        name: 'deskripsi',
         label: 'Deskripsi',
-        component: ({ value, onChange }) => (
-          <textarea
-            value={value}
-            onChange={onChange}
-            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-            rows={4}
-          />
-        )
+        type: 'textarea',
+        placeholder: 'Masukkan deskripsi buku'
+      },
+      {
+        name: 'cover_img',
+        label: 'Cover Buku',
+        type: 'file',
+        accept: 'image/*'
       }
     ]
   };
 
   const bukuDetailConfig = {
-    title: 'Detail Buku',
-    imageField: 'cover_img',
-    defaultIcon: BookOpen,
-    primaryTextField: 'judul',
-    secondaryFields: [
-      { key: 'penulis', label: 'Penulis' },
-      { key: 'isbn', label: 'ISBN' }
-    ],
-    sections: [
-      {
-        title: 'Informasi Umum',
-        fields: [
-          { key: 'kategori', label: 'Kategori' },
-          { key: 'stock', label: 'Stok' },
-          { key: 'penerbit', label: 'Penerbit' },
-          { key: 'tahun_terbit', label: 'Tahun Terbit' },
-          {
-            key: 'denda_harian',
-            label: 'Denda Harian',
-            format: (value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`
-          }
-        ]
-      },
-      {
-        title: 'Deskripsi',
-        fields: [
-          { key: 'deskripsi', label: 'Deskripsi' }
-        ]
+    fields: [
+      { name: 'judul', label: 'Judul Buku' },
+      { name: 'penulis', label: 'Penulis' },
+      { name: 'kategori', label: 'Kategori' },
+      { name: 'isbn', label: 'ISBN' },
+      { name: 'stock', label: 'Stok' },
+      { name: 'denda_harian', label: 'Denda Harian' },
+      { name: 'penerbit', label: 'Penerbit' },
+      { name: 'tahun_terbit', label: 'Tahun Terbit' },
+      { name: 'deskripsi', label: 'Deskripsi' },
+      { 
+        name: 'cover_img', 
+        label: 'Cover Buku',
+        type: 'image',
+        baseUrl: API_CONFIG.baseURL 
       }
     ]
   };
