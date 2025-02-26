@@ -110,14 +110,20 @@ const AuthModal = ({ isOpen, onClose }) => {
           }
           setRegisterStep(2);
         } else {
-          await register({
+          const registerData = {
             name: formData.name.trim(),
             email: formData.email.trim(),
             username: formData.username.trim(),
             password: formData.password,
             confPassword: formData.confirmPassword
+          };
+
+          await register(registerData);
+          await login({
+            email: formData.email.trim(),
+            password: formData.password
           });
-          setIsLogin(true);
+          onClose();
           resetForm();
         }
       }
@@ -127,7 +133,7 @@ const AuthModal = ({ isOpen, onClose }) => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [isFormValid, isSubmitting, isLogin, formData, registerStep, login, register, onClose]);
+  }, [isFormValid, isSubmitting, isLogin, formData, registerStep, login, register, onClose, resetForm]);
 
   const resetForm = useCallback(() => {
     setFormData({ email: '', password: '', name: '', username: '', confirmPassword: '' });
