@@ -85,16 +85,27 @@ export const bukuController = {
 
     try {
       const dataFile = req.file;
-      const dataBuku = req.body;
+      const dataBuku = {
+        ...req.body,
+        stock: parseInt(req.body.stock) || 0,
+        denda_harian: parseInt(req.body.denda_harian) || 0,
+        tahun_terbit: parseInt(req.body.tahun_terbit) || null
+      };
+
+      // Log untuk debugging
+      console.log('Received data:', { file: dataFile, body: dataBuku });
 
       // Handle file upload
       if (dataFile) {
         dataBuku.cover_img = `/uploads/covers/${dataFile.filename}`;
       }
 
-      // Validasi data
-      if (!dataBuku.judul || !dataBuku.penulis || !dataBuku.kategori) {
-        throw new Error("Data buku tidak lengkap");
+      // Validasi data wajib
+      const requiredFields = ['judul', 'penulis', 'kategori'];
+      const missingFields = requiredFields.filter(field => !dataBuku[field]);
+      
+      if (missingFields.length > 0) {
+        throw new Error(`Data tidak lengkap: ${missingFields.join(', ')} wajib diisi`);
       }
 
       // Create book within transaction
@@ -102,6 +113,7 @@ export const bukuController = {
       await transaction.commit();
 
       res.status(201).json({
+        success: true,
         msg: "Data buku berhasil ditambahkan!",
         data: buku,
       });
@@ -110,12 +122,16 @@ export const bukuController = {
 
       // Remove uploaded file if exists
       if (req.file) {
-        await fs.unlink(req.file.path).catch(console.error);
+        const filePath = path.join('public', 'uploads', 'covers', req.file.filename);
+        await fs.unlink(filePath).catch(console.error);
       }
 
-      res.status(500).json({
+      console.error('Error creating book:', error);
+
+      res.status(400).json({
+        success: false,
         msg: error.message || "Gagal menambahkan data buku",
-        ...(process.env.NODE_ENV === "development" && { error: error.message }),
+        error: process.env.NODE_ENV === "development" ? error.message : undefined
       });
     }
   },
@@ -126,22 +142,35 @@ export const bukuController = {
 
     try {
       const { id } = req.params;
-      const dataBuku = req.body;
-      const oldBuku = await Buku.findByPk(id, { transaction });
+      const dataBuku = {
+        ...req.body,
+        stock: parseInt(req.body.stock) || 0,
+        denda_harian: parseInt(req.body.denda_harian) || 0,
+        tahun_terbit: parseInt(req.body.tahun_terbit) || null
+      };
 
+      const oldBuku = await Buku.findByPk(id);
       if (!oldBuku) {
-        throw new Error("Data buku tidak ditemukan");
+        throw new Error("Buku tidak ditemukan");
       }
 
       // Handle file upload
       if (req.file) {
         dataBuku.cover_img = `/uploads/covers/${req.file.filename}`;
-
+        
         // Remove old cover if exists
         if (oldBuku.cover_img) {
-          const oldPath = path.join("public", oldBuku.cover_img);
+          const oldPath = path.join('public', oldBuku.cover_img);
           await fs.unlink(oldPath).catch(() => {});
         }
+      }
+
+      // Validasi data wajib
+      const requiredFields = ['judul', 'penulis', 'kategori'];
+      const missingFields = requiredFields.filter(field => !dataBuku[field]);
+      
+      if (missingFields.length > 0) {
+        throw new Error(`Data tidak lengkap: ${missingFields.join(', ')} wajib diisi`);
       }
 
       // Update book
@@ -154,6 +183,7 @@ export const bukuController = {
       const updatedBuku = await Buku.findByPk(id);
 
       res.status(200).json({
+        success: true,
         msg: "Data buku berhasil diupdate!",
         data: updatedBuku,
       });
@@ -162,12 +192,16 @@ export const bukuController = {
 
       // Remove uploaded file if exists
       if (req.file) {
-        await fs.unlink(req.file.path).catch(console.error);
+        const filePath = path.join('public', 'uploads', 'covers', req.file.filename);
+        await fs.unlink(filePath).catch(console.error);
       }
 
-      res.status(500).json({
+      console.error('Error updating book:', error);
+
+      res.status(400).json({
+        success: false,
         msg: error.message || "Gagal update data buku",
-        ...(process.env.NODE_ENV === "development" && { error: error.message }),
+        error: process.env.NODE_ENV === "development" ? error.message : undefined
       });
     }
   },

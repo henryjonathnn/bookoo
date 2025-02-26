@@ -36,12 +36,23 @@ export const bookService = {
     try {
       const formData = new FormData();
       
+      // Pastikan semua field yang wajib terisi
+      const requiredFields = ['judul', 'penulis', 'kategori'];
+      requiredFields.forEach(field => {
+        if (!bookData[field]) {
+          throw new Error(`${field} wajib diisi`);
+        }
+      });
+
       // Append semua field ke FormData
       Object.keys(bookData).forEach(key => {
-        if (key === 'cover_img' && bookData[key] instanceof File) {
-          formData.append('cover_img', bookData[key]);
+        if (key === 'cover_img') {
+          if (bookData[key] instanceof File) {
+            formData.append('cover_img', bookData[key]);
+          }
         } else if (bookData[key] !== null && bookData[key] !== undefined) {
-          formData.append(key, bookData[key]);
+          // Convert numbers to string untuk FormData
+          formData.append(key, bookData[key].toString());
         }
       });
 
@@ -50,8 +61,14 @@ export const bookService = {
           'Content-Type': 'multipart/form-data'
         }
       });
+
+      if (!response.data.success) {
+        throw new Error(response.data.msg);
+      }
+
       return response.data;
     } catch (error) {
+      console.error('Error creating book:', error);
       throw new Error(handleApiError(error));
     }
   },
@@ -59,12 +76,23 @@ export const bookService = {
     try {
       const formData = new FormData();
       
+      // Pastikan semua field yang wajib terisi
+      const requiredFields = ['judul', 'penulis', 'kategori'];
+      requiredFields.forEach(field => {
+        if (!bookData[field]) {
+          throw new Error(`${field} wajib diisi`);
+        }
+      });
+
       // Append semua field ke FormData
       Object.keys(bookData).forEach(key => {
-        if (key === 'cover_img' && bookData[key] instanceof File) {
-          formData.append('cover_img', bookData[key]);
+        if (key === 'cover_img') {
+          if (bookData[key] instanceof File) {
+            formData.append('cover_img', bookData[key]);
+          }
         } else if (bookData[key] !== null && bookData[key] !== undefined) {
-          formData.append(key, bookData[key]);
+          // Convert numbers to string untuk FormData
+          formData.append(key, bookData[key].toString());
         }
       });
 
@@ -73,8 +101,14 @@ export const bookService = {
           'Content-Type': 'multipart/form-data'
         }
       });
+
+      if (!response.data.success) {
+        throw new Error(response.data.msg);
+      }
+
       return response.data;
     } catch (error) {
+      console.error('Error updating book:', error);
       throw new Error(handleApiError(error));
     }
   },
