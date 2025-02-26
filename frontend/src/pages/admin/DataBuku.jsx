@@ -122,6 +122,7 @@ const DataBuku = () => {
       }
       setIsModalOpen(false);
       setSelectedBuku(null);
+      refresh();
     } catch (error) {
       toast.error(error.message);
     }

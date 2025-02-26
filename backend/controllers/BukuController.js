@@ -87,15 +87,18 @@ export const bukuController = {
       const dataFile = req.file;
       const dataBuku = req.body;
 
-      // Handle file upload with transaction
+      // Handle file upload
       if (dataFile) {
         dataBuku.cover_img = `/uploads/covers/${dataFile.filename}`;
       }
 
+      // Validasi data
+      if (!dataBuku.judul || !dataBuku.penulis || !dataBuku.kategori) {
+        throw new Error("Data buku tidak lengkap");
+      }
+
       // Create book within transaction
       const buku = await Buku.create(dataBuku, { transaction });
-
-      // Commit transaction
       await transaction.commit();
 
       res.status(201).json({
@@ -103,7 +106,6 @@ export const bukuController = {
         data: buku,
       });
     } catch (error) {
-      // Rollback transaction
       await transaction.rollback();
 
       // Remove uploaded file if exists
@@ -112,7 +114,7 @@ export const bukuController = {
       }
 
       res.status(500).json({
-        msg: "Gagal menambahkan data buku",
+        msg: error.message || "Gagal menambahkan data buku",
         ...(process.env.NODE_ENV === "development" && { error: error.message }),
       });
     }
@@ -125,26 +127,17 @@ export const bukuController = {
     try {
       const { id } = req.params;
       const dataBuku = req.body;
-
-      // Find existing book with transaction
       const oldBuku = await Buku.findByPk(id, { transaction });
 
       if (!oldBuku) {
-        await transaction.rollback();
-
-        // Clean up uploaded file if any
-        if (req.file) {
-          await fs.unlink(req.file.path).catch(console.error);
-        }
-
-        return res.status(404).json({ msg: "Data buku tidak ditemukan" });
+        throw new Error("Data buku tidak ditemukan");
       }
 
       // Handle file upload
       if (req.file) {
         dataBuku.cover_img = `/uploads/covers/${req.file.filename}`;
 
-        // Remove old file if exists
+        // Remove old cover if exists
         if (oldBuku.cover_img) {
           const oldPath = path.join("public", oldBuku.cover_img);
           await fs.unlink(oldPath).catch(() => {});
@@ -157,7 +150,6 @@ export const bukuController = {
         transaction,
       });
 
-      // Commit transaction and fetch updated book
       await transaction.commit();
       const updatedBuku = await Buku.findByPk(id);
 
@@ -166,7 +158,6 @@ export const bukuController = {
         data: updatedBuku,
       });
     } catch (error) {
-      // Rollback transaction
       await transaction.rollback();
 
       // Remove uploaded file if exists
@@ -175,7 +166,7 @@ export const bukuController = {
       }
 
       res.status(500).json({
-        msg: "Gagal update data buku",
+        msg: error.message || "Gagal update data buku",
         ...(process.env.NODE_ENV === "development" && { error: error.message }),
       });
     }

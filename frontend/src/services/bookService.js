@@ -32,10 +32,52 @@ export const bookService = {
   },
 
   getBukuById: createApiMethod(async (id) => api.get(`/buku/${id}`)),
-  createBuku: createApiMethod((bookData) => api.post("/buku", bookData)),
-  updateBuku: createApiMethod((id, bookData) =>
-    api.patch(`/buku/${id}`, bookData)
-  ),
+  createBuku: async (bookData) => {
+    try {
+      const formData = new FormData();
+      
+      // Append semua field ke FormData
+      Object.keys(bookData).forEach(key => {
+        if (key === 'cover_img' && bookData[key] instanceof File) {
+          formData.append('cover_img', bookData[key]);
+        } else if (bookData[key] !== null && bookData[key] !== undefined) {
+          formData.append(key, bookData[key]);
+        }
+      });
+
+      const response = await api.post("/buku", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
+  updateBuku: async (id, bookData) => {
+    try {
+      const formData = new FormData();
+      
+      // Append semua field ke FormData
+      Object.keys(bookData).forEach(key => {
+        if (key === 'cover_img' && bookData[key] instanceof File) {
+          formData.append('cover_img', bookData[key]);
+        } else if (bookData[key] !== null && bookData[key] !== undefined) {
+          formData.append(key, bookData[key]);
+        }
+      });
+
+      const response = await api.patch(`/buku/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
   deleteBuku: createApiMethod((id) => api.delete(`/buku/${id}`)),
   getKategori: createApiMethod(() => api.get("/buku/kategori")),
 };
